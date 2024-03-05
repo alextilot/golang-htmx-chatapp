@@ -1,0 +1,15 @@
+<input
+ class=\"input input-bordered\" autocapitalize=\"none\" autocorrect=\"off\" required>
+<div id=\"login-form\" class=\"card shrink-0 w-full shadow-2xl bg-base-100 p-8\" hx-ext=\"response-targets, debug\"><h1 class=\"text-2xl font-semibold text-center\">Login</h1><form class=\"card-body space-y-4\" hx-boost=\"true\" action=\"/login\" method=\"post\" hx-target=\"#login-form\" hx-target-error=\"#login-form\" hx-swap=\"outerHTML\" hx-indicator=\"#spinner\"><div class=\"form-control\">
+</div><div class=\"form-control\">
+</div><div class=\"form-control mt-6\"><button class=\"btn btn-primary\">Login <span id=\"spinner\" class=\"loading loading-spinner htmx-indicator\"></span></button> <span hx-disinherit=\"*\">Don't have an account ? <a href=\"/signup\" class=\"text-blue-600 hover:text-blue-800 hover:underline\">Signup</a></span></div>
+<p class=\"text-error text-sm mt-2\">
+</p>
+<div id=\"response-div\"></div></form></div>
+<div id=\"register-form\" class=\"card shrink-0 w-full shadow-2xl bg-base-100 p-8\" hx-ext=\"response-targets, debug\"><h1 class=\"text-2xl font-semibold text-center\">Signup</h1><form class=\"card-body space-y-4\" hx-boost=\"true\" action=\"/signup\" method=\"post\" hx-target=\"#register-form\" hx-target-error=\"#register-form\" hx-swap=\"outerHTML\" hx-indicator=\"#spinner\"><div class=\"form-control\">
+</div><div class=\"form-control\">
+</div><div class=\"form-control\">
+</div><div class=\"form-control mt-6\"><button class=\"btn btn-primary\">Sign Up <span id=\"spinner\" class=\"loading loading-spinner htmx-indicator\"></span></button> <span hx-disinherit=\"*\">Already have an account ? <a href=\"/login\" class=\"text-blue-600 hover:text-blue-800 hover:underline\">Login</a></span></div>
+<p class=\"text-error text-sm mt-2\">
+</p>
+<div id=\"response-div\"></div></form></div>

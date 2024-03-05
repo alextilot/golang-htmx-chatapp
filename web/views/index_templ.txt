@@ -1,0 +1,7 @@
+ <main class=\"h-full\"><div class=\"h-full relative flex flex-col justify-center\"><div class=\"w-full m-auto lg:max-w-xl\">
+</div></div></main>
+ <main class=\"h-full\"><div class=\"h-full relative flex flex-col justify-center\"><div class=\"w-full m-auto lg:max-w-xl\">
+</div></div></main>
+ <main class=\"h-dvh\">
+</main>
+ <main class=\"h-full\"><div class=\"h-full hero bg-base-200\"><div class=\"hero-content text-center\"><div class=\"max-w-md\"><h1 class=\"text-5xl font-bold\">ChatApp</h1><div class=\"py-7 collapse-title text-xl font-medium\">Built with:</div><ul><li><a href=\"https://go.dev/\">Go</a></li><li><a href=\"https://echo.labstack.com/\">Echo</a></li><li><a href=\"https://templ.guide/\">TEMPL</a></li><li><a href=\"https://htmx.org/\">htmx</a></li><li><a href=\"https://tailwindcss.com/\">Tailwind CSS</a></li><li><a href=\"https://daisyui.com/\">daisyUI</a></li></ul><a class=\"btn btn-primary\" href=\"/login\">Chat now!</a></div></div></div></main>
