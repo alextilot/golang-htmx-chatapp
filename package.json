@@ -7,8 +7,8 @@
   "author": "Alex Tilot",
   "license": "ISC",
   "scripts": {
-    "watch": "tailwindcss -i './static/css/input.css' -o './static/css/styles.css' --watch",
-    "build": "tailwindcss -i './static/css/input.css' -o './static/css/styles.css'"
+    "watch": "tailwindcss -i './css/input.css' -o './css/output.css' --watch",
+    "build": "tailwindcss -i './css/input.css' -o './css/output.css'"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",

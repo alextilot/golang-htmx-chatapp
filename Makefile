@@ -9,7 +9,7 @@ templ:
 
 .PHONY: tailwind
 tailwind:
-	npx tailwindcss -i ./static/css/input.css -o ./static/css/styles.css --watch
+	npx tailwindcss -i ./css/input.css -o ./css/output.css --watch
 
 .PHONY: air
 air: 

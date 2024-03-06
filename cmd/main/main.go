@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"log"
 
+	"net/http"
+
 	"github.com/alextilot/golang-htmx-chatapp/handler"
 	"github.com/alextilot/golang-htmx-chatapp/router"
 	"github.com/alextilot/golang-htmx-chatapp/services"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/alextilot/golang-htmx-chatapp/web/views"
-	"net/http"
 
 	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
@@ -48,7 +49,7 @@ func main() {
 	go manager.HandleClientListEventChannel(ctx)
 
 	//Init web routes
-	e.Static("/css", "static/css")
+	e.Static("/css", "css")
 
 	e.GET("/", func(etx echo.Context) error {
 		return web.Render(etx, http.StatusOK, views.HomePage())
