@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"golang-app/web/components"
+	"github.com/alextilot/golang-htmx-chatapp/web/components"
 	"strings"
 	"time"
 

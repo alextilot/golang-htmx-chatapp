@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"log"
 
-	"golang-app/handler"
-	"golang-app/router"
-	"golang-app/services"
-	"golang-app/web"
-	"golang-app/web/views"
+	"github.com/alextilot/golang-htmx-chatapp/handler"
+	"github.com/alextilot/golang-htmx-chatapp/router"
+	"github.com/alextilot/golang-htmx-chatapp/services"
+	"github.com/alextilot/golang-htmx-chatapp/web"
+	"github.com/alextilot/golang-htmx-chatapp/web/views"
 	"net/http"
 
 	echojwt "github.com/labstack/echo-jwt"

@@ -26,4 +26,4 @@ air:
 # build:
 # 	tailwindcss -i css/main.css -o css/styles.css
 # 	@templ generate view
-# 	@go build -o bin/golang-app main.go
+# 	@go build -o bin/github.com/alextilot/golang-htmx-chatapp main.go

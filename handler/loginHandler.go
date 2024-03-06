@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
-	"golang-app/services"
-	"golang-app/web"
-	"golang-app/web/forms"
+	"github.com/alextilot/golang-htmx-chatapp/services"
+	"github.com/alextilot/golang-htmx-chatapp/web"
+	"github.com/alextilot/golang-htmx-chatapp/web/forms"
 	"net/http"
 	"strings"
 	"time"

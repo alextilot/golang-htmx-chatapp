@@ -2095,10 +2095,6 @@ html {
   height: 100vh;
 }
 
-.h-6 {
-  height: 1.5rem;
-}
-
 .w-10 {
   width: 2.5rem;
 }
@@ -2113,10 +2109,6 @@ html {
 
 .w-full {
   width: 100%;
-}
-
-.w-6 {
-  width: 1.5rem;
 }
 
 .max-w-md {
@@ -2362,16 +2354,6 @@ html {
 .focus\:ring-blue-500:focus {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(59 130 246 / var(--tw-ring-opacity));
-}
-
-@media (min-width: 768px) {
-  .md\:h-8 {
-    height: 2rem;
-  }
-
-  .md\:w-8 {
-    width: 2rem;
-  }
 }
 
 @media (min-width: 1024px) {

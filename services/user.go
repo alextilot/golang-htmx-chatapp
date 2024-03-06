@@ -2,7 +2,7 @@ package services
 
 import (
 	"database/sql"
-	"golang-app/dto"
+	"github.com/alextilot/golang-htmx-chatapp/dto"
 	"log"
 
 	"github.com/google/uuid"

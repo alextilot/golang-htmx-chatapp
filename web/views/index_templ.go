@@ -10,9 +10,9 @@ import "context"
 import "io"
 import "bytes"
 
-import "golang-app/web/layout"
-import "golang-app/web/components"
-import "golang-app/web/forms"
+import "github.com/alextilot/golang-htmx-chatapp/web/layout"
+import "github.com/alextilot/golang-htmx-chatapp/web/components"
+import "github.com/alextilot/golang-htmx-chatapp/web/forms"
 
 func LoginPage() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {

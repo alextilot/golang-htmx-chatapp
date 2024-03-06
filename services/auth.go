@@ -1,7 +1,7 @@
 package services
 
 import (
-	"golang-app/dto"
+	"github.com/alextilot/golang-htmx-chatapp/dto"
 	"net/http"
 	"time"
 
