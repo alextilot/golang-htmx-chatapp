@@ -1,9 +1,10 @@
 package services
 
 import (
-	"github.com/alextilot/golang-htmx-chatapp/dto"
 	"net/http"
 	"time"
+
+	"github.com/alextilot/golang-htmx-chatapp/model"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -23,7 +24,7 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func GenerateTokensAndSetCookies(user *dto.UserDto, etx echo.Context) error {
+func GenerateTokensAndSetCookies(user *model.User, etx echo.Context) error {
 	accessToken, exp, err := generateAccessToken(user)
 	if err != nil {
 		return err
@@ -39,19 +40,19 @@ func GenerateTokensAndSetCookies(user *dto.UserDto, etx echo.Context) error {
 	return nil
 }
 
-func generateAccessToken(user *dto.UserDto) (string, time.Time, error) {
+func generateAccessToken(user *model.User) (string, time.Time, error) {
 	expirationTime := time.Now().Add(1 * time.Hour)
 	return generateToken(user, expirationTime, []byte(JwtSecretKey))
 }
 
-func generateRefreshToken(user *dto.UserDto) (string, time.Time, error) {
+func generateRefreshToken(user *model.User) (string, time.Time, error) {
 	// Declare the expiration time of the token - 24 hours.
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	return generateToken(user, expirationTime, []byte(JwtRefreshSecretKey))
 }
 
-func generateToken(user *dto.UserDto, expirationTime time.Time, secret []byte) (string, time.Time, error) {
+func generateToken(user *model.User, expirationTime time.Time, secret []byte) (string, time.Time, error) {
 	// Create the JWT claims, which includes the username and expiry time.
 	claims := &Claims{
 		ID:       user.ID,
@@ -125,7 +126,7 @@ func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 				if tkn != nil && tkn.Valid {
 					// If everything is good, update tokens.
-					_ = GenerateTokensAndSetCookies(&dto.UserDto{
+					_ = GenerateTokensAndSetCookies(&model.User{
 						ID:       claims.ID,
 						Username: claims.Username,
 					}, etx)

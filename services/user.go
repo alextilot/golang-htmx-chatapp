@@ -2,19 +2,20 @@ package services
 
 import (
 	"database/sql"
-	"github.com/alextilot/golang-htmx-chatapp/dto"
+	"errors"
 	"log"
 
+	"github.com/alextilot/golang-htmx-chatapp/model"
+
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
 	DB *sql.DB
 }
 
-func (us *UserService) GetUsers(username string) ([]*dto.UserDto, error) {
-	users := []*dto.UserDto{}
+func (us *UserService) GetUsers(username string) ([]*model.User, error) {
+	users := []*model.User{}
 	rows, err := us.DB.Query("SELECT id, username FROM user WHERE username = ?", username)
 	if err != nil {
 		log.Println(err)
@@ -30,7 +31,7 @@ func (us *UserService) GetUsers(username string) ([]*dto.UserDto, error) {
 			log.Println(err)
 			return users, err
 		}
-		users = append(users, &dto.UserDto{
+		users = append(users, &model.User{
 			ID:       id,
 			Username: username,
 		})
@@ -43,7 +44,7 @@ func (us *UserService) GetUsers(username string) ([]*dto.UserDto, error) {
 	return users, nil
 }
 
-func (us *UserService) GetUser(username string) (*dto.UserDto, error) {
+func (us *UserService) GetUser(username string) (*model.User, error) {
 	stmt, err := us.DB.Prepare("SELECT id, password FROM user WHERE username=?")
 	if err != nil {
 		log.Println(err)
@@ -59,28 +60,30 @@ func (us *UserService) GetUser(username string) (*dto.UserDto, error) {
 		return nil, err
 	}
 
-	return &dto.UserDto{
+	return &model.User{
 		ID:       id,
 		Username: username,
 		Password: password,
 	}, nil
 }
 
-func (us *UserService) CreateUser(username string, password string) (*dto.UserDto, error) {
-	//hash password.
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 8)
-	if err != nil {
-		return nil, err
-	}
-	user := &dto.UserDto{
+func (us *UserService) CreateUser(username string, password string) (*model.User, error) {
+	user := &model.User{
 		ID:       uuid.New().String(),
 		Username: username,
 	}
+	//hash password.
+	hashedPassword, err := user.HashPassword(password)
+	if err != nil {
+		return nil, err
+	}
+	user.Password = hashedPassword
+
 	sqlStmt := `
 	INSERT INTO user(id, username, password) values(?, ?, ?)
 	`
 
-	_, err = us.DB.Exec(sqlStmt, user.ID, user.Username, string(hashedPassword))
+	_, err = us.DB.Exec(sqlStmt, user.ID, user.Username, user.Password)
 	if err != nil {
 		log.Printf("%q, %s\n", err, sqlStmt)
 		return nil, err
@@ -89,8 +92,8 @@ func (us *UserService) CreateUser(username string, password string) (*dto.UserDt
 	return user, nil
 }
 
-func (us *UserService) UpdateUser(id string, username string) (*dto.UserDto, error) {
-	user := &dto.UserDto{
+func (us *UserService) UpdateUser(id string, username string) (*model.User, error) {
+	user := &model.User{
 		ID:       id,
 		Username: username,
 	}
@@ -107,7 +110,7 @@ func (us *UserService) UpdateUser(id string, username string) (*dto.UserDto, err
 	return user, nil
 }
 
-func (us *UserService) DeleteUser(id string) (*dto.UserDto, error) {
+func (us *UserService) DeleteUser(id string) (*model.User, error) {
 	sqlStmt := `
 	DELETE FROM user WHERE id=?
 	`
@@ -121,15 +124,15 @@ func (us *UserService) DeleteUser(id string) (*dto.UserDto, error) {
 	return nil, nil
 }
 
-func (us *UserService) LoginUser(username string, password string) (*dto.UserDto, error) {
-	targetUser, err := us.GetUser(username)
+func (us *UserService) LoginUser(username string, password string) (*model.User, error) {
+	user, err := us.GetUser(username)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(targetUser.Password), []byte(password)); err != nil {
-		return nil, err
+	if user.CheckPassword(password) {
+		return user, nil
 	}
 
-	return targetUser, nil
+	return nil, errors.New("invalid login information")
 }
