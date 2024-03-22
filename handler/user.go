@@ -2,19 +2,21 @@ package handler
 
 import (
 	"context"
-	"github.com/alextilot/golang-htmx-chatapp/services"
-	"github.com/alextilot/golang-htmx-chatapp/web"
-	"github.com/alextilot/golang-htmx-chatapp/web/forms"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/alextilot/golang-htmx-chatapp/services"
+	"github.com/alextilot/golang-htmx-chatapp/web"
+	"github.com/alextilot/golang-htmx-chatapp/web/forms"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
-func PostLogin(etx echo.Context, ctx context.Context, userService *services.UserService) error {
+func (h *Handler) Login(etx echo.Context, ctx context.Context) error {
 	time.Sleep(1 * time.Second)
+
 	username := etx.FormValue("username")
 	password := etx.FormValue("password")
 
@@ -38,7 +40,7 @@ func PostLogin(etx echo.Context, ctx context.Context, userService *services.User
 	}
 
 	// Check login information
-	loggedInUser, err := userService.LoginUser(username, password)
+	loggedInUser, err := h.userService.LoginUser(username, password)
 	if loggedInUser == nil || err != nil {
 		component := forms.LoginForm("Invalid login information")
 		return web.Render(etx, http.StatusUnauthorized, component)
@@ -55,7 +57,7 @@ func PostLogin(etx echo.Context, ctx context.Context, userService *services.User
 	return etx.String(http.StatusTemporaryRedirect, "Successful")
 }
 
-func PostSignup(etx echo.Context, ctx context.Context, userService *services.UserService) error {
+func (h *Handler) SignUp(etx echo.Context, ctx context.Context) error {
 	time.Sleep(1 * time.Second)
 	username := etx.FormValue("username")
 	password := etx.FormValue("password")
@@ -85,14 +87,14 @@ func PostSignup(etx echo.Context, ctx context.Context, userService *services.Use
 	}
 
 	// validate unique username
-	users, err := userService.GetUsers(username)
+	users, err := h.userService.GetUsers(username)
 	if err != nil || len(users) > 0 {
 		component := forms.SignupForm("User with that name already exists")
 		return web.Render(etx, http.StatusUnauthorized, component)
 	}
 
 	// create user
-	newUser, err := userService.CreateUser(username, password)
+	newUser, err := h.userService.CreateUser(username, password)
 	if err != nil {
 		component := forms.SignupForm("Error creating user")
 		return web.Render(etx, http.StatusUnauthorized, component)

@@ -34,10 +34,13 @@ func main() {
 		log.Printf("%q: %s \n", err, sqlStmt)
 		return
 	}
+
 	// Init services
 	userService := &services.UserService{
 		DB: db,
 	}
+
+	handler := handler.NewHandler(userService)
 
 	// Init web framework
 	e := router.New()
@@ -62,10 +65,10 @@ func main() {
 	})
 
 	e.POST("/login", func(etx echo.Context) error {
-		return handler.PostLogin(etx, ctx, userService)
+		return handler.Login(etx, ctx)
 	})
 	e.POST("/signup", func(etx echo.Context) error {
-		return handler.PostSignup(etx, ctx, userService)
+		return handler.SignUp(etx, ctx)
 	})
 
 	guardedRoutes := e.Group("/chatroom")
