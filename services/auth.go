@@ -19,7 +19,6 @@ const (
 )
 
 type Claims struct {
-	ID       string `json:"id"`
 	Username string `json:"username"`
 	jwt.StandardClaims
 }
@@ -55,7 +54,6 @@ func generateRefreshToken(user *model.User) (string, time.Time, error) {
 func generateToken(user *model.User, expirationTime time.Time, secret []byte) (string, time.Time, error) {
 	// Create the JWT claims, which includes the username and expiry time.
 	claims := &Claims{
-		ID:       user.ID,
 		Username: user.Username,
 		StandardClaims: jwt.StandardClaims{
 			// In JWT, the expiry time is expressed as unix seconds.
@@ -127,7 +125,6 @@ func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 				if tkn != nil && tkn.Valid {
 					// If everything is good, update tokens.
 					_ = GenerateTokensAndSetCookies(&model.User{
-						ID:       claims.ID,
 						Username: claims.Username,
 					}, etx)
 				}

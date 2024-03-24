@@ -4,12 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"time"
 
 	"net/http"
 
 	"github.com/alextilot/golang-htmx-chatapp/handler"
 	"github.com/alextilot/golang-htmx-chatapp/router"
 	"github.com/alextilot/golang-htmx-chatapp/services"
+	"github.com/alextilot/golang-htmx-chatapp/store"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/alextilot/golang-htmx-chatapp/web/views"
 
@@ -27,7 +29,7 @@ func main() {
 	defer db.Close()
 
 	sqlStmt := `
-	CREATE TABLE IF NOT EXISTS user (id text not null primary key, username text, password text);
+	CREATE TABLE IF NOT EXISTS user (username text not null primary key, password text);
 	`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
@@ -36,11 +38,11 @@ func main() {
 	}
 
 	// Init services
-	userService := &services.UserService{
+	userStore := &store.UserStore{
 		DB: db,
 	}
 
-	handler := handler.NewHandler(userService)
+	h := handler.NewHandler(userStore)
 
 	// Init web framework
 	e := router.New()
@@ -65,10 +67,12 @@ func main() {
 	})
 
 	e.POST("/login", func(etx echo.Context) error {
-		return handler.Login(etx, ctx)
+		time.Sleep(1 * time.Second)
+		return h.Login(etx)
 	})
 	e.POST("/signup", func(etx echo.Context) error {
-		return handler.SignUp(etx, ctx)
+		time.Sleep(1 * time.Second)
+		return h.SignUp(etx)
 	})
 
 	guardedRoutes := e.Group("/chatroom")

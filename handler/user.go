@@ -1,109 +1,76 @@
 package handler
 
 import (
-	"context"
+	"fmt"
 	"net/http"
-	"strings"
-	"time"
 
+	"github.com/alextilot/golang-htmx-chatapp/model"
 	"github.com/alextilot/golang-htmx-chatapp/services"
+	"github.com/alextilot/golang-htmx-chatapp/utils"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/alextilot/golang-htmx-chatapp/web/forms"
-
 	"github.com/go-playground/validator/v10"
+
 	"github.com/labstack/echo/v4"
 )
 
-func (h *Handler) Login(etx echo.Context, ctx context.Context) error {
-	time.Sleep(1 * time.Second)
+func (h *Handler) Login(etx echo.Context) error {
+	req := &userLoginRequest{}
+	errMap := utils.NewUIError()
 
-	username := etx.FormValue("username")
-	password := etx.FormValue("password")
+	// Validate user inputs!
+	if err := req.bind(etx); err != nil {
+		errs := err.(validator.ValidationErrors)
+		for _, v := range errs {
+			errMap.Add(v.Field(), fmt.Sprintf("%v", v.Tag()))
+		}
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
+	}
 
-	var errorMessages []string
-
-	// Validate user input
-	validate := validator.New()
-	err := validate.Var(username, "required,min=2,max=20")
+	user, err := h.userService.GetByUsername(req.Username)
 	if err != nil {
-		errorMessages = append(errorMessages, "Username is Required, minimum: 2, maximum 20")
+		errMap.Add("other", "Invalid login information")
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
 	}
-
-	err = validate.Var(password, "required,min=5,max=20")
-	if err != nil {
-		errorMessages = append(errorMessages, "Password is Required, minimum: 5, maximum 20")
+	if user != nil {
+		errMap.Add("other", "Invalid login information")
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
 	}
-
-	if len(errorMessages) != 0 {
-		component := forms.LoginForm(strings.Join(errorMessages, "\n"))
-		return web.Render(etx, http.StatusUnauthorized, component)
-	}
-
-	// Check login information
-	loggedInUser, err := h.userService.LoginUser(username, password)
-	if loggedInUser == nil || err != nil {
-		component := forms.LoginForm("Invalid login information")
-		return web.Render(etx, http.StatusUnauthorized, component)
+	if !user.CheckPassword(req.Password) {
+		errMap.Add("other", "Invalid login information")
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
 	}
 
 	// JWT tokens for signed in users.
-	err = services.GenerateTokensAndSetCookies(loggedInUser, etx)
-	if err != nil {
-		component := forms.LoginForm("Unexpected Error: JwtToken failed to generate")
-		return web.Render(etx, http.StatusUnauthorized, component)
+	if err := services.GenerateTokensAndSetCookies(user, etx); err != nil {
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
 	}
 
 	etx.Response().Header().Set("HX-Redirect", "/chatroom")
 	return etx.String(http.StatusTemporaryRedirect, "Successful")
 }
 
-func (h *Handler) SignUp(etx echo.Context, ctx context.Context) error {
-	time.Sleep(1 * time.Second)
-	username := etx.FormValue("username")
-	password := etx.FormValue("password")
-	repeatPassword := etx.FormValue("repeatPassword")
+func (h *Handler) SignUp(etx echo.Context) error {
+	var user = &model.User{}
+	req := &userRegisterRequest{}
 
-	var errorMessages []string
-
-	// Validate input data
-	validate := validator.New()
-	err := validate.Var(username, "required,min=2,max=20")
-	if err != nil {
-		errorMessages = append(errorMessages, "Username required, minimum: 2, maximum 20")
+	// Validate user inputs!
+	if err := req.bind(etx, user); err != nil {
+		fmt.Println(utils.NewValidatorError(err))
+		return etx.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 
-	err = validate.Var(password, "required,min=5,max=20")
-	if err != nil {
-		errorMessages = append(errorMessages, "Password required, minimum: 5, maximum 20")
-	}
-
-	if password != repeatPassword {
-		errorMessages = append(errorMessages, "Passwords do not match")
-	}
-
-	if len(errorMessages) != 0 {
-		component := forms.SignupForm(strings.Join(errorMessages, "\n"))
-		return web.Render(etx, http.StatusUnauthorized, component)
-	}
-
-	// validate unique username
-	users, err := h.userService.GetUsers(username)
-	if err != nil || len(users) > 0 {
-		component := forms.SignupForm("User with that name already exists")
-		return web.Render(etx, http.StatusUnauthorized, component)
-	}
-
-	// create user
-	newUser, err := h.userService.CreateUser(username, password)
-	if err != nil {
-		component := forms.SignupForm("Error creating user")
-		return web.Render(etx, http.StatusUnauthorized, component)
+	// Create user, this should error out if user already exists.
+	if err := h.userService.Create(user); err != nil {
+		fmt.Println(utils.NewError(err))
+		return etx.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 
 	// JWT tokens for signed in users.
-	err = services.GenerateTokensAndSetCookies(newUser, etx)
-	if err != nil {
-		component := forms.SignupForm("Unexpected Error: JwtToken failed to generate")
+	if err := services.GenerateTokensAndSetCookies(user, etx); err != nil {
+		out := utils.NewValidatorError(err)
+		fmt.Println(out)
+		component := forms.SignUpForm(utils.NewValidatorError(err))
 		return web.Render(etx, http.StatusUnauthorized, component)
 	}
 

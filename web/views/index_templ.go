@@ -13,6 +13,7 @@ import "bytes"
 import "github.com/alextilot/golang-htmx-chatapp/web/layout"
 import "github.com/alextilot/golang-htmx-chatapp/web/components"
 import "github.com/alextilot/golang-htmx-chatapp/web/forms"
+import "github.com/alextilot/golang-htmx-chatapp/utils"
 
 func LoginPage() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
@@ -41,7 +42,7 @@ func LoginPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = forms.LoginForm("").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = forms.LoginForm(utils.NewUIError()).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -92,7 +93,7 @@ func SignupPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = forms.SignupForm("").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = forms.SignUpForm(utils.NewUIError()).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
