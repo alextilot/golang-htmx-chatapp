@@ -82,10 +82,10 @@ func (c *Client) ReadMessages(ctx echo.Context) {
 			return
 		}
 
-		fmt.Printf("%s\n", message)
+		fmt.Printf("Chatroom: %s\n", message)
 		if err := c.Manager.WriteMessage(Message{
 			ClientID: c.ID,
-			Name:     "Alex",
+			Name:     "GUEST_NAME",
 			Time:     time.Now(),
 			Data:     message.Content,
 		}, "general"); err != nil {
@@ -115,7 +115,8 @@ func (c *Client) WriteMessage(echoContext echo.Context, ctx context.Context) {
 			}
 
 			buffer := &bytes.Buffer{}
-			components.Message(msg.Name, msg.Data, msg.Time.Format("2006-01-02 3:4:5 pm"), msg.ClientID == c.ID).Render(ctx, buffer)
+			timeString := msg.Time.Format("3:04:05 PM")
+			components.Message(msg.Name, msg.Data, timeString, msg.ClientID == c.ID).Render(ctx, buffer)
 			err := c.Conn.WriteMessage(websocket.TextMessage, buffer.Bytes())
 			if err != nil {
 				echoContext.Logger().Error(err)
