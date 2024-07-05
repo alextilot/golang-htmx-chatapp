@@ -29,20 +29,21 @@ func (h *Handler) Login(etx echo.Context) error {
 
 	user, err := h.userService.GetByUsername(req.Username)
 	if err != nil {
-		errMap.Add("other", "Invalid login information")
+		errMap.Add("other", "Username not found")
 		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
 	}
-	if user != nil {
-		errMap.Add("other", "Invalid login information")
+	if user == nil {
+		errMap.Add("other", "Invalid username")
 		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
 	}
 	if !user.CheckPassword(req.Password) {
-		errMap.Add("other", "Invalid login information")
+		errMap.Add("other", "Invalid password")
 		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
 	}
 
 	// JWT tokens for signed in users.
 	if err := services.GenerateTokensAndSetCookies(user, etx); err != nil {
+		errMap.Add("other", "Unable to authenticate")
 		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
 	}
 
@@ -53,25 +54,27 @@ func (h *Handler) Login(etx echo.Context) error {
 func (h *Handler) SignUp(etx echo.Context) error {
 	var user = &model.User{}
 	req := &userRegisterRequest{}
+	errMap := utils.NewUIError()
 
 	// Validate user inputs!
 	if err := req.bind(etx, user); err != nil {
-		fmt.Println(utils.NewValidatorError(err))
-		return etx.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
+		errs := err.(validator.ValidationErrors)
+		for _, v := range errs {
+			errMap.Add(v.Field(), fmt.Sprintf("%v", v.Tag()))
+		}
+		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errMap))
 	}
 
 	// Create user, this should error out if user already exists.
 	if err := h.userService.Create(user); err != nil {
-		fmt.Println(utils.NewError(err))
-		return etx.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
+		errMap.Add("other", "Username already exists")
+		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errMap))
 	}
 
 	// JWT tokens for signed in users.
 	if err := services.GenerateTokensAndSetCookies(user, etx); err != nil {
-		out := utils.NewValidatorError(err)
-		fmt.Println(out)
-		component := forms.SignUpForm(utils.NewValidatorError(err))
-		return web.Render(etx, http.StatusUnauthorized, component)
+		errMap.Add("other", "Unable to authenticate")
+		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errMap))
 	}
 
 	etx.Response().Header().Set("HX-Redirect", "/chatroom")

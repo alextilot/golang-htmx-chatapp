@@ -7,7 +7,14 @@ import (
 
 templ input(name string, errs utils.UIErrors, attrMap templ.Attributes) {
 	if val, ok := errs[name]; ok {
-		<input { attrMap... } name={ name } class="input input-bordered input-error" autocapitalize="none" autocorrect="off" required/>
+		<input
+			{ attrMap... }
+			name={ name }
+			class="input input-bordered input-error"
+			autocapitalize="none"
+			autocorrect="off"
+			required
+		/>
 		<p class="text-error text-sm mt-2">{ fmt.Sprintf("%v", val) }</p>
 	} else {
 		<input { attrMap... } name={ name } class="input input-bordered" autocapitalize="none" autocorrect="off" required/>
@@ -70,7 +77,8 @@ templ SignUpForm(errs utils.UIErrors) {
 				@input("password", errs, templ.Attributes{"type": "password", "placeholder": "Enter password", "autocomplete": "current-password"})
 			</div>
 			<div class="form-control">
-				@input("repeatPassword", errs, templ.Attributes{"type": "password", "placeholder": "Confrim password", "autocomplete": "current-password"})
+				@input("repeatPassword", errs, templ.Attributes{"type": "password", "placeholder": "Confrim password",
+					"autocomplete": "current-password"})
 			</div>
 			<div class="form-control mt-6">
 				<button class="btn btn-primary">

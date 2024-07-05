@@ -1,15 +1,10 @@
 package components
 
-// TODO: I do not like how the form and textarea have a circular dependancy.
-// The form manages default submit & htmx:evnet: send-message.
+// TODO: I do not like how the form and textarea have a circular dependency.
+// The form manages default submit & htmx:event: send-message.
 // After websocket send, the UI/UX needs to "reset" the textarea's state.
 templ Input() {
-	<form
-		id="chat-form"
-		ws-send
-		hx-trigger="submit, send-message"
-		hx-on::ws-after-send="resetTextarea('#text-message')"
-	>
+	<form id="chat-form" ws-send hx-trigger="submit, send-message" hx-on::ws-after-send="resetTextarea('#text-message')">
 		<label for="text-message" class="sr-only">Your message</label>
 		<div class="flex items-center px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700">
 			<textarea
@@ -42,54 +37,42 @@ templ Input() {
 			</button>
 		</div>
 		<script>
-			const autoHeight = (elem) => {
-				elem.style.height = '1px';
-				elem.style.height = `${elem.scrollHeight}px`;
+		const autoHeight = (elem) => {
+			elem.style.height = '1px';
+			elem.style.height = `${elem.scrollHeight}px`;
+		}
+		// Event handler, emits "send-message" if enter is pressed with no modifier key
+		const sendMessageOnEnter = (event) => {
+			if (event.key === "Enter" && !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)) {
+				event.preventDefault();
+				htmx.trigger(event.target, "send-message");
 			}
-			// Event handler, emits "send-message" if enter is pressed with no modifier key
-			const sendMessageOnEnter = (event) => {
-				if (event.key === "Enter" && !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)) {
-					event.preventDefault();
-					htmx.trigger(event.target, "send-message");
-				}
-			};
-			const resetTextarea = (selectors) => {
-				const element = document.querySelector(selectors)
-				if (element != null) {
-					element.value = "";
-					autoHeight(element)
-				}
-			};
-		</script>
+		};
+		const resetTextarea = (selectors) => {
+			const element = document.querySelector(selectors)
+			if (element != null) {
+				element.value = "";
+				autoHeight(element)
+			}
+		};
+	</script>
 	</form>
 }
 
 templ Message(name string, content string, time string, isSelf bool) {
 	<div hx-swap-oob="beforebegin:#chatroom-bottom">
-		<div class={ "chat", templ.KV("chat-start", !isSelf), templ.KV("chat-end", isSelf) }>
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"/>
-				</div>
-			</div>
+		<div class={ "chat" , templ.KV("chat-start", !isSelf), templ.KV("chat-end", isSelf) }>
 			<div class="chat-header">
 				{ name }
 				<time class="text-xs opacity-50">{ time }</time>
 			</div>
 			<div class="chat-bubble">{ content }</div>
-			<div class="chat-footer opacity-50">
-				Delivered
-			</div>
 		</div>
 	</div>
 }
 
 templ Chatroom() {
-	<div
-		class="flex h-full flex-col w-3/5 m-auto shadow-2xl"
-		hx-ext="ws"
-		ws-connect="/ws/chatroom"
-	>
+	<div class="flex h-full flex-col w-3/5 m-auto shadow-2xl" hx-ext="ws" ws-connect="/ws/chatroom">
 		<h1 class="text-center">Chat Room</h1>
 		<div class="flex-1 overflow-hidden">
 			<div class="h-full relative">
