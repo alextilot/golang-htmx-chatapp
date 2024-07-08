@@ -20,7 +20,7 @@ templ LoginPage() {
 	}
 }
 
-templ SignupPage() {
+templ SignUpPage() {
 	@layout.MainLayout() {
 		@layout.NavigationBar()
 		<main class="h-full">
@@ -33,11 +33,11 @@ templ SignupPage() {
 	}
 }
 
-templ ChatroomPage() {
+templ ChatroomPage(messages []components.MessageComponentViewModel) {
 	@layout.MainLayout() {
 		@layout.NavigationBar()
 		<main class="h-dvh">
-			@components.Chatroom()
+			@components.Chatroom(messages)
 		</main>
 	}
 }
@@ -51,27 +51,27 @@ templ HomePage() {
 					<div class="max-w-md">
 						<h1 class="text-5xl font-bold">ChatApp</h1>
 						// <div class="py-7 collapse-title text-xl font-medium">
-						// 	Built with:
+						// Built with:
 						// </div>
 						// <ul>
-						// 	<li>
-						// 		<a href="https://go.dev/">Go</a>
-						// 	</li>
-						// 	<li>
-						// 		<a href="https://echo.labstack.com/">Echo</a>
-						// 	</li>
-						// 	<li>
-						// 		<a href="https://templ.guide/">TEMPL</a>
-						// 	</li>
-						// 	<li>
-						// 		<a href="https://htmx.org/">htmx</a>
-						// 	</li>
-						// 	<li>
-						// 		<a href="https://tailwindcss.com/">Tailwind CSS</a>
-						// 	</li>
-						// 	<li>
-						// 		<a href="https://daisyui.com/">daisyUI</a>
-						// 	</li>
+						// <li>
+						// <a href="https://go.dev/">Go</a>
+						// </li>
+						// <li>
+						// <a href="https://echo.labstack.com/">Echo</a>
+						// </li>
+						// <li>
+						// <a href="https://templ.guide/">TEMPL</a>
+						// </li>
+						// <li>
+						// <a href="https://htmx.org/">htmx</a>
+						// </li>
+						// <li>
+						// <a href="https://tailwindcss.com/">Tailwind CSS</a>
+						// </li>
+						// <li>
+						// <a href="https://daisyui.com/">daisyUI</a>
+						// </li>
 						// </ul>
 						<a class="btn btn-primary" href="/login">Chat now!</a>
 					</div>

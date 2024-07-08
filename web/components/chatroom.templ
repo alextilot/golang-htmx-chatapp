@@ -1,5 +1,12 @@
 package components
 
+type MessageComponentViewModel struct {
+	Username string
+	Data     string
+	Time     string
+	IsSelf   bool
+}
+
 // TODO: I do not like how the form and textarea have a circular dependency.
 // The form manages default submit & htmx:event: send-message.
 // After websocket send, the UI/UX needs to "reset" the textarea's state.
@@ -59,25 +66,32 @@ templ Input() {
 	</form>
 }
 
-templ Message(name string, content string, time string, isSelf bool) {
-	<div hx-swap-oob="beforebegin:#chatroom-bottom">
-		<div class={ "chat" , templ.KV("chat-start", !isSelf), templ.KV("chat-end", isSelf) }>
-			<div class="chat-header">
-				{ name }
-				<time class="text-xs opacity-50">{ time }</time>
-			</div>
-			<div class="chat-bubble">{ content }</div>
+templ messageTemplate(message MessageComponentViewModel) {
+	<div class={ "chat" , templ.KV("chat-start", !message.IsSelf), templ.KV("chat-end", message.IsSelf) }>
+		<div class="chat-header">
+			{ message.Username }
+			<time class="text-xs opacity-50">{ message.Time }</time>
 		</div>
+		<div class="chat-bubble">{ message.Data }</div>
 	</div>
 }
 
-templ Chatroom() {
-	<div class="flex h-full flex-col w-3/5 m-auto shadow-2xl" hx-ext="ws" ws-connect="/ws/chatroom">
+templ Message(message MessageComponentViewModel) {
+	<div hx-swap-oob="beforebegin:#chatroom-bottom">
+		@messageTemplate(message)
+	</div>
+}
+
+templ Chatroom(messages []MessageComponentViewModel) {
+	<div class="flex h-full flex-col w-3/5 m-auto shadow-2xl" hx-ext="ws" ws-connect="/chatroom/ws">
 		<h1 class="text-center">Chat Room</h1>
 		<div class="flex-1 overflow-hidden">
 			<div class="h-full relative">
 				<div class="h-full w-full overflow-y-auto">
 					<scroller class="scroller flex flex-col pb-9">
+						for _, message :=range messages {
+							@messageTemplate(message)
+						}
 						//Injected content here
 						<anchor id="chatroom-bottom" class="anchor"></anchor>
 					</scroller>

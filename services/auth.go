@@ -6,7 +6,8 @@ import (
 
 	"github.com/alextilot/golang-htmx-chatapp/model"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,9 +19,26 @@ const (
 	JwtRefreshSecretKey    = "refresh-secret-key"
 )
 
-type Claims struct {
+type jwtCustomClaims struct {
 	Username string `json:"username"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
+}
+
+func EchoMiddlewareJWTConfig() echo.MiddlewareFunc {
+	return echojwt.WithConfig(echojwt.Config{
+		SigningKey:  []byte(JwtSecretKey),
+		TokenLookup: "cookie:access-token",
+		// ErrorHandler: JWTErrorChecker,
+		NewClaimsFunc: func(c echo.Context) jwt.Claims {
+			return new(jwtCustomClaims)
+		},
+	})
+}
+
+func GetUsername(etx echo.Context) string {
+	user := etx.Get("user").(*jwt.Token)
+	claims := user.Claims.(*jwtCustomClaims)
+	return claims.Username
 }
 
 func GenerateTokensAndSetCookies(user *model.User, etx echo.Context) error {
@@ -53,11 +71,11 @@ func generateRefreshToken(user *model.User) (string, time.Time, error) {
 
 func generateToken(user *model.User, expirationTime time.Time, secret []byte) (string, time.Time, error) {
 	// Create the JWT claims, which includes the username and expiry time.
-	claims := &Claims{
-		Username: user.Username,
-		StandardClaims: jwt.StandardClaims{
+	claims := &jwtCustomClaims{
+		user.Username,
+		jwt.RegisteredClaims{
 			// In JWT, the expiry time is expressed as unix seconds.
-			ExpiresAt: expirationTime.Unix(),
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 
@@ -103,12 +121,12 @@ func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// Gets user token from the context.
 		u := etx.Get("user").(*jwt.Token)
 
-		claims := u.Claims.(*Claims)
+		claims := u.Claims.(*jwtCustomClaims)
 
 		// We ensure that a new token is not issued until enough time has elapsed.
 		// In this case, a new token will only be issued if the old token is within
 		// 15 mins of expiry.
-		if time.Until(time.Unix(claims.ExpiresAt, 0)) < 15*time.Minute {
+		if time.Until(time.Unix(claims.ExpiresAt.Unix(), 0)) < 15*time.Minute {
 			// Gets the refresh token from the cookie.
 			rc, err := etx.Cookie(RefreshTokenCookieName)
 			if err == nil && rc != nil {

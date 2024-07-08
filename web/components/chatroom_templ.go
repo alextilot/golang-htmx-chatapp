@@ -8,6 +8,13 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+type MessageComponentViewModel struct {
+	Username string
+	Data     string
+	Time     string
+	IsSelf   bool
+}
+
 // TODO: I do not like how the form and textarea have a circular dependency.
 // The form manages default submit & htmx:event: send-message.
 // After websocket send, the UI/UX needs to "reset" the textarea's state.
@@ -37,7 +44,7 @@ func Input() templ.Component {
 	})
 }
 
-func Message(name string, content string, time string, isSelf bool) templ.Component {
+func messageTemplate(message MessageComponentViewModel) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -55,11 +62,7 @@ func Message(name string, content string, time string, isSelf bool) templ.Compon
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-swap-oob=\"beforebegin:#chatroom-bottom\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var3 = []any{"chat", templ.KV("chat-start", !isSelf), templ.KV("chat-end", isSelf)}
+		var templ_7745c5c3_Var3 = []any{"chat", templ.KV("chat-start", !message.IsSelf), templ.KV("chat-end", message.IsSelf)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var3...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -82,9 +85,9 @@ func Message(name string, content string, time string, isSelf bool) templ.Compon
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(name)
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(message.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/chatroom.templ`, Line: 66, Col: 10}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/chatroom.templ`, Line: 72, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -95,9 +98,9 @@ func Message(name string, content string, time string, isSelf bool) templ.Compon
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(time)
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(message.Time)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/chatroom.templ`, Line: 67, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/chatroom.templ`, Line: 73, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -108,15 +111,15 @@ func Message(name string, content string, time string, isSelf bool) templ.Compon
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(content)
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(message.Data)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/chatroom.templ`, Line: 69, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/chatroom.templ`, Line: 75, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -124,7 +127,7 @@ func Message(name string, content string, time string, isSelf bool) templ.Compon
 	})
 }
 
-func Chatroom() templ.Component {
+func Message(message MessageComponentViewModel) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -142,7 +145,51 @@ func Chatroom() templ.Component {
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex h-full flex-col w-3/5 m-auto shadow-2xl\" hx-ext=\"ws\" ws-connect=\"/ws/chatroom\"><h1 class=\"text-center\">Chat Room</h1><div class=\"flex-1 overflow-hidden\"><div class=\"h-full relative\"><div class=\"h-full w-full overflow-y-auto\"><scroller class=\"scroller flex flex-col pb-9\"><anchor id=\"chatroom-bottom\" class=\"anchor\"></anchor></scroller></div></div></div><div class=\"w-full\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-swap-oob=\"beforebegin:#chatroom-bottom\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = messageTemplate(message).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func Chatroom(messages []MessageComponentViewModel) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var9 == nil {
+			templ_7745c5c3_Var9 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex h-full flex-col w-3/5 m-auto shadow-2xl\" hx-ext=\"ws\" ws-connect=\"/chatroom/ws\"><h1 class=\"text-center\">Chat Room</h1><div class=\"flex-1 overflow-hidden\"><div class=\"h-full relative\"><div class=\"h-full w-full overflow-y-auto\"><scroller class=\"scroller flex flex-col pb-9\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, message := range messages {
+			templ_7745c5c3_Err = messageTemplate(message).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<anchor id=\"chatroom-bottom\" class=\"anchor\"></anchor></scroller></div></div></div><div class=\"w-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

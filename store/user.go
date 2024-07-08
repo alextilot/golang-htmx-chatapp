@@ -2,7 +2,6 @@ package store
 
 import (
 	"database/sql"
-	"errors"
 	"log"
 
 	"github.com/alextilot/golang-htmx-chatapp/model"
@@ -70,9 +69,4 @@ func (us *UserStore) Delete(user *model.User) error {
 	}
 
 	return nil
-}
-
-func (us *UserStore) Login(user *model.User) error {
-
-	return errors.New("invalid login information")
 }

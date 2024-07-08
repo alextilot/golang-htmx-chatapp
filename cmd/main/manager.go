@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 
+	"github.com/alextilot/golang-htmx-chatapp/model"
+	"github.com/alextilot/golang-htmx-chatapp/store"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
@@ -15,16 +17,18 @@ type ClientListEvent struct {
 type Manager struct {
 	ClientList             []*Client
 	ClientListEventChannel chan *ClientListEvent
+	messageService         *store.MessageStore
 }
 
 var (
 	upgrader = websocket.Upgrader{}
 )
 
-func NewManager() *Manager {
+func NewManager(ms *store.MessageStore) *Manager {
 	return &Manager{
 		ClientList:             []*Client{},
 		ClientListEventChannel: make(chan *ClientListEvent),
+		messageService:         ms,
 	}
 }
 
@@ -59,13 +63,13 @@ func (m *Manager) HandleClientListEventChannel(ctx context.Context) {
 	}
 }
 
-func (m *Manager) Handler(etx echo.Context, ctx context.Context) error {
+func (m *Manager) Handler(etx echo.Context, ctx context.Context, name string) error {
 	ws, err := upgrader.Upgrade(etx.Response(), etx.Request(), nil)
 	if err != nil {
 		return err
 	}
 
-	newClient := NewClient(ws, m)
+	newClient := NewClient(ws, m, name)
 
 	m.ClientListEventChannel <- &ClientListEvent{
 		EventType: "ADD",
@@ -78,7 +82,7 @@ func (m *Manager) Handler(etx echo.Context, ctx context.Context) error {
 	return nil
 }
 
-func (m *Manager) WriteMessage(message Message, chatroom string) error {
+func (m *Manager) WriteMessage(message model.Message, chatroom string) error {
 	for _, client := range m.ClientList {
 		if client.Chatroom != chatroom {
 			continue

@@ -13,9 +13,9 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/services"
 	"github.com/alextilot/golang-htmx-chatapp/store"
 	"github.com/alextilot/golang-htmx-chatapp/web"
+	"github.com/alextilot/golang-htmx-chatapp/web/components"
 	"github.com/alextilot/golang-htmx-chatapp/web/views"
 
-	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -37,8 +37,21 @@ func main() {
 		return
 	}
 
+	sqlStmt = `
+	CREATE TABLE IF NOT EXISTS messages (clientId text not null, username text not null, content text, time INTEGER);
+	`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		log.Printf("%q: %s \n", err, sqlStmt)
+		return
+	}
+
 	// Init services
 	userStore := &store.UserStore{
+		DB: db,
+	}
+
+	messageStore := &store.MessageStore{
 		DB: db,
 	}
 
@@ -50,7 +63,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	manager := NewManager()
+	manager := NewManager(messageStore)
 	go manager.HandleClientListEventChannel(ctx)
 
 	//Init web routes
@@ -59,35 +72,50 @@ func main() {
 	e.GET("/", func(etx echo.Context) error {
 		return web.Render(etx, http.StatusOK, views.HomePage())
 	})
+
 	e.GET("/login", func(etx echo.Context) error {
 		return web.Render(etx, http.StatusOK, views.LoginPage())
-	})
-	e.GET("/signup", func(etx echo.Context) error {
-		return web.Render(etx, http.StatusOK, views.SignupPage())
 	})
 
 	e.POST("/login", func(etx echo.Context) error {
 		time.Sleep(1 * time.Second)
 		return h.Login(etx)
 	})
+
+	e.GET("/signup", func(etx echo.Context) error {
+		return web.Render(etx, http.StatusOK, views.SignUpPage())
+	})
+
 	e.POST("/signup", func(etx echo.Context) error {
 		time.Sleep(1 * time.Second)
 		return h.SignUp(etx)
 	})
 
-	guardedRoutes := e.Group("/chatroom")
-	guardedRoutes.Use(services.TokenRefresherMiddleware)
-	guardedRoutes.Use(echojwt.WithConfig(echojwt.Config{
-		SigningKey:   []byte(services.JwtSecretKey),
-		TokenLookup:  "cookie:access-token",
-		ErrorHandler: services.JWTErrorChecker,
-	}))
-	guardedRoutes.GET("", func(etx echo.Context) error {
-		return web.Render(etx, http.StatusOK, views.ChatroomPage())
-	})
+	chatroom := e.Group("/chatroom")
+	chatroom.Use(services.TokenRefresherMiddleware)
+	chatroom.Use(services.EchoMiddlewareJWTConfig())
+	chatroom.GET("", func(etx echo.Context) error {
+		name := services.GetUsername(etx)
+		messages, err := messageStore.GetLast(10)
+		if err != nil {
+			return etx.String(http.StatusBadGateway, "unable to pre populate chat messages")
+		}
 
-	e.GET("/ws/chatroom", func(etx echo.Context) error {
-		return manager.Handler(etx, ctx)
+		var messageViewModel []components.MessageComponentViewModel
+		for _, msg := range messages {
+			input := components.MessageComponentViewModel{
+				Username: msg.Username,
+				Data:     msg.Data,
+				Time:     msg.Time.Format("3:04:05 PM"),
+				IsSelf:   msg.Username == name,
+			}
+			messageViewModel = append(messageViewModel, input)
+		}
+		return web.Render(etx, http.StatusOK, views.ChatroomPage(messageViewModel))
+	})
+	chatroom.GET("/ws", func(etx echo.Context) error {
+		name := services.GetUsername(etx)
+		return manager.Handler(etx, ctx, name)
 	})
 
 	e.Logger.Fatal(e.Start(":3000"))
