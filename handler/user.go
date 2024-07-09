@@ -48,7 +48,7 @@ func (h *Handler) Login(etx echo.Context) error {
 	}
 
 	etx.Response().Header().Set("HX-Redirect", "/chatroom")
-	return etx.String(http.StatusTemporaryRedirect, "Successful")
+	return etx.String(http.StatusTemporaryRedirect, "Success")
 }
 
 func (h *Handler) SignUp(etx echo.Context) error {
@@ -78,5 +78,5 @@ func (h *Handler) SignUp(etx echo.Context) error {
 	}
 
 	etx.Response().Header().Set("HX-Redirect", "/chatroom")
-	return etx.String(http.StatusTemporaryRedirect, "Successful")
+	return etx.String(http.StatusTemporaryRedirect, "Success")
 }

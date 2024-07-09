@@ -24,18 +24,28 @@ type jwtCustomClaims struct {
 	jwt.RegisteredClaims
 }
 
+func jwtErrorChecker(etx echo.Context, err error) error {
+	if err != nil {
+		return etx.Redirect(http.StatusMovedPermanently, "/login")
+	}
+	return nil
+}
+
 func EchoMiddlewareJWTConfig() echo.MiddlewareFunc {
 	return echojwt.WithConfig(echojwt.Config{
-		SigningKey:  []byte(JwtSecretKey),
-		TokenLookup: "cookie:access-token",
-		// ErrorHandler: JWTErrorChecker,
-		NewClaimsFunc: func(c echo.Context) jwt.Claims {
+		SigningKey:   []byte(JwtSecretKey),
+		TokenLookup:  "cookie:access-token",
+		ErrorHandler: jwtErrorChecker,
+		NewClaimsFunc: func(etx echo.Context) jwt.Claims {
 			return new(jwtCustomClaims)
 		},
 	})
 }
 
 func GetUsername(etx echo.Context) string {
+	if etx.Get("user") == nil {
+		return ""
+	}
 	user := etx.Get("user").(*jwt.Token)
 	claims := user.Claims.(*jwtCustomClaims)
 	return claims.Username
@@ -105,12 +115,6 @@ func setTokenCookie(name, token string, expiration time.Time, etx echo.Context) 
 	etx.SetCookie(cookie)
 }
 
-// JWTErrorChecker will be executed when user try to access a protected path.
-func JWTErrorChecker(etc echo.Context, err error) error {
-	// Redirects to the main page.
-	return etc.Redirect(http.StatusMovedPermanently, "/")
-}
-
 // TokenRefresherMiddleware middleware, which refreshes JWT tokens if the access token is about to expire.
 func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(etx echo.Context) error {
@@ -119,9 +123,9 @@ func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(etx)
 		}
 		// Gets user token from the context.
-		u := etx.Get("user").(*jwt.Token)
+		user := etx.Get("user").(*jwt.Token)
 
-		claims := u.Claims.(*jwtCustomClaims)
+		claims := user.Claims.(*jwtCustomClaims)
 
 		// We ensure that a new token is not issued until enough time has elapsed.
 		// In this case, a new token will only be issued if the old token is within

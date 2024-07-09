@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -65,7 +64,6 @@ func (c *Client) ReadMessages(ctx echo.Context) {
 		}
 		return nil
 	})
-	fmt.Println("Client connected!")
 
 	for {
 		var message WebSocketMessage
@@ -80,7 +78,6 @@ func (c *Client) ReadMessages(ctx echo.Context) {
 			return
 		}
 
-		fmt.Printf("Chatroom: %s\n", message)
 		msg := model.Message{
 			ClientID: c.ID,
 			Username: c.Name,

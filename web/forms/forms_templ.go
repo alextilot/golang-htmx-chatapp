@@ -135,7 +135,7 @@ func LoginForm(errs utils.UIErrors) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"form-control mt-6\"><button class=\"btn btn-primary\">Login <span id=\"spinner\" class=\"loading loading-spinner htmx-indicator\"></span></button> <span hx-disinherit=\"*\">Don't have an account ? <a href=\"/signup\" class=\"text-blue-600 hover:text-blue-800 hover:underline\">Signup</a></span></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"form-control mt-6\"><button class=\"btn btn-primary\">Login <span id=\"spinner\" class=\"loading loading-spinner htmx-indicator\"></span></button> <span hx-disinherit=\"*\">Don't have an account ? <a href=\"/signup\" class=\"text-blue-600 hover:text-blue-800 hover:underline\">Sign up</a></span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -184,7 +184,7 @@ func SignUpForm(errs utils.UIErrors) templ.Component {
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"register-form\" class=\"card shrink-0 w-full shadow-2xl bg-base-100 p-8\" hx-ext=\"response-targets, debug\"><h1 class=\"text-2xl font-semibold text-center\">Signup</h1><form class=\"card-body space-y-4\" hx-boost=\"true\" action=\"/signup\" method=\"post\" hx-target=\"#register-form\" hx-target-error=\"#register-form\" hx-swap=\"outerHTML\" hx-indicator=\"#spinner\"><div class=\"form-control\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"register-form\" class=\"card shrink-0 w-full shadow-2xl bg-base-100 p-8\" hx-ext=\"response-targets, debug\"><h1 class=\"text-2xl font-semibold text-center\">Sign up</h1><form class=\"card-body space-y-4\" hx-boost=\"true\" action=\"/signup\" method=\"post\" hx-target=\"#register-form\" hx-target-error=\"#register-form\" hx-swap=\"outerHTML\" hx-indicator=\"#spinner\"><div class=\"form-control\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
