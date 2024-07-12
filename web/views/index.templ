@@ -7,9 +7,9 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/web/layout"
 )
 
-templ LoginPage() {
+templ LoginPage(isLoggedIn bool) {
 	@layout.MainLayout() {
-		@layout.NavigationBar()
+		@layout.NavigationBar(isLoggedIn)
 		<main class="h-full">
 			<div class="h-full relative flex flex-col justify-center">
 				<div class="w-full m-auto lg:max-w-xl">
@@ -20,9 +20,9 @@ templ LoginPage() {
 	}
 }
 
-templ SignUpPage() {
+templ SignUpPage(isLoggedIn bool) {
 	@layout.MainLayout() {
-		@layout.NavigationBar()
+		@layout.NavigationBar(isLoggedIn)
 		<main class="h-full">
 			<div class="h-full relative flex flex-col justify-center">
 				<div class="w-full m-auto lg:max-w-xl">
@@ -33,18 +33,18 @@ templ SignUpPage() {
 	}
 }
 
-templ ChatroomPage(messages []components.MessageComponentViewModel) {
+templ ChatroomPage(isLoggedIn bool, messages []components.MessageComponentViewModel) {
 	@layout.MainLayout() {
-		@layout.NavigationBar()
+		@layout.NavigationBar(isLoggedIn)
 		<main class="h-dvh">
 			@components.Chatroom(messages)
 		</main>
 	}
 }
 
-templ HomePage() {
+templ HomePage(isLoggedIn bool) {
 	@layout.MainLayout() {
-		@layout.NavigationBar()
+		@layout.NavigationBar(isLoggedIn)
 		<main class="h-full">
 			<div class="h-full hero bg-base-200">
 				<div class="hero-content text-center">

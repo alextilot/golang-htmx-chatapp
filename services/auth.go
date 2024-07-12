@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -42,13 +44,44 @@ func EchoMiddlewareJWTConfig() echo.MiddlewareFunc {
 	})
 }
 
-func GetUsername(etx echo.Context) string {
-	if etx.Get("user") == nil {
-		return ""
+type UserContext struct {
+	Name       string
+	IsLoggedIn bool
+}
+
+func GetUserContext(etx echo.Context) (UserContext, error) {
+	userContext := UserContext{Name: "", IsLoggedIn: false}
+
+	cookie, err := etx.Cookie(AccessTokenCookieName)
+	if cookie == nil || err != nil {
+		fmt.Println("Cookie: access token is missing")
+		return userContext, errors.New("Request header is missing authentication cookie")
 	}
-	user := etx.Get("user").(*jwt.Token)
-	claims := user.Claims.(*jwtCustomClaims)
-	return claims.Username
+
+	claims := &jwtCustomClaims{}
+	token, err := jwt.ParseWithClaims(cookie.Value, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(JwtSecretKey), nil
+	})
+
+	if err != nil {
+		fmt.Println("Error: Parsing token with claims.")
+		return userContext, err
+	}
+
+	if token == nil || !token.Valid {
+		fmt.Println("Error: token is null or not valid.")
+		return userContext, errors.New("Request header access token is invalid or null")
+	}
+
+	userContext.Name = claims.Username
+	userContext.IsLoggedIn = token.Valid
+
+	return userContext, nil
+}
+
+func RemoveTokensAndCookies(etx echo.Context) {
+	setTokenCookie(AccessTokenCookieName, "", time.UnixMicro(0), etx)
+	setTokenCookie(RefreshTokenCookieName, "", time.UnixMicro(0), etx)
 }
 
 func GenerateTokensAndSetCookies(user *model.User, etx echo.Context) error {

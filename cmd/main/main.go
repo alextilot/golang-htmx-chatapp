@@ -69,12 +69,15 @@ func main() {
 	//Init web routes
 	e.Static("/css", "css")
 
+	// e.Use(services.EchoMiddlewareJWTKey())
 	e.GET("/", func(etx echo.Context) error {
-		return web.Render(etx, http.StatusOK, views.HomePage())
+		user, _ := services.GetUserContext(etx)
+		return web.Render(etx, http.StatusOK, views.HomePage(user.IsLoggedIn))
 	})
 
 	e.GET("/login", func(etx echo.Context) error {
-		return web.Render(etx, http.StatusOK, views.LoginPage())
+		user, _ := services.GetUserContext(etx)
+		return web.Render(etx, http.StatusOK, views.LoginPage(user.IsLoggedIn))
 	})
 
 	e.POST("/login", func(etx echo.Context) error {
@@ -82,8 +85,14 @@ func main() {
 		return h.Login(etx)
 	})
 
+	e.POST("/logout", func(etx echo.Context) error {
+		time.Sleep(1 * time.Second)
+		return h.Logout(etx)
+	})
+
 	e.GET("/signup", func(etx echo.Context) error {
-		return web.Render(etx, http.StatusOK, views.SignUpPage())
+		user, _ := services.GetUserContext(etx)
+		return web.Render(etx, http.StatusOK, views.SignUpPage(user.IsLoggedIn))
 	})
 
 	e.POST("/signup", func(etx echo.Context) error {
@@ -92,10 +101,10 @@ func main() {
 	})
 
 	chatroom := e.Group("/chatroom")
-	chatroom.Use(services.TokenRefresherMiddleware)
 	chatroom.Use(services.EchoMiddlewareJWTConfig())
+	chatroom.Use(services.TokenRefresherMiddleware)
 	chatroom.GET("", func(etx echo.Context) error {
-		name := services.GetUsername(etx)
+		user, _ := services.GetUserContext(etx)
 		messages, err := messageStore.GetLast(10)
 		if err != nil {
 			return etx.String(http.StatusBadGateway, "unable to pre populate chat messages")
@@ -107,15 +116,16 @@ func main() {
 				Username: msg.Username,
 				Data:     msg.Data,
 				Time:     msg.Time.Format("3:04:05 PM"),
-				IsSelf:   msg.Username == name,
+				IsSelf:   msg.Username == user.Name,
 			}
 			messageViewModel = append(messageViewModel, input)
 		}
-		return web.Render(etx, http.StatusOK, views.ChatroomPage(messageViewModel))
+		return web.Render(etx, http.StatusOK, views.ChatroomPage(user.IsLoggedIn, messageViewModel))
 	})
+
 	chatroom.GET("/ws", func(etx echo.Context) error {
-		name := services.GetUsername(etx)
-		return manager.Handler(etx, ctx, name)
+		user, _ := services.GetUserContext(etx)
+		return manager.Handler(etx, ctx, user.Name)
 	})
 
 	e.Logger.Fatal(e.Start(":3000"))

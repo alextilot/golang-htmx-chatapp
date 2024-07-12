@@ -1,8 +1,12 @@
 package router
 
 import (
+	"github.com/alextilot/golang-htmx-chatapp/web"
+	"github.com/alextilot/golang-htmx-chatapp/web/static"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	"net/http"
 )
 
 func New() *echo.Echo {
@@ -14,6 +18,7 @@ func New() *echo.Echo {
 	}))
 	e.Use(globalResponseHeader)
 	e.Validator = NewValidator()
+	e.HTTPErrorHandler = customHTTPErrorHandler
 	return e
 }
 
@@ -24,5 +29,23 @@ func globalResponseHeader(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		c.Response().Header().Set("Cache-Control", "max-age=0, no-cache, no-store")
 		return next(c)
+	}
+}
+
+func customHTTPErrorHandler(err error, etx echo.Context) {
+	code := http.StatusInternalServerError
+	if he, ok := err.(*echo.HTTPError); ok {
+		code = he.Code
+	}
+	etx.Logger().Error(err)
+
+	page := static.GetHttpErrorPage(code)
+	if page == nil {
+		etx.Logger().Error("HTTP error page not found")
+		etx.JSON(code, err)
+		return
+	}
+	if err := web.Render(etx, http.StatusOK, page); err != nil {
+		etx.Logger().Error(err)
 	}
 }

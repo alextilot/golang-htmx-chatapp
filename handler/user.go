@@ -80,3 +80,9 @@ func (h *Handler) SignUp(etx echo.Context) error {
 	etx.Response().Header().Set("HX-Redirect", "/chatroom")
 	return etx.String(http.StatusTemporaryRedirect, "Success")
 }
+
+func (h *Handler) Logout(etx echo.Context) error {
+	services.RemoveTokensAndCookies(etx)
+	etx.Response().Header().Set("HX-Redirect", "/")
+	return etx.String(http.StatusTemporaryRedirect, "Success")
+}
