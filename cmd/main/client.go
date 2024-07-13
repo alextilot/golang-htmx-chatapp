@@ -127,6 +127,7 @@ func (c *Client) WriteMessage(echoContext echo.Context, ctx context.Context) {
 				IsSelf:   msg.Username == c.Name,
 			}
 			components.Message(input).Render(ctx, buffer)
+
 			err := c.Conn.WriteMessage(websocket.TextMessage, buffer.Bytes())
 			if err != nil {
 				echoContext.Logger().Error(err)

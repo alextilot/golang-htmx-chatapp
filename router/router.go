@@ -10,6 +10,7 @@ import (
 )
 
 func New() *echo.Echo {
+
 	e := echo.New()
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
@@ -37,7 +38,6 @@ func customHTTPErrorHandler(err error, etx echo.Context) {
 	if he, ok := err.(*echo.HTTPError); ok {
 		code = he.Code
 	}
-	etx.Logger().Error(err)
 
 	page := static.GetHttpErrorPage(code)
 	if page == nil {

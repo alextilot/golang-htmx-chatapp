@@ -8,7 +8,7 @@ package layout
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func NavigationBar(isLoggedIn bool) templ.Component {
+func ThemeControllerDropdown() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -26,7 +26,41 @@ func NavigationBar(isLoggedIn bool) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header><div class=\"navbar bg-base-100\"><div class=\"flex-1\"><a class=\"btn btn-ghost text-xl\" href=\"/\">Homepage</a></div><div class=\"flex-none\"><ul class=\"menu menu-horizontal px-1\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"dropdown\"><div tabindex=\"0\" role=\"button\" class=\"btn m-1\">Theme <svg width=\"12px\" height=\"12px\" class=\"inline-block h-2 w-2 fill-current opacity-60\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2048 2048\"><path d=\"M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z\"></path></svg></div><ul tabindex=\"0\" class=\"dropdown-content bg-base-300 rounded-box z-[1] w-52 p-2 shadow-2xl\"><li><input type=\"radio\" name=\"theme-dropdown\" class=\"theme-controller btn btn-sm btn-block btn-ghost justify-start\" aria-label=\"Default\" value=\"default\"></li><li><input type=\"radio\" name=\"theme-dropdown\" class=\"theme-controller btn btn-sm btn-block btn-ghost justify-start\" aria-label=\"Dracula\" value=\"dracula\"></li><li><input type=\"radio\" name=\"theme-dropdown\" class=\"theme-controller btn btn-sm btn-block btn-ghost justify-start\" aria-label=\"Fantasy\" value=\"fantasy\"></li><li><input type=\"radio\" name=\"theme-dropdown\" class=\"theme-controller btn btn-sm btn-block btn-ghost justify-start\" aria-label=\"Cupcake\" value=\"cupcake\"></li><li><input type=\"radio\" name=\"theme-dropdown\" class=\"theme-controller btn btn-sm btn-block btn-ghost justify-start\" aria-label=\"Night\" value=\"night\"></li><li><input type=\"radio\" name=\"theme-dropdown\" class=\"theme-controller btn btn-sm btn-block btn-ghost justify-start\" aria-label=\"Valentine\" value=\"valentine\"></li><li><input type=\"radio\" name=\"theme-dropdown\" class=\"theme-controller btn btn-sm btn-block btn-ghost justify-start\" aria-label=\"Forest\" value=\"forest\"></li></ul></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func NavigationBar(isLoggedIn bool) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var2 == nil {
+			templ_7745c5c3_Var2 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header><div class=\"navbar bg-base-100\"><div class=\"flex-1\"><a class=\"btn btn-ghost text-xl\" href=\"/\">Homepage</a></div><div class=\"flex-none\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = ThemeControllerDropdown().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<ul class=\"menu menu-horizontal px-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -62,29 +96,29 @@ func HTTPErrorLayout(title string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var2 == nil {
-			templ_7745c5c3_Var2 = templ.NopComponent
+		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var3 == nil {
+			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/layout/layout.templ`, Line: 30, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/layout/layout.templ`, Line: 113, Col: 17}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</title><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/ws.js\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/debug.js\" defer></script><script src=\"https://unpkg.com/htmx.org/dist/ext/response-targets.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"/css/output.css\"></head><body class=\"\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var2.Render(ctx, templ_7745c5c3_Buffer)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</title><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/ws.js\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/debug.js\" defer></script><script src=\"https://unpkg.com/htmx.org/dist/ext/response-targets.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"/css/output.css\"></head><body>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ_7745c5c3_Var3.Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -109,16 +143,16 @@ func MainLayout() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var4 == nil {
-			templ_7745c5c3_Var4 = templ.NopComponent
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>TODO: Name</title><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/ws.js\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/debug.js\" defer></script><script src=\"https://unpkg.com/htmx.org/dist/ext/response-targets.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"/css/output.css\"></head><body class=\"h-screen flex flex-col justify-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var4.Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templ_7745c5c3_Var5.Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
