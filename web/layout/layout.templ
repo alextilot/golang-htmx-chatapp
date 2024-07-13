@@ -22,6 +22,7 @@ templ ThemeControllerDropdown() {
 					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
 					aria-label="Default"
 					value="default"
+					data-set-theme="default"
 				/>
 			</li>
 			<li>
@@ -31,6 +32,7 @@ templ ThemeControllerDropdown() {
 					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
 					aria-label="Dracula"
 					value="dracula"
+					data-set-theme="dracula"
 				/>
 			</li>
 			<li>
@@ -40,6 +42,7 @@ templ ThemeControllerDropdown() {
 					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
 					aria-label="Fantasy"
 					value="fantasy"
+					data-set-theme="fantasy"
 				/>
 			</li>
 			<li>
@@ -49,6 +52,7 @@ templ ThemeControllerDropdown() {
 					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
 					aria-label="Cupcake"
 					value="cupcake"
+					data-set-theme="cupcake"
 				/>
 			</li>
 			<li>
@@ -58,6 +62,7 @@ templ ThemeControllerDropdown() {
 					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
 					aria-label="Night"
 					value="night"
+					data-set-theme="night"
 				/>
 			</li>
 			<li>
@@ -67,6 +72,7 @@ templ ThemeControllerDropdown() {
 					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
 					aria-label="Valentine"
 					value="valentine"
+					data-set-theme="valentine"
 				/>
 			</li>
 			<li>
@@ -76,6 +82,7 @@ templ ThemeControllerDropdown() {
 					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
 					aria-label="Forest"
 					value="forest"
+					data-set-theme="forest"
 				/>
 			</li>
 		</ul>
@@ -111,6 +118,7 @@ templ HTTPErrorLayout(title string) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>{ title }</title>
+			<script src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
 			<script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
 			<script src="https://unpkg.com/htmx.org/dist/ext/debug.js" defer></script>
@@ -130,6 +138,7 @@ templ MainLayout() {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>TODO: Name</title>
+			<script src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
 			<script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
 			<script src="https://unpkg.com/htmx.org/dist/ext/debug.js" defer></script>
