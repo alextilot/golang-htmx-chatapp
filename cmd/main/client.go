@@ -3,10 +3,11 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
-	"github.com/alextilot/golang-htmx-chatapp/web/components"
 	"strings"
 	"time"
+
+	"github.com/alextilot/golang-htmx-chatapp/model"
+	"github.com/alextilot/golang-htmx-chatapp/web/components"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -17,19 +18,13 @@ type WebSocketMessage struct {
 	Content string
 }
 
-type Message struct {
-	ClientID string
-	Name     string
-	Time     time.Time
-	Data     string
-}
-
 type Client struct {
 	Conn           *websocket.Conn
 	ID             string
 	Chatroom       string
 	Manager        *Manager
-	MessageChannel chan Message
+	MessageChannel chan model.Message
+	Name           string
 }
 
 var (
@@ -37,13 +32,14 @@ var (
 	pingInterval = time.Second * 9
 )
 
-func NewClient(conn *websocket.Conn, manager *Manager) *Client {
+func NewClient(conn *websocket.Conn, manager *Manager, name string) *Client {
 	return &Client{
 		Conn:           conn,
 		ID:             uuid.New().String(),
 		Chatroom:       "general",
 		Manager:        manager,
-		MessageChannel: make(chan Message),
+		MessageChannel: make(chan model.Message),
+		Name:           name,
 	}
 }
 
@@ -82,13 +78,22 @@ func (c *Client) ReadMessages(ctx echo.Context) {
 			return
 		}
 
-		fmt.Printf("%s\n", message)
-		if err := c.Manager.WriteMessage(Message{
+		msg := model.Message{
 			ClientID: c.ID,
-			Name:     "Alex",
+			Username: c.Name,
 			Time:     time.Now(),
 			Data:     message.Content,
-		}, "general"); err != nil {
+		}
+
+		// Save message to db
+		err = c.Manager.messageService.Create(&msg)
+		if err != nil {
+			ctx.Logger().Error(err)
+			return
+		}
+
+		// Send message to other people
+		if err = c.Manager.WriteMessage(msg, "general"); err != nil {
 			ctx.Logger().Error(err)
 			return
 		}
@@ -115,7 +120,13 @@ func (c *Client) WriteMessage(echoContext echo.Context, ctx context.Context) {
 			}
 
 			buffer := &bytes.Buffer{}
-			components.Message(msg.Name, msg.Data, msg.Time.Format("2006-01-02 3:4:5 pm"), msg.ClientID == c.ID).Render(ctx, buffer)
+			input := components.MessageComponentViewModel{
+				Username: msg.Username,
+				Data:     msg.Data,
+				Time:     msg.Time.Format("3:04:05 PM"),
+				IsSelf:   msg.Username == c.Name,
+			}
+			components.Message(input).Render(ctx, buffer)
 			err := c.Conn.WriteMessage(websocket.TextMessage, buffer.Bytes())
 			if err != nil {
 				echoContext.Logger().Error(err)

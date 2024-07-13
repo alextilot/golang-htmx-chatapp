@@ -1,12 +1,12 @@
 package handler
 
-import "github.com/alextilot/golang-htmx-chatapp/services"
+import "github.com/alextilot/golang-htmx-chatapp/store"
 
 type Handler struct {
-	userService *services.UserService
+	userService *store.UserStore
 }
 
-func NewHandler(us *services.UserService) *Handler {
+func NewHandler(us *store.UserStore) *Handler {
 	return &Handler{
 		userService: us,
 	}

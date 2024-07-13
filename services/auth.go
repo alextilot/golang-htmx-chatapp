@@ -1,12 +1,15 @@
 package services
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/alextilot/golang-htmx-chatapp/model"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,10 +21,67 @@ const (
 	JwtRefreshSecretKey    = "refresh-secret-key"
 )
 
-type Claims struct {
-	ID       string `json:"id"`
+type jwtCustomClaims struct {
 	Username string `json:"username"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
+}
+
+func jwtErrorChecker(etx echo.Context, err error) error {
+	if err != nil {
+		return etx.Redirect(http.StatusMovedPermanently, "/login")
+	}
+	return nil
+}
+
+func EchoMiddlewareJWTConfig() echo.MiddlewareFunc {
+	return echojwt.WithConfig(echojwt.Config{
+		SigningKey:   []byte(JwtSecretKey),
+		TokenLookup:  "cookie:access-token",
+		ErrorHandler: jwtErrorChecker,
+		NewClaimsFunc: func(etx echo.Context) jwt.Claims {
+			return new(jwtCustomClaims)
+		},
+	})
+}
+
+type UserContext struct {
+	Name       string
+	IsLoggedIn bool
+}
+
+func GetUserContext(etx echo.Context) (UserContext, error) {
+	userContext := UserContext{Name: "", IsLoggedIn: false}
+
+	cookie, err := etx.Cookie(AccessTokenCookieName)
+	if cookie == nil || err != nil {
+		fmt.Println("Cookie: access token is missing")
+		return userContext, errors.New("Request header is missing authentication cookie")
+	}
+
+	claims := &jwtCustomClaims{}
+	token, err := jwt.ParseWithClaims(cookie.Value, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(JwtSecretKey), nil
+	})
+
+	if err != nil {
+		fmt.Println("Error: Parsing token with claims.")
+		return userContext, err
+	}
+
+	if token == nil || !token.Valid {
+		fmt.Println("Error: token is null or not valid.")
+		return userContext, errors.New("Request header access token is invalid or null")
+	}
+
+	userContext.Name = claims.Username
+	userContext.IsLoggedIn = token.Valid
+
+	return userContext, nil
+}
+
+func RemoveTokensAndCookies(etx echo.Context) {
+	setTokenCookie(AccessTokenCookieName, "", time.UnixMicro(0), etx)
+	setTokenCookie(RefreshTokenCookieName, "", time.UnixMicro(0), etx)
 }
 
 func GenerateTokensAndSetCookies(user *model.User, etx echo.Context) error {
@@ -54,12 +114,11 @@ func generateRefreshToken(user *model.User) (string, time.Time, error) {
 
 func generateToken(user *model.User, expirationTime time.Time, secret []byte) (string, time.Time, error) {
 	// Create the JWT claims, which includes the username and expiry time.
-	claims := &Claims{
-		ID:       user.ID,
-		Username: user.Username,
-		StandardClaims: jwt.StandardClaims{
+	claims := &jwtCustomClaims{
+		user.Username,
+		jwt.RegisteredClaims{
 			// In JWT, the expiry time is expressed as unix seconds.
-			ExpiresAt: expirationTime.Unix(),
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 
@@ -89,12 +148,6 @@ func setTokenCookie(name, token string, expiration time.Time, etx echo.Context) 
 	etx.SetCookie(cookie)
 }
 
-// JWTErrorChecker will be executed when user try to access a protected path.
-func JWTErrorChecker(etc echo.Context, err error) error {
-	// Redirects to the main page.
-	return etc.Redirect(http.StatusMovedPermanently, "/")
-}
-
 // TokenRefresherMiddleware middleware, which refreshes JWT tokens if the access token is about to expire.
 func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(etx echo.Context) error {
@@ -103,14 +156,14 @@ func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(etx)
 		}
 		// Gets user token from the context.
-		u := etx.Get("user").(*jwt.Token)
+		user := etx.Get("user").(*jwt.Token)
 
-		claims := u.Claims.(*Claims)
+		claims := user.Claims.(*jwtCustomClaims)
 
 		// We ensure that a new token is not issued until enough time has elapsed.
 		// In this case, a new token will only be issued if the old token is within
 		// 15 mins of expiry.
-		if time.Until(time.Unix(claims.ExpiresAt, 0)) < 15*time.Minute {
+		if time.Until(time.Unix(claims.ExpiresAt.Unix(), 0)) < 15*time.Minute {
 			// Gets the refresh token from the cookie.
 			rc, err := etx.Cookie(RefreshTokenCookieName)
 			if err == nil && rc != nil {
@@ -127,7 +180,6 @@ func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 				if tkn != nil && tkn.Valid {
 					// If everything is good, update tokens.
 					_ = GenerateTokensAndSetCookies(&model.User{
-						ID:       claims.ID,
 						Username: claims.Username,
 					}, etx)
 				}
