@@ -38,7 +38,7 @@ func main() {
 	}
 
 	sqlStmt = `
-	CREATE TABLE IF NOT EXISTS messages (clientId text not null, username text not null, content text, time INTEGER);
+	CREATE TABLE IF NOT EXISTS messages (username text not null, content text, time INTEGER);
 	`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
