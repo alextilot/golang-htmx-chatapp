@@ -1,8 +1,7 @@
 node_modules
 tmp
 .env
-.air.toml
 .vscode
-db/*
+db/*.db
 css/output.css
 *_templ.go
