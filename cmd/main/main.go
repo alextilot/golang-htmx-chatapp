@@ -68,6 +68,7 @@ func main() {
 
 	//Init web routes
 	e.Static("/css", "css")
+	e.Static("/icons", "icons")
 
 	// e.Use(services.EchoMiddlewareJWTKey())
 	e.GET("/", func(etx echo.Context) error {
