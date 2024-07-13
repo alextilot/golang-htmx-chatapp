@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"time"
 
 	"net/http"
 
+	"github.com/alextilot/golang-htmx-chatapp/db"
 	"github.com/alextilot/golang-htmx-chatapp/handler"
 	"github.com/alextilot/golang-htmx-chatapp/router"
 	"github.com/alextilot/golang-htmx-chatapp/services"
@@ -21,30 +21,11 @@ import (
 )
 
 func main() {
-	// Init DB
-	db, err := sql.Open("sqlite3", "./db/main.db")
+	db, err := db.New()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
-
-	sqlStmt := `
-	CREATE TABLE IF NOT EXISTS user (username text not null primary key, password text);
-	`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		log.Printf("%q: %s \n", err, sqlStmt)
-		return
-	}
-
-	sqlStmt = `
-	CREATE TABLE IF NOT EXISTS messages (username text not null, content text, time INTEGER);
-	`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		log.Printf("%q: %s \n", err, sqlStmt)
-		return
-	}
 
 	// Init services
 	userStore := &store.UserStore{

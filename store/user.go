@@ -12,7 +12,7 @@ type UserStore struct {
 }
 
 func (us *UserStore) GetByUsername(username string) (*model.User, error) {
-	stmt, err := us.DB.Prepare("SELECT password FROM user WHERE username=?")
+	stmt, err := us.DB.Prepare("SELECT password FROM users WHERE username=?")
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -34,7 +34,7 @@ func (us *UserStore) GetByUsername(username string) (*model.User, error) {
 
 func (us *UserStore) Create(user *model.User) error {
 	sqlStmt := `
-	INSERT INTO user(username, password) values(?, ?)
+	INSERT INTO users(username, password) values(?, ?)
 	`
 	_, err := us.DB.Exec(sqlStmt, user.Username, user.Password)
 	if err != nil {
@@ -47,7 +47,7 @@ func (us *UserStore) Create(user *model.User) error {
 
 func (us *UserStore) Update(user *model.User) error {
 	sqlStmt := `
-	UPDATE user SET password=? WHERE username=?
+	UPDATE users SET password=? WHERE username=?
 	`
 	_, err := us.DB.Exec(sqlStmt, user.Password, user.Username)
 	if err != nil {
@@ -60,7 +60,7 @@ func (us *UserStore) Update(user *model.User) error {
 
 func (us *UserStore) Delete(user *model.User) error {
 	sqlStmt := `
-	DELETE FROM user WHERE username=?
+	DELETE FROM users WHERE username=?
 	`
 	_, err := us.DB.Exec(sqlStmt, user.Username)
 	if err != nil {
