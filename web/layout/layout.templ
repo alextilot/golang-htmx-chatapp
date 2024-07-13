@@ -90,23 +90,21 @@ templ ThemeControllerDropdown() {
 }
 
 templ NavigationBar(isLoggedIn bool) {
-	<header>
-		<div class="navbar bg-base-100">
-			<div class="flex-1">
-				<a class="btn btn-ghost text-xl" href="/">Homepage</a>
-			</div>
-			<div class="flex-none">
-				@ThemeControllerDropdown()
-				<ul class="menu menu-horizontal px-1">
-					if isLoggedIn {
-						<li><a href="/account">Account</a></li>
-						<li><a hx-post="/logout">Logout</a></li>
-					} else {
-						<li><a href="/signup">Sign up</a></li>
-						<li><a href="/login">Log In</a></li>
-					}
-				</ul>
-			</div>
+	<header class="navbar bg-base-100">
+		<div class="flex-1">
+			<a class="btn btn-ghost text-xl" href="/">Homepage</a>
+		</div>
+		<div class="flex-none">
+			@ThemeControllerDropdown()
+			<ul class="menu menu-horizontal px-1">
+				if isLoggedIn {
+					<li><a href="/account">Account</a></li>
+					<li><a hx-post="/logout">Logout</a></li>
+				} else {
+					<li><a href="/signup">Sign up</a></li>
+					<li><a href="/login">Log In</a></li>
+				}
+			</ul>
 		</div>
 	</header>
 }
