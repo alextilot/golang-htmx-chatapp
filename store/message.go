@@ -14,9 +14,9 @@ type MessageStore struct {
 func (ms *MessageStore) Create(msg *model.Message) error {
 	log.Printf("Msg Create: Time:%s Data:%s", msg.Time, msg.Data)
 	sqlStmt := `
-	INSERT INTO messages (clientId, username, content, time) VALUES (?, ?, ?, ?)
+	INSERT INTO messages (username, content, time) VALUES (?, ?, ?)
 	`
-	_, err := ms.DB.Exec(sqlStmt, msg.ClientID, msg.Username, msg.Data, msg.Time.UnixMilli())
+	_, err := ms.DB.Exec(sqlStmt, msg.Username, msg.Data, msg.Time.UnixMilli())
 	if err != nil {
 		log.Printf("%q, %s\n", err, sqlStmt)
 		return err
@@ -37,19 +37,17 @@ func (ms *MessageStore) GetMostRecent(count int) ([]*model.Message, error) {
 	}
 
 	for rows.Next() {
-		var clientId string
 		var username string
 		var content string
 		var msec int64
 
-		err = rows.Scan(&clientId, &username, &content, &msec)
+		err = rows.Scan(&username, &content, &msec)
 		if err != nil {
 			log.Println(err)
 			return messages, err
 		}
 
 		messages = append(messages, &model.Message{
-			ClientID: clientId,
 			Username: username,
 			Data:     content,
 			Time:     time.UnixMilli(msec),

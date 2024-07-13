@@ -79,7 +79,6 @@ func (c *Client) ReadMessages(ctx echo.Context) {
 		}
 
 		msg := model.Message{
-			ClientID: c.ID,
 			Username: c.Name,
 			Time:     time.Now(),
 			Data:     message.Content,
