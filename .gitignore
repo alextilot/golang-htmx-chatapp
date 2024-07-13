@@ -3,3 +3,5 @@ tmp
 .env
 .air.toml
 .vscode
+db/*
+*_templ.go
