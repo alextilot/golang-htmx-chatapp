@@ -11,9 +11,6 @@
     "build": "tailwindcss -i './css/input.css' -o './css/output.css'"
   },
   "devDependencies": {
-    "@tailwindcss/aspect-ratio": "^0.4.2",
-    "@tailwindcss/container-queries": "^0.1.1",
-    "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "^10.4.17",
     "daisyui": "^4.7.2",
