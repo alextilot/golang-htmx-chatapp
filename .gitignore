@@ -4,5 +4,5 @@ tmp
 .air.toml
 .vscode
 db/*
-css/*
+css/output.css
 *_templ.go
