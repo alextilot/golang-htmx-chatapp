@@ -12,6 +12,7 @@ type MessageStore struct {
 }
 
 func (ms *MessageStore) Create(msg *model.Message) error {
+	log.Printf("Msg Create: Time:%s Data:%s", msg.Time, msg.Data)
 	sqlStmt := `
 	INSERT INTO messages (clientId, username, content, time) VALUES (?, ?, ?, ?)
 	`
@@ -24,10 +25,10 @@ func (ms *MessageStore) Create(msg *model.Message) error {
 	return nil
 }
 
-func (ms *MessageStore) GetLast(count int) ([]*model.Message, error) {
+func (ms *MessageStore) GetMostRecent(count int) ([]*model.Message, error) {
 	messages := []*model.Message{}
 
-	rows, err := ms.DB.Query("SELECT * FROM messages ORDER BY time ASC LIMIT ?", count)
+	rows, err := ms.DB.Query("SELECT * FROM messages ORDER BY time DESC LIMIT ?", count)
 	defer rows.Close()
 
 	if err != nil {

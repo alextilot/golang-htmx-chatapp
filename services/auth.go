@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -14,11 +13,17 @@ import (
 )
 
 const (
-	// TODO: Jwt Secret key is Demo only
+	// TODO: Jwt Secret key is for Demo only
 	AccessTokenCookieName  = "access-token"
 	JwtSecretKey           = "access-secret-key"
 	RefreshTokenCookieName = "refresh-token"
 	JwtRefreshSecretKey    = "refresh-secret-key"
+)
+
+var (
+	ErrMissingAuthCookie = errors.New("Request header is missing auth cookie.")
+	ErrNullAuthToken     = errors.New("Null authentication token.")
+	ErrInvalidAuthToken  = errors.New("Invalid authentication token.")
 )
 
 type jwtCustomClaims struct {
@@ -54,8 +59,7 @@ func GetUserContext(etx echo.Context) (UserContext, error) {
 
 	cookie, err := etx.Cookie(AccessTokenCookieName)
 	if cookie == nil || err != nil {
-		fmt.Println("Cookie: access token is missing")
-		return userContext, errors.New("Request header is missing authentication cookie")
+		return userContext, ErrMissingAuthCookie
 	}
 
 	claims := &jwtCustomClaims{}
@@ -64,13 +68,13 @@ func GetUserContext(etx echo.Context) (UserContext, error) {
 	})
 
 	if err != nil {
-		fmt.Println("Error: Parsing token with claims.")
 		return userContext, err
 	}
-
-	if token == nil || !token.Valid {
-		fmt.Println("Error: token is null or not valid.")
-		return userContext, errors.New("Request header access token is invalid or null")
+	if token == nil {
+		return userContext, ErrNullAuthToken
+	}
+	if !token.Valid {
+		return userContext, ErrInvalidAuthToken
 	}
 
 	userContext.Name = claims.Username
@@ -192,16 +196,18 @@ func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 // GuestMiddleware middleware, which blocks user from accessing guest routes.
 func GuestMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		accessToken, err := c.Cookie(AccessTokenCookieName)
+	return func(etx echo.Context) error {
+		accessToken, err := etx.Cookie(AccessTokenCookieName)
 		if err != nil {
-			return next(c)
+			return next(etx)
 		}
 		if accessToken.Value != "" {
 			// TODO: Fix the redirect
-			return next(c)
-			// return c.Redirect(http.StatusMovedPermanently, "/chat")
+			// return next(etx)
+			// return c.Redirect(http.StatusMovedPermanently, "/")
+			etx.Response().Header().Set("HX-Redirect", "/login")
+			return etx.String(http.StatusMovedPermanently, "Success")
 		}
-		return next(c)
+		return next(etx)
 	}
 }

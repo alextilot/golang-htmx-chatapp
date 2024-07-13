@@ -105,13 +105,14 @@ func main() {
 	chatroom.Use(services.TokenRefresherMiddleware)
 	chatroom.GET("", func(etx echo.Context) error {
 		user, _ := services.GetUserContext(etx)
-		messages, err := messageStore.GetLast(10)
+		messages, err := messageStore.GetMostRecent(10)
 		if err != nil {
 			return etx.String(http.StatusBadGateway, "unable to pre populate chat messages")
 		}
 
 		var messageViewModel []components.MessageComponentViewModel
-		for _, msg := range messages {
+		for i := len(messages) - 1; i >= 0; i-- {
+			msg := messages[i]
 			input := components.MessageComponentViewModel{
 				Username: msg.Username,
 				Data:     msg.Data,
