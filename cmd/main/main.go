@@ -48,8 +48,8 @@ func main() {
 	go manager.HandleClientListEventChannel(ctx)
 
 	//Init web routes
-	e.Static("/css", "css")
-	e.Static("/icons", "icons")
+	e.Static("css", "web/css")
+	e.Static("images", "web/images")
 
 	// e.Use(services.EchoMiddlewareJWTKey())
 	e.GET("/", func(etx echo.Context) error {

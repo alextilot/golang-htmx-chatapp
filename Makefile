@@ -17,7 +17,7 @@ templ:
 
 .PHONY: tailwind
 tailwind:
-	npx tailwindcss -i ./css/input.css -o ./css/output.css --watch
+	npx tailwindcss -i ./web/css/global.css -o ./web/css/dist.css --watch
 
 .PHONY: air
 air: 

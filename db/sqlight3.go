@@ -6,7 +6,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const dbSourceName string = "./main.db"
+const dbSourceName string = "./db/file.db"
 
 func New() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", dbSourceName)
