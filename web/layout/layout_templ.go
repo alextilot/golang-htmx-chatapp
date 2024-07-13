@@ -114,7 +114,7 @@ func HTTPErrorLayout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</title><script src=\"https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js\"></script><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/ws.js\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/debug.js\" defer></script><script src=\"https://unpkg.com/htmx.org/dist/ext/response-targets.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"/css/output.css\"></head><body>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</title><script src=\"https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js\"></script><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/ws.js\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/debug.js\" defer></script><script src=\"https://unpkg.com/htmx.org/dist/ext/response-targets.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"/css/output.css\"><link rel=\"icon\" type=\"image/x-icon\" href=\"/icons/favicon.ico\"></head><body>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -148,7 +148,7 @@ func MainLayout() templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>TODO: Name</title><script src=\"https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js\"></script><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/ws.js\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/debug.js\" defer></script><script src=\"https://unpkg.com/htmx.org/dist/ext/response-targets.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"/css/output.css\"></head><body class=\"h-screen flex flex-col justify-center\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Chatter</title><script src=\"https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js\"></script><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/ws.js\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/debug.js\" defer></script><script src=\"https://unpkg.com/htmx.org/dist/ext/response-targets.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"/css/output.css\"><link rel=\"icon\" type=\"image/x-icon\" href=\"/icons/favicon.ico\"></head><body class=\"h-screen flex flex-col justify-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
