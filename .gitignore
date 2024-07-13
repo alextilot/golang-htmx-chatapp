@@ -3,5 +3,5 @@ tmp
 .env
 .vscode
 db/*.db
-css/output.css
+web/css/dist.css
 *_templ.go
