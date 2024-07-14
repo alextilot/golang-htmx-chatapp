@@ -1,7 +1,7 @@
-node_modules
-tmp
 .env
 .vscode
+node_modules
+tmp
 db/*.db
-css/output.css
+web/css/dist.css
 *_templ.go
