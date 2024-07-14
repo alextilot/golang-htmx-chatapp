@@ -9,7 +9,7 @@ import (
 
 templ LoginPage(isLoggedIn bool) {
 	@layout.MainLayout() {
-		@layout.NavigationBar(isLoggedIn)
+		@components.NavigationBar(isLoggedIn)
 		<main class="grow h-px">
 			<div class="h-full relative flex flex-col justify-center">
 				<div class="w-full m-auto lg:max-w-xl">
@@ -22,7 +22,7 @@ templ LoginPage(isLoggedIn bool) {
 
 templ SignUpPage(isLoggedIn bool) {
 	@layout.MainLayout() {
-		@layout.NavigationBar(isLoggedIn)
+		@components.NavigationBar(isLoggedIn)
 		<main class="grow h-px">
 			<div class="h-full relative flex flex-col justify-center">
 				<div class="w-full m-auto lg:max-w-xl">
@@ -35,7 +35,7 @@ templ SignUpPage(isLoggedIn bool) {
 
 templ ChatroomPage(isLoggedIn bool, messages []components.MessageComponentViewModel) {
 	@layout.MainLayout() {
-		@layout.NavigationBar(isLoggedIn)
+		@components.NavigationBar(isLoggedIn)
 		<main class="grow h-px">
 			@components.Chatroom(messages)
 		</main>
@@ -56,7 +56,7 @@ templ ChatroomPage(isLoggedIn bool, messages []components.MessageComponentViewMo
 // <a href="https://daisyui.com">DaisyUI</a>
 templ HomePage(isLoggedIn bool) {
 	@layout.MainLayout() {
-		@layout.NavigationBar(isLoggedIn)
+		@components.NavigationBar(isLoggedIn)
 		<main class="grow h-px">
 			<div class="h-full hero bg-base-200">
 				<div class="hero-content flex-col lg:flex-row-reverse">

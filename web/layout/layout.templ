@@ -1,114 +1,5 @@
 package layout
 
-templ ThemeControllerDropdown() {
-	<div class="dropdown">
-		<div tabindex="0" role="button" class="btn m-1">
-			Theme
-			<svg
-				width="12px"
-				height="12px"
-				class="inline-block h-2 w-2 fill-current opacity-60"
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 2048 2048"
-			>
-				<path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z"></path>
-			</svg>
-		</div>
-		<ul tabindex="0" class="dropdown-content bg-base-300 rounded-box z-[1] w-52 p-2 shadow-2xl">
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Default"
-					value="default"
-					data-set-theme="default"
-				/>
-			</li>
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Dracula"
-					value="dracula"
-					data-set-theme="dracula"
-				/>
-			</li>
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Fantasy"
-					value="fantasy"
-					data-set-theme="fantasy"
-				/>
-			</li>
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Cupcake"
-					value="cupcake"
-					data-set-theme="cupcake"
-				/>
-			</li>
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Night"
-					value="night"
-					data-set-theme="night"
-				/>
-			</li>
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Valentine"
-					value="valentine"
-					data-set-theme="valentine"
-				/>
-			</li>
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Forest"
-					value="forest"
-					data-set-theme="forest"
-				/>
-			</li>
-		</ul>
-	</div>
-}
-
-templ NavigationBar(isLoggedIn bool) {
-	<header class="navbar bg-base-100">
-		<div class="flex-1">
-			<a class="btn btn-ghost text-xl" href="/">Homepage</a>
-		</div>
-		<div class="flex-none">
-			@ThemeControllerDropdown()
-			<ul class="menu menu-horizontal px-1">
-				if isLoggedIn {
-					<li><a href="/account">Account</a></li>
-					<li><a hx-post="/logout">Logout</a></li>
-				} else {
-					<li><a href="/signup">Sign up</a></li>
-					<li><a href="/login">Log In</a></li>
-				}
-			</ul>
-		</div>
-	</header>
-}
-
 templ HTTPErrorLayout(title string) {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -124,7 +15,7 @@ templ HTTPErrorLayout(title string) {
 			<link rel="stylesheet" type="text/css" href="/css/dist.css"/>
 			<link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
 		</head>
-		<body>
+		<body class="h-screen flex flex-col">
 			{ children... }
 		</body>
 	</html>
