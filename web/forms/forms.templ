@@ -1,98 +1,103 @@
 package forms
 
-import (
-	"fmt"
-	"github.com/alextilot/golang-htmx-chatapp/utils"
-)
-
-templ input(name string, errs utils.UIErrors, attrMap templ.Attributes) {
-	if val, ok := errs[name]; ok {
-		<input
-			{ attrMap... }
-			name={ name }
-			class="input input-bordered input-error"
-			autocapitalize="none"
-			autocorrect="off"
-			required
-		/>
-		<p class="text-error text-sm mt-2">{ fmt.Sprintf("%v", val) }</p>
-	} else {
-		<input { attrMap... } name={ name } class="input input-bordered" autocapitalize="none" autocorrect="off" required/>
-	}
+templ input(name string, err error, attributes templ.Attributes) {
+if err !=nil {
+<input { attributes... } name={ name } class="input input-bordered input-error" autocapitalize="none" autocorrect="off"
+	required />
+<p class="text-error text-sm mt-2">{ templ.JoinStringErrs("", err) }</p>
+} else {
+<input { attributes... } name={ name } class="input input-bordered" autocapitalize="none" autocorrect="off" required />
+}
 }
 
-templ LoginForm(errs utils.UIErrors) {
-	<div id="login-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
-		<h1 class="text-2xl font-semibold text-center">Login</h1>
-		<form
-			class="card-body space-y-4"
-			hx-boost="true"
-			action="/login"
-			method="post"
-			hx-target="#login-form"
-			hx-target-error="#login-form"
-			hx-swap="outerHTML"
-			hx-indicator="#spinner"
-		>
-			<div class="form-control">
-				@input("username", errs, templ.Attributes{"type": "text", "placeholder": "Username", "autocomplete": "username"})
-			</div>
-			<div class="form-control">
-				@input("password", errs, templ.Attributes{"type": "password", "placeholder": "Enter Password", "autocomplete": "current-password"})
-			</div>
-			<div class="form-control mt-6">
-				<button class="btn btn-primary">
-					Login
-					<span id="spinner" class="loading loading-spinner htmx-indicator"></span>
-				</button>
-				<span hx-disinherit="*">
-					Don't have an account ?
-					<a href="/signup" class="text-blue-600 hover:text-blue-800 hover:underline">Sign up</a>
-				</span>
-			</div>
-			if val, ok := errs["other"]; ok {
-				<p class="text-error text-sm mt-2">{ fmt.Sprintf("%v", val) }</p>
-			}
-		</form>
-	</div>
+type LoginErrorsModelView struct {
+Username error
+Password error
+Other error
 }
 
-templ SignUpForm(errs utils.UIErrors) {
-	<div id="register-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
-		<h1 class="text-2xl font-semibold text-center">Sign up</h1>
-		<form
-			class="card-body space-y-4"
-			hx-boost="true"
-			action="/signup"
-			method="post"
-			hx-target="#register-form"
-			hx-target-error="#register-form"
-			hx-swap="outerHTML"
-			hx-indicator="#spinner"
-		>
-			<div class="form-control">
-				@input("username", errs, templ.Attributes{"type": "text", "placeholder": "Username", "autocomplete": "username"})
-			</div>
-			<div class="form-control">
-				@input("password", errs, templ.Attributes{"type": "password", "placeholder": "Enter password", "autocomplete": "current-password"})
-			</div>
-			<div class="form-control">
-				@input("repeatPassword", errs, templ.Attributes{"type": "password", "placeholder": "Confrim password",
-					"autocomplete": "current-password"})
-			</div>
-			<div class="form-control mt-6">
-				<button class="btn btn-primary">
-					Sign Up
-					<span id="spinner" class="loading loading-spinner htmx-indicator"></span>
-				</button>
-				<span hx-disinherit="*">
-					Already have an account ?
-					<a href="/login" class="text-blue-600 hover:text-blue-800 hover:underline">Login</a>
-				</span>
-			</div>
-			if val, ok := errs["other"]; ok {
-				<p class="text-error text-sm mt-2">{ fmt.Sprintf("%v", val) }</p>
-			}
-		</form>
-	</div>
+templ LoginForm(errors LoginErrorsModelView) {
+<div id="login-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
+	<h1 class="text-2xl font-semibold text-center">Login</h1>
+	<form class="card-body space-y-4" hx-boost="true" action="/login" method="post" hx-target="#login-form"
+		hx-target-error="#login-form" hx-swap="outerHTML" hx-indicator="#spinner">
+		<div class="form-control">
+			@input("username", errors.Username, templ.Attributes{
+			"type": "text",
+			"placeholder": "Username",
+			"autocomplete": "username",
+			})
+		</div>
+		<div class="form-control">
+			@input("password", errors.Password, templ.Attributes{
+			"type": "password",
+			"placeholder": "Enter Password",
+			"autocomplete": "current-password",
+			})
+		</div>
+		<div class="form-control mt-6">
+			<button class="btn btn-primary">
+				Login
+				<span id="spinner" class="loading loading-spinner htmx-indicator"></span>
+			</button>
+			<span hx-disinherit="*">
+				Don't have an account ?
+				<a href="/signup" class="text-blue-600 hover:text-blue-800 hover:underline">Sign up</a>
+			</span>
+		</div>
+		if errors.Other !=nil {
+		<p class="text-error text-sm mt-2">{ templ.JoinStringErrs("", errors.Other) }</p>
+		}
+	</form>
+</div>
+}
+
+type SignUpErrorsModelView struct {
+Username error
+Password error
+RepeatPassword error
+Other error
+}
+
+templ SignUpForm(errors SignUpErrorsModelView) {
+<div id="register-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
+	<h1 class="text-2xl font-semibold text-center">Sign up</h1>
+	<form class="card-body space-y-4" hx-boost="true" action="/signup" method="post" hx-target="#register-form"
+		hx-target-error="#register-form" hx-swap="outerHTML" hx-indicator="#spinner">
+		<div class="form-control">
+			@input("username", errors.Username, templ.Attributes{
+			"type": "text",
+			"placeholder": "Username",
+			"autocomplete": "username",
+			})
+		</div>
+		<div class="form-control">
+			@input("password", errors.Password, templ.Attributes{
+			"type": "password",
+			"placeholder": "Enter password",
+			"autocomplete": "current-password"
+			})
+		</div>
+		<div class="form-control">
+			@input("repeatPassword", errors.RepeatPassword, templ.Attributes{
+			"type": "password",
+			"placeholder": "Confirm password",
+			"autocomplete": "current-password"
+			})
+		</div>
+		<div class="form-control mt-6">
+			<button class="btn btn-primary">
+				Sign Up
+				<span id="spinner" class="loading loading-spinner htmx-indicator"></span>
+			</button>
+			<span hx-disinherit="*">
+				Already have an account ?
+				<a href="/login" class="text-blue-600 hover:text-blue-800 hover:underline">Login</a>
+			</span>
+		</div>
+		if errors.Other != nil {
+		<p class="text-error text-sm mt-2">{ templ.JoinStringErrs("", errors.Other) }</p>
+		}
+	</form>
+</div>
 }
