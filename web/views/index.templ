@@ -42,38 +42,29 @@ templ ChatroomPage(isLoggedIn bool, messages []components.MessageComponentViewMo
 	}
 }
 
+//TODO: make a carosal of the tech used.
+// have it show the icon, name and link to the relavant information.
+// <a href="https://go.dev">Go</a>
+// Server framework
+// <a href="https://echo.labstack.com">Echo</a>
+// Template generator
+// <a href="https://templ.guide">Templ</a>
+// Page Interaction
+// <a href="https://htmx.org">Htmx</a>
+// Styling
+// <a href="https://tailwindcss.com">Tailwind CSS</a>
+// <a href="https://daisyui.com">DaisyUI</a>
 templ HomePage(isLoggedIn bool) {
 	@layout.MainLayout() {
 		@layout.NavigationBar(isLoggedIn)
 		<main class="grow h-px">
 			<div class="h-full hero bg-base-200">
-				<div class="hero-content text-center">
-					<div class="max-w-md">
-						<h1 class="text-5xl font-bold">ChatApp</h1>
-						// <div class="py-7 collapse-title text-xl font-medium">
-						// Built with:
-						// </div>
-						// <ul>
-						// <li>
-						// <a href="https://go.dev/">Go</a>
-						// </li>
-						// <li>
-						// <a href="https://echo.labstack.com/">Echo</a>
-						// </li>
-						// <li>
-						// <a href="https://templ.guide/">TEMPL</a>
-						// </li>
-						// <li>
-						// <a href="https://htmx.org/">htmx</a>
-						// </li>
-						// <li>
-						// <a href="https://tailwindcss.com/">Tailwind CSS</a>
-						// </li>
-						// <li>
-						// <a href="https://daisyui.com/">daisyUI</a>
-						// </li>
-						// </ul>
-						<a class="btn btn-primary" href="/chatroom">Chat now!</a>
+				<div class="hero-content flex-col lg:flex-row-reverse">
+					<img src="images/android-chrome-512x512.png" class="max-w-sm rounded-lg"/>
+					<div>
+						<h1 class="text-5xl font-bold">Chatter</h1>
+						<p class="py-6">This is a realtime chat app. Create an account or login and chatter away!</p>
+						<a class="btn btn-primary my-6" href="/chatroom">Chat now!</a>
 					</div>
 				</div>
 			</div>
