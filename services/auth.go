@@ -50,12 +50,12 @@ func EchoMiddlewareJWTConfig() echo.MiddlewareFunc {
 }
 
 type UserContext struct {
-	Name       string
+	Username   string
 	IsLoggedIn bool
 }
 
 func GetUserContext(etx echo.Context) (UserContext, error) {
-	userContext := UserContext{Name: "", IsLoggedIn: false}
+	userContext := UserContext{Username: "", IsLoggedIn: false}
 
 	cookie, err := etx.Cookie(AccessTokenCookieName)
 	if cookie == nil || err != nil {
@@ -77,7 +77,7 @@ func GetUserContext(etx echo.Context) (UserContext, error) {
 		return userContext, ErrInvalidAuthToken
 	}
 
-	userContext.Name = claims.Username
+	userContext.Username = claims.Username
 	userContext.IsLoggedIn = token.Valid
 
 	return userContext, nil
