@@ -13,7 +13,7 @@ endif
 
 .PHONY: templ
 templ:
-	templ generate -watch -proxy=http://localhost:3000
+	templ generate --watch
 
 .PHONY: tailwind
 tailwind:
