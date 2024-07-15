@@ -8,14 +8,15 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/services"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/alextilot/golang-htmx-chatapp/web/forms"
-	//	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
 var (
 	ErrorUsernameNotFound   = errors.New("Username not found.")
-	ErrorInvalidCredentials = errors.New("Incorrect username or password")
+	ErrorInvalidCredentials = errors.New("Incorrect username or password.")
 	ErrorUserAuthentication = errors.New("Unable to authenticate user.")
+
+	ErrorUsernameAlreadyExists = errors.New("Username already exists.")
 )
 
 func (h *Handler) Login(etx echo.Context) error {
@@ -64,29 +65,37 @@ func (h *Handler) SignUp(etx echo.Context) error {
 	var user = &model.User{}
 	req := &userRegisterRequest{}
 	errs := forms.SignUpErrorsModelView{
-		Username: nil,
-		Password: nil,
-		Other:    nil,
+		Username:       nil,
+		Password:       nil,
+		RepeatPassword: nil,
+		Other:          nil,
 	}
 
 	// Validate user inputs!
-	// if err := req.bind(etx, user); err != nil {
-	// 	validation := err.(validator.ValidationErrors)
-	// 	for _, v := range validation {
-	// 		errs.Add(v.Field(), fmt.Sprintf("%v", v.Tag()))
-	// 	}
-	// 	return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errs))
-	// }
+	if eMap := req.bind(etx, user); eMap != nil {
+		for key, value := range eMap {
+			if key == "Username" {
+				errs.Username = value
+			} else if key == "Password" {
+				errs.Password = value
+			} else if key == "RepeatPassword" {
+				errs.RepeatPassword = value
+			} else {
+				errs.Other = value
+			}
+		}
+		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errs))
+	}
 
 	// Create user, this should error out if user already exists.
 	if err := h.userService.Create(user); err != nil {
-		errs.Add("other", "Username already exists")
+		errs.Username = ErrorUsernameAlreadyExists
 		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errs))
 	}
 
 	// JWT tokens for signed in users.
 	if err := services.GenerateTokensAndSetCookies(user, etx); err != nil {
-		errs.Add("other", "Unable to authenticate")
+		errs.Other = ErrorUserAuthentication
 		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errs))
 	}
 
