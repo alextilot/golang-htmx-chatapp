@@ -22,7 +22,7 @@ type LoginErrorsModelView struct {
 	Other    error
 }
 
-templ LoginForm(errors LoginErrorsModelView) {
+templ LoginForm(errors *LoginErrorsModelView) {
 	<div id="login-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
 		<h1 class="text-2xl font-semibold text-center">Login</h1>
 		<form
@@ -73,7 +73,7 @@ type SignUpErrorsModelView struct {
 	Other          error
 }
 
-templ SignUpForm(errors SignUpErrorsModelView) {
+templ SignUpForm(errors *SignUpErrorsModelView) {
 	<div id="register-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
 		<h1 class="text-2xl font-semibold text-center">Sign up</h1>
 		<form

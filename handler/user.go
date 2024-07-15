@@ -21,40 +21,35 @@ var (
 
 func (h *Handler) Login(etx echo.Context) error {
 	req := &userLoginRequest{}
-	errs := forms.LoginErrorsModelView{
+	view := &forms.LoginErrorsModelView{
 		Username: nil,
 		Password: nil,
 		Other:    nil,
 	}
 
-	// Validate user inputs!
-	// if err := req.bind(etx); err != nil {
-	// 	validation := err.(validator.ValidationErrors)
-	// 	for _, _ := range validation {
-	// 		//errs.Add(v.Field(), fmt.Sprintf("%v", v.Tag()))
-	// 	}
-	// 	return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errs))
-	// }
+	if ok := req.bind(etx, view); !ok {
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(view))
+	}
 
 	user, err := h.userService.GetByUsername(req.Username)
 	if err != nil {
-		errs.Other = ErrorUsernameNotFound
-		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errs))
+		view.Other = ErrorUsernameNotFound
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(view))
 	}
 
 	if user == nil {
-		errs.Other = ErrorInvalidCredentials
-		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errs))
+		view.Other = ErrorInvalidCredentials
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(view))
 	}
 	if !user.CheckPassword(req.Password) {
-		errs.Other = ErrorInvalidCredentials
-		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errs))
+		view.Other = ErrorInvalidCredentials
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(view))
 	}
 
 	// JWT tokens for signed in users.
 	if err := services.GenerateTokensAndSetCookies(user, etx); err != nil {
-		errs.Other = ErrorUserAuthentication
-		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errs))
+		view.Other = ErrorUserAuthentication
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(view))
 	}
 
 	etx.Response().Header().Set("HX-Redirect", "/chatroom")
@@ -64,7 +59,7 @@ func (h *Handler) Login(etx echo.Context) error {
 func (h *Handler) SignUp(etx echo.Context) error {
 	var user = &model.User{}
 	req := &userRegisterRequest{}
-	errs := forms.SignUpErrorsModelView{
+	view := &forms.SignUpErrorsModelView{
 		Username:       nil,
 		Password:       nil,
 		RepeatPassword: nil,
@@ -72,31 +67,20 @@ func (h *Handler) SignUp(etx echo.Context) error {
 	}
 
 	// Validate user inputs!
-	if eMap := req.bind(etx, user); eMap != nil {
-		for key, value := range eMap {
-			if key == "Username" {
-				errs.Username = value
-			} else if key == "Password" {
-				errs.Password = value
-			} else if key == "RepeatPassword" {
-				errs.RepeatPassword = value
-			} else {
-				errs.Other = value
-			}
-		}
-		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errs))
+	if ok := req.bind(etx, user, view); !ok {
+		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(view))
 	}
 
 	// Create user, this should error out if user already exists.
 	if err := h.userService.Create(user); err != nil {
-		errs.Username = ErrorUsernameAlreadyExists
-		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errs))
+		view.Username = ErrorUsernameAlreadyExists
+		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(view))
 	}
 
 	// JWT tokens for signed in users.
 	if err := services.GenerateTokensAndSetCookies(user, etx); err != nil {
-		errs.Other = ErrorUserAuthentication
-		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errs))
+		view.Other = ErrorUserAuthentication
+		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(view))
 	}
 
 	etx.Response().Header().Set("HX-Redirect", "/chatroom")

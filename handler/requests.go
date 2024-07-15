@@ -5,55 +5,90 @@ import (
 	"fmt"
 
 	"github.com/alextilot/golang-htmx-chatapp/model"
+	"github.com/alextilot/golang-htmx-chatapp/web/forms"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
+
+var (
+	//TODO: Change password hashing error
+	ErrorDuringPasswordHashing = errors.New("Password uses invalid characters.")
+	ErrorUsernameRequired      = errors.New("Username is required.")
+	ErrorUsernameMin           = errors.New("Username minimum is 2 characters.")
+	ErrorUsernameMax           = errors.New("Username maximum is 20 characters.")
+	ErrorPasswordRequired      = errors.New("Password is required.")
+	ErrorPasswordMin           = errors.New("Password minimum is 5 characters.")
+	ErrorPasswordEqual         = errors.New("Passwords do not match.")
+)
+
+func msgForUsernameError(tag string, msg string) error {
+	switch tag {
+	case "required":
+		return ErrorUsernameRequired
+	case "min":
+		return ErrorUsernameMin
+	case "max":
+		return ErrorUsernameMax
+	}
+	return errors.New(msg)
+}
+
+func msgForPasswordError(tag string, msg string) error {
+	switch tag {
+	case "required":
+		return ErrorPasswordRequired
+	case "min":
+		return ErrorPasswordMin
+	case "eqfield":
+		return ErrorPasswordEqual
+	}
+	return errors.New(msg)
+}
 
 type userLoginRequest struct {
 	Username string `form:"username" validate:"required,min=2,max=20"`
 	Password string `form:"password" validate:"required,min=5"`
 }
 
-func (r *userLoginRequest) bind(c echo.Context) error {
+func (r *userLoginRequest) bind(c echo.Context, v *forms.LoginErrorsModelView) bool {
 	if err := c.Bind(r); err != nil {
-		return err
+		v.Other = err
+		return false
 	}
 	if err := c.Validate(r); err != nil {
-		return err
+
+		validator := err.(validator.ValidationErrors)
+		for _, ve := range validator {
+			fmt.Printf("%v - %v\n", ve.Field(), ve.Tag())
+
+			key := ve.Field()
+			tag := ve.Tag()
+			msg := ve.Error()
+
+			if key == "Username" {
+				v.Username = msgForUsernameError(tag, msg)
+			} else if key == "Password" {
+				v.Password = msgForPasswordError(tag, msg)
+			} else {
+				v.Other = errors.New(msg)
+			}
+		}
+		return false
 	}
-	return nil
+	return true
 }
 
 type userRegisterRequest struct {
-	Username       string `form:"username" validate:"required,min=5,max=20"`
+	Username       string `form:"username" validate:"required,min=2,max=20"`
 	Password       string `form:"password" validate:"required,min=5,eqfield=RepeatPassword"`
 	RepeatPassword string `form:"repeatPassword" validate:"required,min=5,eqfield=Password"`
 }
 
-var (
-	ErrorDuringPasswordHashing = errors.New("TODO: this is really bad.")
-)
-
-func msgForTag(tag string) string {
-	switch tag {
-	case "required":
-		return "This field is required"
-	case "max":
-		return "Maximum of 20 characters"
-	case "min":
-		return "Minimum of 5 characters"
-	case "eqfield":
-		return "Passwords must match"
-	}
-	return tag
-}
-
-func (r *userRegisterRequest) bind(c echo.Context, u *model.User) map[string]error {
-	out := make(map[string]error)
+func (r *userRegisterRequest) bind(c echo.Context, u *model.User, v *forms.SignUpErrorsModelView) bool {
 
 	if err := c.Bind(r); err != nil {
-		out["Other"] = err
-		return out
+		v.Other = err
+		return false
 	}
 
 	if err := c.Validate(r); err != nil {
@@ -63,18 +98,28 @@ func (r *userRegisterRequest) bind(c echo.Context, u *model.User) map[string]err
 			fmt.Printf("%v - %v\n", ve.Field(), ve.Tag())
 
 			key := ve.Field()
-			str := msgForTag(ve.Tag())
-			out[key] = errors.New(str)
+			tag := ve.Tag()
+			msg := ve.Error()
+
+			if key == "Username" {
+				v.Username = msgForUsernameError(tag, msg)
+			} else if key == "Password" {
+				v.Password = msgForPasswordError(tag, msg)
+			} else if key == "RepeatPassword" {
+				v.RepeatPassword = msgForPasswordError(tag, msg)
+			} else {
+				v.Other = errors.New(msg)
+			}
 		}
-		return out
+		return false
 	}
 
 	u.Username = r.Username
 	h, err := u.HashPassword(r.Password)
 	if err != nil {
-		out["Other"] = ErrorDuringPasswordHashing
-		return out
+		v.Other = ErrorDuringPasswordHashing
+		return false
 	}
 	u.Password = h
-	return nil
+	return true
 }
