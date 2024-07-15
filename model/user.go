@@ -19,8 +19,8 @@ func (u *User) HashPassword(plain string) (string, error) {
 	if len(plain) == 0 {
 		return "", ErrEmptyPassword
 	}
-	h, err := bcrypt.GenerateFromPassword([]byte(plain), bcrypt.DefaultCost)
-	return string(h), err
+	hash, err := bcrypt.GenerateFromPassword([]byte(plain), bcrypt.DefaultCost)
+	return string(hash), err
 }
 
 func (u *User) CheckPassword(plain string) bool {

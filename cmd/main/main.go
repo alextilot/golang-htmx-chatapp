@@ -96,10 +96,10 @@ func main() {
 		for i := len(messages) - 1; i >= 0; i-- {
 			msg := messages[i]
 			input := components.MessageComponentViewModel{
-				Username: msg.Username,
-				Data:     msg.Data,
-				Time:     msg.Time.Format("3:04:05 PM"),
-				IsSelf:   msg.Username == user.Name,
+				Sender: msg.Username,
+				Body:   msg.Data,
+				Time:   msg.Time.Format("3:04:05 PM"),
+				IsSelf: msg.Username == user.Username,
 			}
 			messageViewModel = append(messageViewModel, input)
 		}
@@ -108,7 +108,7 @@ func main() {
 
 	chatroom.GET("/ws", func(etx echo.Context) error {
 		user, _ := services.GetUserContext(etx)
-		return manager.Handler(etx, ctx, user.Name)
+		return manager.Handler(etx, ctx, user.Username)
 	})
 
 	e.Logger.Fatal(e.Start(":3000"))

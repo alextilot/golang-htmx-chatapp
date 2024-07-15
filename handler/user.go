@@ -1,50 +1,55 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
+	"errors"
 	"github.com/alextilot/golang-htmx-chatapp/model"
 	"github.com/alextilot/golang-htmx-chatapp/services"
-	"github.com/alextilot/golang-htmx-chatapp/utils"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/alextilot/golang-htmx-chatapp/web/forms"
-	"github.com/go-playground/validator/v10"
-
 	"github.com/labstack/echo/v4"
+)
+
+var (
+	ErrorUsernameNotFound   = errors.New("Username not found.")
+	ErrorInvalidCredentials = errors.New("Incorrect username or password.")
+	ErrorUserAuthentication = errors.New("Unable to authenticate user.")
+
+	ErrorUsernameAlreadyExists = errors.New("Username already exists.")
 )
 
 func (h *Handler) Login(etx echo.Context) error {
 	req := &userLoginRequest{}
-	errMap := utils.NewUIError()
+	view := &forms.LoginErrorsModelView{
+		Username: nil,
+		Password: nil,
+		Other:    nil,
+	}
 
-	// Validate user inputs!
-	if err := req.bind(etx); err != nil {
-		errs := err.(validator.ValidationErrors)
-		for _, v := range errs {
-			errMap.Add(v.Field(), fmt.Sprintf("%v", v.Tag()))
-		}
-		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
+	if ok := req.bind(etx, view); !ok {
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(view))
 	}
 
 	user, err := h.userService.GetByUsername(req.Username)
 	if err != nil {
-		errMap.Add("other", "Username not found")
-		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
+		view.Other = ErrorUsernameNotFound
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(view))
 	}
+
 	if user == nil {
-		errMap.Add("other", "Invalid username")
-		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
+		view.Other = ErrorInvalidCredentials
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(view))
 	}
 	if !user.CheckPassword(req.Password) {
-		errMap.Add("other", "Invalid password")
-		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
+		view.Other = ErrorInvalidCredentials
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(view))
 	}
 
 	// JWT tokens for signed in users.
 	if err := services.GenerateTokensAndSetCookies(user, etx); err != nil {
-		errMap.Add("other", "Unable to authenticate")
-		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(errMap))
+		view.Other = ErrorUserAuthentication
+		return web.Render(etx, http.StatusUnauthorized, forms.LoginForm(view))
 	}
 
 	etx.Response().Header().Set("HX-Redirect", "/chatroom")
@@ -54,27 +59,28 @@ func (h *Handler) Login(etx echo.Context) error {
 func (h *Handler) SignUp(etx echo.Context) error {
 	var user = &model.User{}
 	req := &userRegisterRequest{}
-	errMap := utils.NewUIError()
+	view := &forms.SignUpErrorsModelView{
+		Username:       nil,
+		Password:       nil,
+		RepeatPassword: nil,
+		Other:          nil,
+	}
 
 	// Validate user inputs!
-	if err := req.bind(etx, user); err != nil {
-		errs := err.(validator.ValidationErrors)
-		for _, v := range errs {
-			errMap.Add(v.Field(), fmt.Sprintf("%v", v.Tag()))
-		}
-		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errMap))
+	if ok := req.bind(etx, user, view); !ok {
+		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(view))
 	}
 
 	// Create user, this should error out if user already exists.
 	if err := h.userService.Create(user); err != nil {
-		errMap.Add("other", "Username already exists")
-		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errMap))
+		view.Username = ErrorUsernameAlreadyExists
+		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(view))
 	}
 
 	// JWT tokens for signed in users.
 	if err := services.GenerateTokensAndSetCookies(user, etx); err != nil {
-		errMap.Add("other", "Unable to authenticate")
-		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(errMap))
+		view.Other = ErrorUserAuthentication
+		return web.Render(etx, http.StatusUnauthorized, forms.SignUpForm(view))
 	}
 
 	etx.Response().Header().Set("HX-Redirect", "/chatroom")

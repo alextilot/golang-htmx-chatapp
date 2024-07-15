@@ -1,23 +1,13 @@
 package components
 
 type MessageComponentViewModel struct {
-	Username string
-	Data     string
-	Time     string
-	IsSelf   bool
+	Sender string
+	Body   string
+	Time   string
+	IsSelf bool
 }
 
-//class="no-scrollbar resize-none block mx-4 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border
-//border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600
-//dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-
-//class="inline-flex justify-center p-2 text-blue-600 rounded-full cursor-pointer hover:bg-blue-100 dark:text-blue-500
-//dark:hover:bg-gray-600"
-
-// TODO: I do not like how the form and textarea have a circular dependency.
-// The form manages default submit & htmx:event: send-message.
-// After websocket send, the UI/UX needs to "reset" the textarea's state.
-templ Input() {
+templ ChatInput() {
 	<form id="chat-form" ws-send hx-trigger="submit, send-message" hx-on::ws-after-send="resetTextarea('#text-message')">
 		<label for="text-message" class="sr-only">Your message</label>
 		<div class="flex items-center px-3 py-2 bg-base-300">
@@ -47,36 +37,36 @@ templ Input() {
 				<span class="sr-only">Send message</span>
 			</button>
 		</div>
-		<script>
-		const autoHeight = (elem) => {
-			elem.style.height = '1px';
-			elem.style.height = `${elem.scrollHeight}px`;
-		}
-		// Event handler, emits "send-message" if enter is pressed with no modifier key
-		const sendMessageOnEnter = (event) => {
-			if (event.key === "Enter" && !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)) {
-				event.preventDefault();
-				htmx.trigger(event.target, "send-message");
-			}
-		};
-		const resetTextarea = (selectors) => {
-			const element = document.querySelector(selectors)
-			if (element != null) {
-				element.value = "";
-				autoHeight(element)
-			}
-		};
-	</script>
 	</form>
+	<script>
+	const autoHeight = (elem) => {
+		elem.style.height = '1px';
+		elem.style.height = `${elem.scrollHeight}px`;
+	}
+	// Event handler, emits "send-message" if enter is pressed with no modifier key
+	const sendMessageOnEnter = (event) => {
+		if (event.key === "Enter" && !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)) {
+			event.preventDefault();
+			htmx.trigger(event.target, "send-message");
+		}
+	};
+	const resetTextarea = (selectors) => {
+		const element = document.querySelector(selectors)
+		if (element != null) {
+			element.value = "";
+			autoHeight(element)
+		}
+	};
+</script>
 }
 
 templ messageTemplate(message MessageComponentViewModel) {
 	<div class={ "chat" , templ.KV("chat-start", !message.IsSelf), templ.KV("chat-end", message.IsSelf) }>
 		<div class="chat-header">
-			{ message.Username }
+			{ message.Sender }
 			<time class="text-xs opacity-50">{ message.Time }</time>
 		</div>
-		<div class="chat-bubble">{ message.Data }</div>
+		<div class="chat-bubble">{ message.Body }</div>
 	</div>
 }
 
@@ -92,7 +82,7 @@ templ Chatroom(messages []MessageComponentViewModel) {
 		<div class="flex-1 overflow-hidden">
 			<div class="h-full relative">
 				<div class="h-full w-full overflow-y-auto">
-					<scroller class="scroller flex flex-col pb-9">
+					<scroller class="scroller flex flex-col pb-8">
 						for _, message :=range messages {
 							@messageTemplate(message)
 						}
@@ -103,7 +93,11 @@ templ Chatroom(messages []MessageComponentViewModel) {
 			</div>
 		</div>
 		<div class="w-full">
-			@Input()
+			@ChatInput()
 		</div>
 	</div>
+	<script>
+	const anchor = document.getElementById("chatroom-bottom");
+	anchor.scrollIntoView();
+</script>
 }
