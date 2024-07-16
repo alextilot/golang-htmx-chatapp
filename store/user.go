@@ -11,16 +11,16 @@ type UserStore struct {
 	DB *sql.DB
 }
 
-func NewUserStore(db *sql.DB) (*UserStore, error) {
+func NewUserStore(db *sql.DB) *UserStore {
 	store := &UserStore{DB: db}
 	sqlStmt := `
 	CREATE TABLE IF NOT EXISTS users (username text not null primary key, password text);
 	`
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
-		return store, err
+		log.Fatal(err)
 	}
-	return store, nil
+	return store
 }
 
 func (us *UserStore) GetByUsername(username string) (*model.User, error) {

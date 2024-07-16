@@ -11,7 +11,7 @@ type MessageStore struct {
 	DB *sql.DB
 }
 
-func NewMessageStore(db *sql.DB) (*MessageStore, error) {
+func NewMessageStore(db *sql.DB) *MessageStore {
 	store := &MessageStore{DB: db}
 
 	sqlStmt := `
@@ -19,10 +19,10 @@ func NewMessageStore(db *sql.DB) (*MessageStore, error) {
 	`
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
-		return store, err
+		log.Fatal(err)
 	}
 
-	return store, nil
+	return store
 }
 
 func (ms *MessageStore) Create(msg *model.Message) error {
