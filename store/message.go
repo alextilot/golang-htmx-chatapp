@@ -11,7 +11,7 @@ type MessageStore struct {
 	DB *sql.DB
 }
 
-func New(db *sql.DB) (*MessageStore, error) {
+func NewMessageStore(db *sql.DB) (*MessageStore, error) {
 	store := &MessageStore{DB: db}
 
 	sqlStmt := `
