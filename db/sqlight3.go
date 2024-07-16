@@ -13,22 +13,5 @@ func New() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	sqlStmt := `
-	CREATE TABLE IF NOT EXISTS users (username text not null primary key, password text);
-	`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		return nil, err
-	}
-
-	sqlStmt = `
-	CREATE TABLE IF NOT EXISTS messages (username text not null, content text, time INTEGER);
-	`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		return nil, err
-	}
-
 	return db, nil
 }

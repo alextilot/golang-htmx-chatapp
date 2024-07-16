@@ -28,12 +28,14 @@ func main() {
 	defer db.Close()
 
 	// Init services
-	userStore := &store.UserStore{
-		DB: db,
+	userStore, err := store.NewUserStore(db)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	messageStore := &store.MessageStore{
-		DB: db,
+	messageStore, err := store.NewMessageStore(db)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	h := handler.NewHandler(userStore)
