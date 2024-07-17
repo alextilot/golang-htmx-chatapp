@@ -41,7 +41,7 @@ templ SignUpPage(isLoggedIn bool) {
 	}
 }
 
-templ ChatroomPage(isLoggedIn bool, messages []components.MessageComponentViewModel) {
+templ ChatroomPage(isLoggedIn bool, messages []*components.MessageComponentViewModel) {
 	@layout.MainLayout() {
 		@components.NavigationBar(isLoggedIn)
 		<main class="grow h-px">

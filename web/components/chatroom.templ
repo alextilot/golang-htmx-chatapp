@@ -1,10 +1,73 @@
 package components
 
+import "time"
+
 type MessageComponentViewModel struct {
 	Sender string
 	Body   string
 	Time   string
 	IsSelf bool
+}
+type relevancy int
+
+const (
+	today relevancy = iota
+	thisWeek
+	thisMonth
+	thisYear
+	allTime
+)
+const (
+	HoursInDay        = 24
+	DaysInWeek        = 7
+	timeDurationToday = time.Duration(time.Hour * HoursInDay)
+	timeDurationWeek  = time.Duration(time.Hour * HoursInDay * DaysInWeek)
+)
+
+func calcTimeRelevancy(t time.Time) relevancy {
+	now := time.Now()
+	timeDiff := now.Sub(t)
+
+	switch {
+	case now.Year() == t.Year() && now.Month() == t.Month() && now.Day() == t.Day():
+		return today
+	case now.Year() == t.Year() && now.Month() == t.Month() && timeDiff < timeDurationWeek:
+		return thisWeek
+	case now.Year() == t.Year() && now.Month() == t.Month():
+		return thisMonth
+	case now.Year() == t.Year():
+		return thisYear
+	default:
+		return allTime
+	}
+}
+
+func formatTime(t time.Time, r relevancy) string {
+	switch r {
+	case today:
+		return t.Format("15:04:05")
+	case thisWeek:
+		return t.Format("Mon 15:04")
+	case thisMonth:
+		return t.Format("Jan 2 15:04")
+	case thisYear:
+		return t.Format("Jan 2 15:04")
+	default:
+		return t.Format("Mon Jan 2 15:04 2006")
+	}
+}
+
+func NewMessageView(sender string, body string, time time.Time, isSelf bool) *MessageComponentViewModel {
+	relevancy := calcTimeRelevancy(time)
+	timeString := formatTime(time, relevancy)
+
+	message := &MessageComponentViewModel{
+		Sender: sender,
+		Body:   body,
+		Time:   timeString,
+		IsSelf: isSelf,
+	}
+	return message
 }
 
 templ ChatInput() {
@@ -60,7 +123,7 @@ templ ChatInput() {
 </script>
 }
 
-templ messageTemplate(message MessageComponentViewModel) {
+templ messageTemplate(message *MessageComponentViewModel) {
 	<div class={ "chat" , templ.KV("chat-start", !message.IsSelf), templ.KV("chat-end", message.IsSelf) }>
 		<div class="chat-header">
 			{ message.Sender }
@@ -70,13 +133,13 @@ templ messageTemplate(message MessageComponentViewModel) {
 	</div>
 }
 
-templ Message(message MessageComponentViewModel) {
+templ Message(message *MessageComponentViewModel) {
 	<div hx-swap-oob="beforebegin:#chatroom-bottom">
 		@messageTemplate(message)
 	</div>
 }
 
-templ Chatroom(messages []MessageComponentViewModel) {
+templ Chatroom(messages []*MessageComponentViewModel) {
 	<div class="flex h-full flex-col w-3/5 m-auto shadow-2xl" hx-ext="ws" ws-connect="/chatroom/ws">
 		<h1 class="text-center">Chat Room</h1>
 		<div class="flex-1 overflow-hidden">

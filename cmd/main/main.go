@@ -87,18 +87,13 @@ func main() {
 			return etx.String(http.StatusBadGateway, "unable to pre populate chat messages")
 		}
 
-		var messageViewModel []components.MessageComponentViewModel
+		var messageViews []*components.MessageComponentViewModel
 		for i := len(messages) - 1; i >= 0; i-- {
 			msg := messages[i]
-			input := components.MessageComponentViewModel{
-				Sender: msg.Username,
-				Body:   msg.Data,
-				Time:   msg.Time.Format("3:04:05 PM"),
-				IsSelf: msg.Username == user.Username,
-			}
-			messageViewModel = append(messageViewModel, input)
+			tmp := components.NewMessageView(msg.Username, msg.Data, msg.Time, msg.Username == user.Username)
+			messageViews = append(messageViews, tmp)
 		}
-		return web.Render(etx, http.StatusOK, views.ChatroomPage(user.IsLoggedIn, messageViewModel))
+		return web.Render(etx, http.StatusOK, views.ChatroomPage(user.IsLoggedIn, messageViews))
 	})
 
 	chatroom.GET("/ws", func(etx echo.Context) error {
