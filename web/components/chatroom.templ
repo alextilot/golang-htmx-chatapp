@@ -73,7 +73,7 @@ func NewMessageView(sender string, body string, time time.Time, isSelf bool) *Me
 templ ChatInput() {
 	<form id="chat-form" ws-send hx-trigger="submit, send-message" hx-on::ws-after-send="resetTextarea('#text-message')">
 		<label for="text-message" class="sr-only">Your message</label>
-		<div class="flex items-center px-3 py-2 bg-base-300">
+		<div class="flex items-center px-3 py-2 bg-base-300 shadow">
 			<textarea
 				form="chat-form"
 				id="text-message"
@@ -140,7 +140,7 @@ templ Message(message *MessageComponentViewModel) {
 }
 
 templ Chatroom(messages []*MessageComponentViewModel) {
-	<div class="flex h-full flex-col w-3/5 m-auto shadow-2xl" hx-ext="ws" ws-connect="/chatroom/ws">
+	<div class="flex flex-col h-full w-3/5 m-auto bg-base-100 shadow-2xl" hx-ext="ws" ws-connect="/chatroom/ws">
 		<h1 class="text-center">Chat Room</h1>
 		<div class="flex-1 overflow-hidden">
 			<div class="h-full relative">
