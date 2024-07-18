@@ -45,15 +45,15 @@ func calcTimeRelevancy(t time.Time) relevancy {
 func formatTime(t time.Time, r relevancy) string {
 	switch r {
 	case today:
-		return t.Format("15:04:05")
+		return t.Format("3:04:05 PM")
 	case thisWeek:
-		return t.Format("Mon 15:04")
+		return t.Format("Mon 3:04 PM")
 	case thisMonth:
-		return t.Format("Jan 2 15:04")
+		return t.Format("2 Jan 3:04 PM")
 	case thisYear:
-		return t.Format("Jan 2 15:04")
+		return t.Format("2 Jan 3:04 PM")
 	default:
-		return t.Format("Mon Jan 2 15:04 2006")
+		return t.Format("2 Jan 2006")
 	}
 }
 
