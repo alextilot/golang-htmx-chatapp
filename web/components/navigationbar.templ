@@ -99,12 +99,7 @@ templ NavigationBar(isLoggedIn bool) {
 			<ul class="menu menu-horizontal px-1">
 				if isLoggedIn {
 					<li><a href="/account">Account</a></li>
-					<li>
-						<a hx-post="/logout">
-							Logout
-							<span id="spinner" class="loading loading-spinner htmx-indicator"></span>
-						</a>
-					</li>
+					<li><a hx-post="/logout">Logout</a></li>
 				} else {
 					<li><a href="/signup">Sign up</a></li>
 					<li><a href="/login">Log In</a></li>

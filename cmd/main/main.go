@@ -13,7 +13,6 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/services"
 	"github.com/alextilot/golang-htmx-chatapp/store"
 	"github.com/alextilot/golang-htmx-chatapp/web"
-	"github.com/alextilot/golang-htmx-chatapp/web/components"
 	"github.com/alextilot/golang-htmx-chatapp/web/views"
 
 	"github.com/labstack/echo/v4"
@@ -27,16 +26,11 @@ func main() {
 	}
 	defer db.Close()
 
-	// Init services
-	userStore := &store.UserStore{
-		DB: db,
-	}
+	// Init services, can log.Fatal
+	userStore := store.NewUserStore(db)
+	messageStore := store.NewMessageStore(db)
 
-	messageStore := &store.MessageStore{
-		DB: db,
-	}
-
-	h := handler.NewHandler(userStore)
+	h := handler.NewHandler(userStore, messageStore)
 
 	// Init web framework
 	e := router.New()
@@ -51,7 +45,6 @@ func main() {
 	e.Static("css", "web/css")
 	e.Static("images", "web/images")
 
-	// e.Use(services.EchoMiddlewareJWTKey())
 	e.GET("/", func(etx echo.Context) error {
 		user, _ := services.GetUserContext(etx)
 		return web.Render(etx, http.StatusOK, views.HomePage(user.IsLoggedIn))
@@ -68,7 +61,6 @@ func main() {
 	})
 
 	e.POST("/logout", func(etx echo.Context) error {
-		time.Sleep(1 * time.Second)
 		return h.Logout(etx)
 	})
 
@@ -87,23 +79,7 @@ func main() {
 	chatroom.Use(services.TokenRefresherMiddleware)
 	chatroom.GET("", func(etx echo.Context) error {
 		user, _ := services.GetUserContext(etx)
-		messages, err := messageStore.GetMostRecent(10)
-		if err != nil {
-			return etx.String(http.StatusBadGateway, "unable to pre populate chat messages")
-		}
-
-		var messageViewModel []components.MessageComponentViewModel
-		for i := len(messages) - 1; i >= 0; i-- {
-			msg := messages[i]
-			input := components.MessageComponentViewModel{
-				Sender: msg.Username,
-				Body:   msg.Data,
-				Time:   msg.Time.Format("3:04:05 PM"),
-				IsSelf: msg.Username == user.Username,
-			}
-			messageViewModel = append(messageViewModel, input)
-		}
-		return web.Render(etx, http.StatusOK, views.ChatroomPage(user.IsLoggedIn, messageViewModel))
+		return h.Chatroom(etx, user)
 	})
 
 	chatroom.GET("/ws", func(etx echo.Context) error {

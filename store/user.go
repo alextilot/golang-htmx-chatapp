@@ -11,6 +11,18 @@ type UserStore struct {
 	DB *sql.DB
 }
 
+func NewUserStore(db *sql.DB) *UserStore {
+	store := &UserStore{DB: db}
+	sqlStmt := `
+	CREATE TABLE IF NOT EXISTS users (username text not null primary key, password text);
+	`
+	_, err := db.Exec(sqlStmt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return store
+}
+
 func (us *UserStore) GetByUsername(username string) (*model.User, error) {
 	stmt, err := us.DB.Prepare("SELECT password FROM users WHERE username=?")
 	if err != nil {

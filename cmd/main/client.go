@@ -119,13 +119,13 @@ func (c *Client) WriteMessage(echoContext echo.Context, ctx context.Context) {
 			}
 
 			buffer := &bytes.Buffer{}
-			input := components.MessageComponentViewModel{
-				Sender: msg.Username,
-				Body:   msg.Data,
-				Time:   msg.Time.Format("3:04:05 PM"),
-				IsSelf: msg.Username == c.Name,
-			}
-			components.Message(input).Render(ctx, buffer)
+			tmp := components.NewMessageView(
+				msg.Username,
+				msg.Data,
+				msg.Time,
+				msg.Username == c.Name,
+			)
+			components.Message(tmp).Render(ctx, buffer)
 
 			err := c.Conn.WriteMessage(websocket.TextMessage, buffer.Bytes())
 			if err != nil {

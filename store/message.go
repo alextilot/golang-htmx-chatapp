@@ -11,8 +11,21 @@ type MessageStore struct {
 	DB *sql.DB
 }
 
+func NewMessageStore(db *sql.DB) *MessageStore {
+	store := &MessageStore{DB: db}
+
+	sqlStmt := `
+	CREATE TABLE IF NOT EXISTS messages (username text not null, content text, time INTEGER);
+	`
+	_, err := db.Exec(sqlStmt)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return store
+}
+
 func (ms *MessageStore) Create(msg *model.Message) error {
-	log.Printf("Msg Create: Time:%s Data:%s", msg.Time, msg.Data)
 	sqlStmt := `
 	INSERT INTO messages (username, content, time) VALUES (?, ?, ?)
 	`
