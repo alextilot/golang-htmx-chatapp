@@ -16,13 +16,13 @@ templ input(name string, err error, attrs templ.Attributes) {
 	}
 }
 
-type LoginErrorsModelView struct {
+type LoginFormModelView struct {
 	Username error
 	Password error
 	Other    error
 }
 
-templ LoginForm(errors *LoginErrorsModelView) {
+templ LoginForm(model *LoginFormModelView) {
 	<div id="login-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
 		<h1 class="text-2xl font-semibold text-center">Login</h1>
 		<form
@@ -36,14 +36,14 @@ templ LoginForm(errors *LoginErrorsModelView) {
 			hx-indicator="#spinner"
 		>
 			<div class="form-control">
-				@input("username", errors.Username, templ.Attributes{
+				@input("username", model.Username, templ.Attributes{
 					"type":         "text",
 					"placeholder":  "Username",
 					"autocomplete": "username",
 				})
 			</div>
 			<div class="form-control">
-				@input("password", errors.Password, templ.Attributes{
+				@input("password", model.Password, templ.Attributes{
 					"type":         "password",
 					"placeholder":  "Enter Password",
 					"autocomplete": "current-password",
@@ -59,21 +59,21 @@ templ LoginForm(errors *LoginErrorsModelView) {
 					<a href="/signup" class="text-blue-600 hover:text-blue-800 hover:underline">Sign up</a>
 				</span>
 			</div>
-			if errors.Other !=nil {
-				<p class="text-error text-sm mt-2">{ errors.Other.Error() }</p>
+			if model.Other !=nil {
+				<p class="text-error text-sm mt-2">{ model.Other.Error() }</p>
 			}
 		</form>
 	</div>
 }
 
-type SignUpErrorsModelView struct {
+type SignUpFormModelView struct {
 	Username       error
 	Password       error
 	RepeatPassword error
 	Other          error
 }
 
-templ SignUpForm(errors *SignUpErrorsModelView) {
+templ SignUpForm(model *SignUpFormModelView) {
 	<div id="register-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
 		<h1 class="text-2xl font-semibold text-center">Sign up</h1>
 		<form
@@ -87,21 +87,21 @@ templ SignUpForm(errors *SignUpErrorsModelView) {
 			hx-indicator="#spinner"
 		>
 			<div class="form-control">
-				@input("username", errors.Username, templ.Attributes{
+				@input("username", model.Username, templ.Attributes{
 					"type":         "text",
 					"placeholder":  "Username",
 					"autocomplete": "username",
 				})
 			</div>
 			<div class="form-control">
-				@input("password", errors.Password, templ.Attributes{
+				@input("password", model.Password, templ.Attributes{
 					"type":         "password",
 					"placeholder":  "Enter password",
 					"autocomplete": "current-password",
 				})
 			</div>
 			<div class="form-control">
-				@input("repeatPassword", errors.RepeatPassword, templ.Attributes{
+				@input("repeatPassword", model.RepeatPassword, templ.Attributes{
 					"type":         "password",
 					"placeholder":  "Confirm password",
 					"autocomplete": "current-password",
@@ -117,8 +117,8 @@ templ SignUpForm(errors *SignUpErrorsModelView) {
 					<a href="/login" class="text-blue-600 hover:text-blue-800 hover:underline">Login</a>
 				</span>
 			</div>
-			if errors.Other != nil {
-				<p class="text-error text-sm mt-2">{ errors.Other.Error() }</p>
+			if model.Other != nil {
+				<p class="text-error text-sm mt-2">{ model.Other.Error() }</p>
 			}
 		</form>
 	</div>

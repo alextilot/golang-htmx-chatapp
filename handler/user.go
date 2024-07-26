@@ -21,7 +21,7 @@ var (
 
 func (h *Handler) Login(etx echo.Context) error {
 	req := &userLoginRequest{}
-	view := &forms.LoginErrorsModelView{
+	view := &forms.LoginFormModelView{
 		Username: nil,
 		Password: nil,
 		Other:    nil,
@@ -59,7 +59,7 @@ func (h *Handler) Login(etx echo.Context) error {
 func (h *Handler) SignUp(etx echo.Context) error {
 	var user = &model.User{}
 	req := &userRegisterRequest{}
-	view := &forms.SignUpErrorsModelView{
+	view := &forms.SignUpFormModelView{
 		Username:       nil,
 		Password:       nil,
 		RepeatPassword: nil,

@@ -50,7 +50,7 @@ type userLoginRequest struct {
 	Password string `form:"password" validate:"required,min=5"`
 }
 
-func (r *userLoginRequest) bind(c echo.Context, v *forms.LoginErrorsModelView) bool {
+func (r *userLoginRequest) bind(c echo.Context, v *forms.LoginFormModelView) bool {
 	if err := c.Bind(r); err != nil {
 		v.Other = err
 		return false
@@ -84,7 +84,7 @@ type userRegisterRequest struct {
 	RepeatPassword string `form:"repeatPassword" validate:"required,min=5,eqfield=Password"`
 }
 
-func (r *userRegisterRequest) bind(c echo.Context, u *model.User, v *forms.SignUpErrorsModelView) bool {
+func (r *userRegisterRequest) bind(c echo.Context, u *model.User, v *forms.SignUpFormModelView) bool {
 
 	if err := c.Bind(r); err != nil {
 		v.Other = err
