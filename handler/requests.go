@@ -123,3 +123,49 @@ func (r *userRegisterRequest) bind(c echo.Context, u *model.User, v *forms.SignU
 	u.Password = h
 	return true
 }
+
+type messagesRequest struct {
+	Count int `param:"count" validate:"required,numeric"`
+	Ref   int `query:"ref" validate:"required,numeric"`
+}
+
+var (
+	ErrorFieldIsRequired    = errors.New("Missing required field.")
+	ErrorParamMustBeNumeric = errors.New("Param must be numeric.")
+)
+
+func errorForMessages(key string, tag string, msg string) error {
+	switch tag {
+	case "required":
+		return ErrorFieldIsRequired
+	case "numeric":
+		return ErrorParamMustBeNumeric
+	}
+	return errors.New(msg)
+}
+
+func (r *messagesRequest) bind(c echo.Context) error {
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+
+	if err := c.Validate(r); err != nil {
+
+		validator := err.(validator.ValidationErrors)
+		for _, ve := range validator {
+			key := ve.Field()
+			tag := ve.Tag()
+			msg := ve.Error()
+
+			switch key {
+			case "Count":
+				return errorForMessages(key, tag, msg)
+			case "Ref":
+				return errorForMessages(key, tag, msg)
+			default:
+				return errors.New(msg)
+			}
+		}
+	}
+	return nil
+}

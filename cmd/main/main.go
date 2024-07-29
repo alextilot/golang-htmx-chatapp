@@ -82,6 +82,12 @@ func main() {
 		return h.Chatroom(etx, user)
 	})
 
+	chatroom.GET("/messages/:count", func(etx echo.Context) error {
+		time.Sleep(1 * time.Second)
+		user, _ := services.GetUserContext(etx)
+		return h.Messages(etx, user)
+	})
+
 	chatroom.GET("/ws", func(etx echo.Context) error {
 		user, _ := services.GetUserContext(etx)
 		return manager.Handler(etx, ctx, user.Username)
