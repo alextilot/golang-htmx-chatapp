@@ -1,6 +1,6 @@
 package static
 
-import "github.com/alextilot/golang-htmx-chatapp/web/layout"
+import "github.com/alextilot/golang-htmx-chatapp/web/document"
 
 type ErrorPageViewModel struct {
 	Title       string
@@ -36,14 +36,14 @@ var (
 	}
 )
 
-templ ErrorPage(errorInfo ErrorPageViewModel) {
-	@layout.HTTPErrorLayout(errorInfo.Title) {
+templ ErrorPage(data ErrorPageViewModel) {
+	@document.HttpError(data.Title) {
 		<main class="hero bg-base-200 min-h-screen">
 			<div class="hero-content text-center">
 				<div class="max-w-md">
-					<h1 class="text-5xl font-bold">{ errorInfo.Header } <small>{ errorInfo.Code }</small></h1>
+					<h1 class="text-5xl font-bold">{ data.Header } <small>{ data.Code }</small></h1>
 					<p class="py-6">
-						{ errorInfo.Description }
+						{ data.Description }
 					</p>
 					<button class="btn btn-primary" onclick="history.back()">Go Back</button>
 				</div>

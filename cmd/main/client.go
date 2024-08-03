@@ -79,20 +79,21 @@ func (c *Client) ReadMessages(ctx echo.Context) {
 		}
 
 		msg := model.Message{
+			Number:   0,
 			Username: c.Name,
 			Time:     time.Now(),
 			Data:     message.Content,
 		}
 
 		// Save message to db
-		err = c.Manager.messageService.Create(&msg)
+		dbMsg, err := c.Manager.messageService.Create(&msg)
 		if err != nil {
 			ctx.Logger().Error(err)
 			return
 		}
 
 		// Send message to other people
-		if err = c.Manager.WriteMessage(msg, "general"); err != nil {
+		if err = c.Manager.WriteMessage(*dbMsg, "general"); err != nil {
 			ctx.Logger().Error(err)
 			return
 		}
@@ -120,6 +121,7 @@ func (c *Client) WriteMessage(echoContext echo.Context, ctx context.Context) {
 
 			buffer := &bytes.Buffer{}
 			tmp := components.NewMessageView(
+				msg.Number,
 				msg.Username,
 				msg.Data,
 				msg.Time,

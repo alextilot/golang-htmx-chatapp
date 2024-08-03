@@ -1,8 +1,12 @@
 package components
 
-import "time"
+import (
+	"time"
+	"strconv"
+)
 
 type MessageComponentViewModel struct {
+	Number int64
 	Sender string
 	Body   string
 	Time   string
@@ -57,11 +61,12 @@ func formatTime(t time.Time, r relevancy) string {
 	}
 }
 
-func NewMessageView(sender string, body string, time time.Time, isSelf bool) *MessageComponentViewModel {
+func NewMessageView(number int64, sender string, body string, time time.Time, isSelf bool) *MessageComponentViewModel {
 	relevancy := calcTimeRelevancy(time)
 	timeString := formatTime(time, relevancy)
 
 	message := &MessageComponentViewModel{
+		Number: number,
 		Sender: sender,
 		Body:   body,
 		Time:   timeString,
@@ -101,30 +106,30 @@ templ ChatInput() {
 			</button>
 		</div>
 	</form>
-	<script>
-	const autoHeight = (elem) => {
-		elem.style.height = '1px';
-		elem.style.height = `${elem.scrollHeight}px`;
-	}
-	// Event handler, emits "send-message" if enter is pressed with no modifier key
-	const sendMessageOnEnter = (event) => {
-		if (event.key === "Enter" && !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)) {
-			event.preventDefault();
-			htmx.trigger(event.target, "send-message");
+	<script type="text/javascript">
+		const autoHeight = (elem) => {
+			elem.style.height = '1px';
+			elem.style.height = `${elem.scrollHeight}px`;
 		}
-	};
-	const resetTextarea = (selectors) => {
-		const element = document.querySelector(selectors)
-		if (element != null) {
-			element.value = "";
-			autoHeight(element)
-		}
-	};
-</script>
+		// Event handler, emits "send-message" if enter is pressed with no modifier key
+		const sendMessageOnEnter = (event) => {
+			if (event.key === "Enter" && !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)) {
+				event.preventDefault();
+				htmx.trigger(event.target, "send-message");
+			}
+		};
+		const resetTextarea = (selectors) => {
+			const element = document.querySelector(selectors)
+			if (element != null) {
+				element.value = "";
+				autoHeight(element)
+			}
+		};
+	</script>
 }
 
 templ messageTemplate(message *MessageComponentViewModel) {
-	<div class={ "chat" , templ.KV("chat-start", !message.IsSelf), templ.KV("chat-end", message.IsSelf) }>
+	<div data-number={ strconv.FormatInt(message.Number, 10) } class={ "chat" , templ.KV("chat-start", !message.IsSelf), templ.KV("chat-end", message.IsSelf) }>
 		<div class="chat-header">
 			{ message.Sender }
 			<time class="text-xs opacity-50">{ message.Time }</time>
@@ -134,9 +139,22 @@ templ messageTemplate(message *MessageComponentViewModel) {
 }
 
 templ Message(message *MessageComponentViewModel) {
-	<div hx-swap-oob="beforebegin:#chatroom-bottom">
+	<div hx-swap-oob="beforebegin:#chat_room_bottom">
 		@messageTemplate(message)
 	</div>
+}
+
+templ lazyLoadMessages(message *MessageComponentViewModel) {
+	<div hx-get={ "/chatroom/messages/10?ref=" + strconv.FormatInt(message.Number, 10) } hx-trigger="intersect once" hx-swap="afterbegin" hx-target="#chat_room"></div>
+}
+
+templ MessageGroup(messages []*MessageComponentViewModel) {
+	for _, message := range messages {
+		@messageTemplate(message)
+	}
+	if len(messages) > 0 {
+		@lazyLoadMessages(messages[0])
+	}
 }
 
 templ Chatroom(messages []*MessageComponentViewModel) {
@@ -144,13 +162,11 @@ templ Chatroom(messages []*MessageComponentViewModel) {
 		<h1 class="text-center">Chat Room</h1>
 		<div class="flex-1 overflow-hidden">
 			<div class="h-full relative">
-				<div class="h-full w-full overflow-y-auto">
-					<scroller class="scroller flex flex-col pb-8">
-						for _, message :=range messages {
-							@messageTemplate(message)
-						}
+				<div id="chat_window" class="h-full w-full overflow-y-auto">
+					<scroller id="chat_room" class="scroller flex flex-col pb-8">
+						@MessageGroup(messages)
 						//Injected content here
-						<anchor id="chatroom-bottom" class="anchor"></anchor>
+						<anchor id="chat_room_bottom" class="anchor"></anchor>
 					</scroller>
 				</div>
 			</div>
@@ -159,8 +175,43 @@ templ Chatroom(messages []*MessageComponentViewModel) {
 			@ChatInput()
 		</div>
 	</div>
-	<script>
-	const anchor = document.getElementById("chatroom-bottom");
-	anchor.scrollIntoView();
-</script>
+	<script type="text/javascript">
+		(() => {
+			// Chat room anchors to the bottom of the page when the scroll bar is near the bottom.
+
+			function inRange(x, min, max) {
+				return ((x-min)*(x-max) <= 0);
+			}
+
+			function nearBottom(el, pct) {
+				let sh = el.scrollHeight,
+						st = el.scrollTop,
+						ht = el.offsetHeight;
+				const diff = sh - ht,
+			        margin = diff * pct,
+						  min = diff - margin,
+						  max = diff + margin;
+				return ht == 0 || st == diff || inRange(st, min, max);
+			}
+
+			function scrollToAnchor() {
+				const anchor = document.getElementById("chat_room_bottom");
+				anchor?.scrollIntoView();
+			}
+			scrollToAnchor()
+
+			const handleWsMessage = () => {
+				scrollToAnchor()
+				document.body.removeEventListener("htmx:wsAfterMessage", handleWsMessage)
+			}
+
+			document.body.addEventListener("htmx:wsBeforeMessage", function(evt) {
+				const el = document.getElementById("chat_window");
+				const nb = nearBottom(el, 0.10)
+				if(nb) {
+					document.body.addEventListener("htmx:wsAfterMessage", handleWsMessage)
+				}
+			});
+		})();
+	</script>
 }
