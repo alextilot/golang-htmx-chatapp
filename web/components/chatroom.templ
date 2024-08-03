@@ -106,26 +106,26 @@ templ ChatInput() {
 			</button>
 		</div>
 	</form>
-	<script>
-	const autoHeight = (elem) => {
-		elem.style.height = '1px';
-		elem.style.height = `${elem.scrollHeight}px`;
-	}
-	// Event handler, emits "send-message" if enter is pressed with no modifier key
-	const sendMessageOnEnter = (event) => {
-		if (event.key === "Enter" && !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)) {
-			event.preventDefault();
-			htmx.trigger(event.target, "send-message");
+	<script type="text/javascript">
+		const autoHeight = (elem) => {
+			elem.style.height = '1px';
+			elem.style.height = `${elem.scrollHeight}px`;
 		}
-	};
-	const resetTextarea = (selectors) => {
-		const element = document.querySelector(selectors)
-		if (element != null) {
-			element.value = "";
-			autoHeight(element)
-		}
-	};
-</script>
+		// Event handler, emits "send-message" if enter is pressed with no modifier key
+		const sendMessageOnEnter = (event) => {
+			if (event.key === "Enter" && !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)) {
+				event.preventDefault();
+				htmx.trigger(event.target, "send-message");
+			}
+		};
+		const resetTextarea = (selectors) => {
+			const element = document.querySelector(selectors)
+			if (element != null) {
+				element.value = "";
+				autoHeight(element)
+			}
+		};
+	</script>
 }
 
 templ messageTemplate(message *MessageComponentViewModel) {
@@ -139,23 +139,21 @@ templ messageTemplate(message *MessageComponentViewModel) {
 }
 
 templ Message(message *MessageComponentViewModel) {
-	<div hx-swap-oob="beforebegin:#chatroom-bottom">
+	<div hx-swap-oob="beforebegin:#chat_room_bottom">
 		@messageTemplate(message)
 	</div>
 }
 
-templ lazyLoadMessage(message *MessageComponentViewModel) {
-	<div hx-get={ "/chatroom/messages/5?ref=" + strconv.FormatInt(message.Number, 10) } hx-trigger="intersect once" hx-swap="beforebegin">
-		@messageTemplate(message)
-	</div>
+templ lazyLoadMessages(message *MessageComponentViewModel) {
+	<div hx-get={ "/chatroom/messages/10?ref=" + strconv.FormatInt(message.Number, 10) } hx-trigger="intersect once" hx-swap="afterbegin" hx-target="#chat_room"></div>
 }
 
 templ MessageGroup(messages []*MessageComponentViewModel) {
-	if len(messages) > 0 {
-		@lazyLoadMessage(messages[0])
+	for _, message := range messages {
+		@messageTemplate(message)
 	}
-	for i := 1; i < len(messages); i++ {
-		@messageTemplate(messages[i])
+	if len(messages) > 0 {
+		@lazyLoadMessages(messages[0])
 	}
 }
 
@@ -164,11 +162,11 @@ templ Chatroom(messages []*MessageComponentViewModel) {
 		<h1 class="text-center">Chat Room</h1>
 		<div class="flex-1 overflow-hidden">
 			<div class="h-full relative">
-				<div class="h-full w-full overflow-y-auto">
-					<scroller class="scroller flex flex-col pb-8">
+				<div id="chat_window" class="h-full w-full overflow-y-auto">
+					<scroller id="chat_room" class="scroller flex flex-col pb-8">
 						@MessageGroup(messages)
 						//Injected content here
-						<anchor id="chatroom-bottom" class="anchor"></anchor>
+						<anchor id="chat_room_bottom" class="anchor"></anchor>
 					</scroller>
 				</div>
 			</div>
@@ -177,8 +175,43 @@ templ Chatroom(messages []*MessageComponentViewModel) {
 			@ChatInput()
 		</div>
 	</div>
-	<script>
-		const anchor = document.getElementById("chatroom-bottom");
-		anchor.scrollIntoView();
+	<script type="text/javascript">
+		(() => {
+			// Chat room anchors to the bottom of the page when the scroll bar is near the bottom.
+
+			function inRange(x, min, max) {
+				return ((x-min)*(x-max) <= 0);
+			}
+
+			function nearBottom(el, pct) {
+				let sh = el.scrollHeight,
+						st = el.scrollTop,
+						ht = el.offsetHeight;
+				const diff = sh - ht,
+			        margin = diff * pct,
+						  min = diff - margin,
+						  max = diff + margin;
+				return ht == 0 || st == diff || inRange(st, min, max);
+			}
+
+			function scrollToAnchor() {
+				const anchor = document.getElementById("chat_room_bottom");
+				anchor?.scrollIntoView();
+			}
+			scrollToAnchor()
+
+			const handleWsMessage = () => {
+				scrollToAnchor()
+				document.body.removeEventListener("htmx:wsAfterMessage", handleWsMessage)
+			}
+
+			document.body.addEventListener("htmx:wsBeforeMessage", function(evt) {
+				const el = document.getElementById("chat_window");
+				const nb = nearBottom(el, 0.10)
+				if(nb) {
+					document.body.addEventListener("htmx:wsAfterMessage", handleWsMessage)
+				}
+			});
+		})();
 	</script>
 }

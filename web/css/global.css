@@ -17,11 +17,3 @@
     scrollbar-width: none; /* Firefox */
   }
 }
-
-.scroller * {
-  overflow-anchor: none;
-}
-.scroller > .anchor {
-  overflow-anchor: auto;
-  height: 1px;
-}
