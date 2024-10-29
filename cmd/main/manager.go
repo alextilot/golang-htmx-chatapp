@@ -32,6 +32,25 @@ func NewManager(ms *store.MessageStore) *Manager {
 	}
 }
 
+func (m *Manager) Handler(etx echo.Context, ctx context.Context, name string) error {
+	ws, err := upgrader.Upgrade(etx.Response(), etx.Request(), nil)
+	if err != nil {
+		return err
+	}
+
+	newClient := NewClient(ws, m, name)
+
+	m.ClientListEventChannel <- &ClientListEvent{
+		EventType: "ADD",
+		Client:    newClient,
+	}
+
+	go newClient.ReadHandler(etx)
+	go newClient.WriteHandler(etx, ctx)
+
+	return nil
+}
+
 func (m *Manager) HandleClientListEventChannel(ctx context.Context) {
 	for {
 		select {
@@ -61,25 +80,6 @@ func (m *Manager) HandleClientListEventChannel(ctx context.Context) {
 			return
 		}
 	}
-}
-
-func (m *Manager) Handler(etx echo.Context, ctx context.Context, name string) error {
-	ws, err := upgrader.Upgrade(etx.Response(), etx.Request(), nil)
-	if err != nil {
-		return err
-	}
-
-	newClient := NewClient(ws, m, name)
-
-	m.ClientListEventChannel <- &ClientListEvent{
-		EventType: "ADD",
-		Client:    newClient,
-	}
-
-	go newClient.ReadMessages(etx)
-	go newClient.WriteMessage(etx, ctx)
-
-	return nil
 }
 
 func (m *Manager) WriteMessage(message model.Message, chatroom string) error {

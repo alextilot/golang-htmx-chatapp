@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -14,17 +16,27 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type WebSocketMessage struct {
-	Content string
+type websocketData struct {
+	Type string
+	Body json.RawMessage
+}
+
+type WsMessage struct {
+	Content string `json:"password" validate:"printascii"`
+}
+type WsNotification struct {
+	ClientID string
+	Name     string
 }
 
 type Client struct {
-	Conn           *websocket.Conn
-	ID             string
-	Chatroom       string
-	Manager        *Manager
-	MessageChannel chan model.Message
-	Name           string
+	Conn                *websocket.Conn
+	ID                  string
+	Chatroom            string
+	Manager             *Manager
+	MessageChannel      chan model.Message
+	NotificationChannel chan WsNotification
+	Name                string
 }
 
 var (
@@ -34,16 +46,56 @@ var (
 
 func NewClient(conn *websocket.Conn, manager *Manager, name string) *Client {
 	return &Client{
-		Conn:           conn,
-		ID:             uuid.New().String(),
-		Chatroom:       "general",
-		Manager:        manager,
-		MessageChannel: make(chan model.Message),
-		Name:           name,
+		Conn:                conn,
+		ID:                  uuid.New().String(),
+		Chatroom:            "general",
+		Manager:             manager,
+		MessageChannel:      make(chan model.Message),
+		NotificationChannel: make(chan WsNotification),
+		Name:                name,
 	}
 }
 
-func (c *Client) ReadMessages(ctx echo.Context) {
+func (c *Client) handleWsNotification(ctx echo.Context, data websocketData) {
+	fmt.Println("handleWsNotification()")
+}
+
+func (c *Client) handleWsMessage(ctx echo.Context, data websocketData) {
+	fmt.Println("handleWsMessage()")
+	var wsMsg WsMessage
+
+	err := json.Unmarshal(data.Body, &wsMsg)
+	if err != nil {
+		ctx.Logger().Error(err)
+	}
+
+	s := strings.TrimSpace(wsMsg.Content)
+	if s == "" {
+		return
+	}
+
+	model := model.Message{
+		Number:   1,
+		Username: c.Name,
+		Time:     time.Now(),
+		Data:     wsMsg.Content,
+	}
+
+	// Save message to db
+	dbModel, err := c.Manager.messageService.Create(&model)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return
+	}
+
+	// Send message to other people
+	if err = c.Manager.WriteMessage(*dbModel, "general"); err != nil {
+		ctx.Logger().Error(err)
+		return
+	}
+}
+
+func (c *Client) ReadHandler(ctx echo.Context) {
 	defer func() {
 		c.Conn.Close()
 		c.Manager.ClientListEventChannel <- &ClientListEvent{
@@ -66,41 +118,26 @@ func (c *Client) ReadMessages(ctx echo.Context) {
 	})
 
 	for {
-		var message WebSocketMessage
-		err := c.Conn.ReadJSON(&message)
+		var wsData websocketData
+
+		err := c.Conn.ReadJSON(&wsData)
 		if err != nil {
 			ctx.Logger().Error(err)
 			return
 		}
 
-		s := strings.TrimSpace(message.Content)
-		if s == "" {
-			return
-		}
+		fmt.Println(wsData)
 
-		msg := model.Message{
-			Number:   0,
-			Username: c.Name,
-			Time:     time.Now(),
-			Data:     message.Content,
-		}
-
-		// Save message to db
-		dbMsg, err := c.Manager.messageService.Create(&msg)
-		if err != nil {
-			ctx.Logger().Error(err)
-			return
-		}
-
-		// Send message to other people
-		if err = c.Manager.WriteMessage(*dbMsg, "general"); err != nil {
-			ctx.Logger().Error(err)
-			return
+		switch wsData.Type {
+		case "notification":
+			c.handleWsNotification(ctx, wsData)
+		case "message":
+			c.handleWsMessage(ctx, wsData)
 		}
 	}
 }
 
-func (c *Client) WriteMessage(echoContext echo.Context, ctx context.Context) {
+func (c *Client) WriteHandler(echoContext echo.Context, ctx context.Context) {
 	defer func() {
 		c.Conn.Close()
 		c.Manager.ClientListEventChannel <- &ClientListEvent{
@@ -114,20 +151,25 @@ func (c *Client) WriteMessage(echoContext echo.Context, ctx context.Context) {
 
 	for {
 		select {
+		// case notif, ok := <-c.NotificationChannel:
+		// 	if !ok {
+		// 		return
+		// 	}
+
 		case msg, ok := <-c.MessageChannel:
 			if !ok {
 				return
 			}
 
 			buffer := &bytes.Buffer{}
-			tmp := components.NewMessageView(
+			msgView := components.NewMessageView(
 				msg.Number,
 				msg.Username,
 				msg.Data,
 				msg.Time,
 				msg.Username == c.Name,
 			)
-			components.Message(tmp).Render(ctx, buffer)
+			components.Message(msgView).Render(ctx, buffer)
 
 			err := c.Conn.WriteMessage(websocket.TextMessage, buffer.Bytes())
 			if err != nil {

@@ -75,37 +75,59 @@ func NewMessageView(number int64, sender string, body string, time time.Time, is
 	return message
 }
 
+templ TypingNotification(clientId string, name string) {
+	<div id={ clientId } class="prose text-sm whitespace-nowrap">
+		{ name }
+		<span class="prose prose-slate text-xs">is typing</span>
+		<span class="loading loading-dots loading-xs align-bottom"></span>
+	</div>
+}
+
 templ ChatInput() {
-	<form id="chat-form" ws-send hx-trigger="submit, send-message" hx-on::ws-after-send="resetTextarea('#text-message')">
-		<label for="text-message" class="sr-only">Your message</label>
-		<div class="flex items-center px-3 py-2 bg-base-300 shadow">
-			<textarea
-				form="chat-form"
-				id="text-message"
-				rows="1"
-				placeholder="Type your message..."
-				class="no-scrollbar resize-none block mx-4 p-2.5 w-full textarea textarea-bordered"
-				name="Content"
-				maxlength="5000"
-				onInput="autoHeight(this)"
-				hx-on:keypress="sendMessageOnEnter(event)"
-			></textarea>
-			<button type="submit" class="btn btn-primary">
-				<svg
-					class="w-5 h-5 rotate-90 rtl:-rotate-90"
-					aria-hidden="true"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="currentColor"
-					viewBox="0 0 18 20"
-				>
-					<path
-						d="m17.914 18.594-8-18a1 1 0 0 0-1.828 0l-8 18a1 1 0 0 0 1.157 1.376L8 18.281V9a1 1 0 0 1 2 0v9.281l6.758 1.689a1 1 0 0 0 1.156-1.376Z"
-					></path>
-				</svg>
-				<span class="sr-only">Send message</span>
-			</button>
-		</div>
-	</form>
+	<div
+		hx-ext="debug"
+	>
+		<div id="chat-notifications" class="flex flex-row justify-start gap-4 px-2 overflow-hidden"></div>
+		<form
+			id="chat-form"
+			ws-send
+			hx-trigger="submit, send-message"
+			hx-on::ws-after-send="resetTextarea('#text-message')"
+			hx-vals='js:{
+				"type": "message",
+				"body": "#text-message"
+				}'
+		>
+			<label for="text-message" class="sr-only">Your message</label>
+			<div class="flex items-center px-3 py-2 bg-base-300 shadow">
+				<textarea
+					form="chat-form"
+					id="text-message"
+					rows="1"
+					placeholder="Type your message..."
+					class="no-scrollbar resize-none block mx-4 p-2.5 w-full textarea textarea-bordered"
+					name="content"
+					maxlength="5000"
+					onInput="autoHeight(this)"
+					hx-on:keypress="sendMessageOnEnter(event)"
+				></textarea>
+				<button type="submit" class="btn btn-primary">
+					<svg
+						class="w-5 h-5 rotate-90 rtl:-rotate-90"
+						aria-hidden="true"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="currentColor"
+						viewBox="0 0 18 20"
+					>
+						<path
+							d="m17.914 18.594-8-18a1 1 0 0 0-1.828 0l-8 18a1 1 0 0 0 1.157 1.376L8 18.281V9a1 1 0 0 1 2 0v9.281l6.758 1.689a1 1 0 0 0 1.156-1.376Z"
+						></path>
+					</svg>
+					<span class="sr-only">Send message</span>
+				</button>
+			</div>
+		</form>
+	</div>
 	<script type="text/javascript">
 		const autoHeight = (elem) => {
 			elem.style.height = '1px';
@@ -125,11 +147,27 @@ templ ChatInput() {
 				autoHeight(element)
 			}
 		};
+
+		(function(){
+				//   htmx.defineExtension("ws-json-encode", {
+				// onEvent: function(name, evt) {
+				// 	console.log("Fired event: " + name, evt);
+				//     },
+				// encodeParameters: function(...args) {
+				// 	console.log(args)
+				// 	console.log("encodeParameters")
+				// 	return null;
+				// }
+				//   })
+    })()
 	</script>
 }
 
 templ messageTemplate(message *MessageComponentViewModel) {
-	<div data-number={ strconv.FormatInt(message.Number, 10) } class={ "chat" , templ.KV("chat-start", !message.IsSelf), templ.KV("chat-end", message.IsSelf) }>
+	<div
+		data-number={ strconv.FormatInt(message.Number, 10) }
+		class={ "chat" , templ.KV("chat-start", !message.IsSelf), templ.KV("chat-end", message.IsSelf) }
+	>
 		<div class="chat-header">
 			{ message.Sender }
 			<time class="text-xs opacity-50">{ message.Time }</time>
@@ -162,8 +200,8 @@ templ Chatroom(messages []*MessageComponentViewModel) {
 		<h1 class="text-center">Chat Room</h1>
 		<div class="flex-1 overflow-hidden">
 			<div class="h-full relative">
-				<div id="chat_window" class="h-full w-full overflow-y-auto">
-					<scroller id="chat_room" class="scroller flex flex-col pb-8">
+				<div id="chat_window" class="h-full w-full overflow-y-auto pb-4">
+					<scroller id="chat_room" class="scroller flex flex-col">
 						@MessageGroup(messages)
 						//Injected content here
 						<anchor id="chat_room_bottom" class="anchor"></anchor>
