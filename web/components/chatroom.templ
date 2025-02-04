@@ -15,7 +15,8 @@ type MessageComponentViewModel struct {
 type relevancy int
 
 const (
-	today relevancy = iota
+	thisHour relevancy = iota
+	today
 	thisWeek
 	thisMonth
 	thisYear
@@ -33,6 +34,8 @@ func calcTimeRelevancy(t time.Time) relevancy {
 	timeDiff := now.Sub(t)
 
 	switch {
+	case now.Year() == t.Year() && now.Month() == t.Month() && now.Day() == t.Day() && now.Hour() == t.Hour():
+		return thisHour
 	case now.Year() == t.Year() && now.Month() == t.Month() && now.Day() == t.Day():
 		return today
 	case now.Year() == t.Year() && now.Month() == t.Month() && timeDiff < timeDurationWeek:
@@ -48,8 +51,10 @@ func calcTimeRelevancy(t time.Time) relevancy {
 
 func formatTime(t time.Time, r relevancy) string {
 	switch r {
-	case today:
+	case thisHour:
 		return t.Format("3:04:05 PM")
+	case today:
+		return t.Format("3:04 PM")
 	case thisWeek:
 		return t.Format("Mon 3:04 PM")
 	case thisMonth:
@@ -94,8 +99,8 @@ templ ChatInput() {
 			hx-trigger="submit, send-message"
 			hx-on::ws-after-send="resetTextarea('#text-message')"
 			hx-vals='js:{
-				"type": "message",
-				"body": "#text-message"
+				"Type": "message",
+				"Version": "1.0"
 				}'
 		>
 			<label for="text-message" class="sr-only">Your message</label>
@@ -106,7 +111,7 @@ templ ChatInput() {
 					rows="1"
 					placeholder="Type your message..."
 					class="no-scrollbar resize-none block mx-4 p-2.5 w-full textarea textarea-bordered"
-					name="content"
+					name="Content"
 					maxlength="5000"
 					onInput="autoHeight(this)"
 					hx-on:keypress="sendMessageOnEnter(event)"

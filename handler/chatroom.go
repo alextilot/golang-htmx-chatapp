@@ -24,7 +24,7 @@ func createMessageViews(messages []*model.Message, username string) []*component
 func (h *Handler) Chatroom(etx echo.Context, user services.UserContext) error {
 	messages, err := h.msgService.GetMostRecent(20)
 	if err != nil {
-		return etx.String(http.StatusBadGateway, "unable to pre populate chat messages")
+		return etx.String(http.StatusBadGateway, "unable to prepopulate chat messages")
 	}
 	messageViews := createMessageViews(messages, user.Username)
 	return web.Render(etx, http.StatusOK, views.ChatroomPage(user.IsLoggedIn, messageViews))

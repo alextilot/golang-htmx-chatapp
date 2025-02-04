@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -17,13 +16,11 @@ import (
 )
 
 type websocketData struct {
-	Type string
-	Body json.RawMessage
+	Type    string
+	Version string
+	Content string
 }
 
-type WsMessage struct {
-	Content string `json:"password" validate:"printascii"`
-}
 type WsNotification struct {
 	ClientID string
 	Name     string
@@ -62,12 +59,12 @@ func (c *Client) handleWsNotification(ctx echo.Context, data websocketData) {
 
 func (c *Client) handleWsMessage(ctx echo.Context, data websocketData) {
 	fmt.Println("handleWsMessage()")
-	var wsMsg WsMessage
+	wsMsg := data
 
-	err := json.Unmarshal(data.Body, &wsMsg)
-	if err != nil {
-		ctx.Logger().Error(err)
-	}
+	// err := json.Unmarshal(data.Body, &wsMsg)
+	// if err != nil {
+	// 	ctx.Logger().Error(err)
+	// }
 
 	s := strings.TrimSpace(wsMsg.Content)
 	if s == "" {
@@ -121,6 +118,7 @@ func (c *Client) ReadHandler(ctx echo.Context) {
 		var wsData websocketData
 
 		err := c.Conn.ReadJSON(&wsData)
+		fmt.Println("data", wsData)
 		if err != nil {
 			ctx.Logger().Error(err)
 			return
