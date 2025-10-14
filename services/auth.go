@@ -4,59 +4,57 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/alextilot/golang-htmx-chatapp/model"
-
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
 const (
-	// TODO: Jwt Secret key is Demo only
 	AccessTokenCookieName  = "access-token"
-	JwtSecretKey           = "access-secret-key"
 	RefreshTokenCookieName = "refresh-token"
-	JwtRefreshSecretKey    = "refresh-secret-key"
+	// TODO: Jwt Secret key is Demo only
+	JwtSecretKey = "access-secret-key"
+	// TODO: Jwt Refresh Secret key is Demo only
+	JwtRefreshSecretKey = "refresh-secret-key"
+	oneHour             = 1 * time.Hour
+	twentyFourHours     = 24 * time.Hour
+	fifteenMinutes      = 15 * time.Minute
 )
 
 type Claims struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
+	UserID string `json:"userId"`
 	jwt.StandardClaims
 }
 
-func GenerateTokensAndSetCookies(user *model.User, etx echo.Context) error {
-	accessToken, exp, err := generateAccessToken(user)
+func GenerateTokensAndSetCookies(userID string, ctx echo.Context) error {
+	accessToken, exp, err := generateAccessToken(userID)
 	if err != nil {
 		return err
 	}
-	setTokenCookie(AccessTokenCookieName, accessToken, exp, etx)
+	setTokenCookie(AccessTokenCookieName, accessToken, exp, ctx)
 
-	refreshToken, exp, err := generateRefreshToken(user)
+	refreshToken, exp, err := generateRefreshToken(userID)
 	if err != nil {
 		return err
 	}
-	setTokenCookie(RefreshTokenCookieName, refreshToken, exp, etx)
+	setTokenCookie(RefreshTokenCookieName, refreshToken, exp, ctx)
 
 	return nil
 }
 
-func generateAccessToken(user *model.User) (string, time.Time, error) {
-	expirationTime := time.Now().Add(1 * time.Hour)
-	return generateToken(user, expirationTime, []byte(JwtSecretKey))
+func generateAccessToken(userID string) (string, time.Time, error) {
+	expirationTime := time.Now().Add(oneHour)
+	return generateToken(userID, expirationTime, []byte(JwtSecretKey))
 }
 
-func generateRefreshToken(user *model.User) (string, time.Time, error) {
-	// Declare the expiration time of the token - 24 hours.
-	expirationTime := time.Now().Add(24 * time.Hour)
-
-	return generateToken(user, expirationTime, []byte(JwtRefreshSecretKey))
+func generateRefreshToken(userID string) (string, time.Time, error) {
+	expirationTime := time.Now().Add(twentyFourHours)
+	return generateToken(userID, expirationTime, []byte(JwtRefreshSecretKey))
 }
 
-func generateToken(user *model.User, expirationTime time.Time, secret []byte) (string, time.Time, error) {
-	// Create the JWT claims, which includes the username and expiry time.
+func generateToken(userID string, expirationTime time.Time, secret []byte) (string, time.Time, error) {
+	// Create the JWT claims, which includes the userID and expiry time.
 	claims := &Claims{
-		ID:       user.ID,
-		Username: user.Username,
+		UserID: userID,
 		StandardClaims: jwt.StandardClaims{
 			// In JWT, the expiry time is expressed as unix seconds.
 			ExpiresAt: expirationTime.Unix(),
@@ -76,7 +74,7 @@ func generateToken(user *model.User, expirationTime time.Time, secret []byte) (s
 }
 
 // Creating a new cookie, which will store the valid JWT token.
-func setTokenCookie(name, token string, expiration time.Time, etx echo.Context) {
+func setTokenCookie(name string, token string, expiration time.Time, ctx echo.Context) {
 	cookie := new(http.Cookie)
 	cookie.Name = name
 	cookie.Value = token
@@ -86,55 +84,56 @@ func setTokenCookie(name, token string, expiration time.Time, etx echo.Context) 
 	// Http-only helps mitigate the risk of client side script accessing the protected cookie.
 	cookie.HttpOnly = true
 
-	etx.SetCookie(cookie)
+	ctx.SetCookie(cookie)
 }
 
 // JWTErrorChecker will be executed when user try to access a protected path.
-func JWTErrorChecker(etc echo.Context, err error) error {
+func JWTErrorChecker(ctx echo.Context, err error) error {
 	// Redirects to the main page.
-	return etc.Redirect(http.StatusMovedPermanently, "/")
+	return ctx.Redirect(http.StatusMovedPermanently, "/")
 }
 
 // TokenRefresherMiddleware middleware, which refreshes JWT tokens if the access token is about to expire.
 func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(etx echo.Context) error {
+	return func(ctx echo.Context) error {
 		// If the user is not authenticated (no user token data in the context), don't do anything.
-		if etx.Get("user") == nil {
-			return next(etx)
+		if ctx.Get("user") == nil {
+			return next(ctx)
 		}
 		// Gets user token from the context.
-		u := etx.Get("user").(*jwt.Token)
+		u := ctx.Get("user").(*jwt.Token)
 
 		claims := u.Claims.(*Claims)
 
 		// We ensure that a new token is not issued until enough time has elapsed.
 		// In this case, a new token will only be issued if the old token is within
 		// 15 mins of expiry.
-		if time.Until(time.Unix(claims.ExpiresAt, 0)) < 15*time.Minute {
-			// Gets the refresh token from the cookie.
-			rc, err := etx.Cookie(RefreshTokenCookieName)
-			if err == nil && rc != nil {
-				// Parses token and checks if it valid.
-				tkn, err := jwt.ParseWithClaims(rc.Value, claims, func(token *jwt.Token) (interface{}, error) {
-					return []byte(JwtRefreshSecretKey), nil
-				})
-				if err != nil {
-					if err == jwt.ErrSignatureInvalid {
-						etx.Response().Writer.WriteHeader(http.StatusUnauthorized)
-					}
-				}
-
-				if tkn != nil && tkn.Valid {
-					// If everything is good, update tokens.
-					_ = GenerateTokensAndSetCookies(&model.User{
-						ID:       claims.ID,
-						Username: claims.Username,
-					}, etx)
-				}
-			}
+		if time.Until(time.Unix(claims.ExpiresAt, 0)) >= fifteenMinutes {
+			return next(ctx)
 		}
 
-		return next(etx)
+		// Gets the refresh token from the cookie.
+		rc, err := ctx.Cookie(RefreshTokenCookieName)
+		if err != nil && rc == nil {
+			return next(ctx)
+		}
+
+		// Parses token and checks if it valid.
+		tkn, err := jwt.ParseWithClaims(rc.Value, claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(JwtRefreshSecretKey), nil
+		})
+		if err != nil {
+			if err == jwt.ErrSignatureInvalid {
+				ctx.Response().Writer.WriteHeader(http.StatusUnauthorized)
+			}
+			return next(ctx)
+		}
+
+		if tkn != nil && tkn.Valid {
+			// If everything is good, update tokens.
+			_ = GenerateTokensAndSetCookies(claims.UserID, ctx)
+		}
+		return next(ctx)
 	}
 }
 

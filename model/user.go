@@ -7,9 +7,11 @@ import (
 )
 
 type User struct {
-	ID       string
-	Username string
-	Password string
+	Base
+	Username string        `gorm:"unique;not null"` // Unique and non-nullable username
+	Email    string        `gorm:"unique;not null"` // Unique and non-nullable email
+	Password string        `gorm:"not null"`        // Non-nullable password (should be hashed)
+	Messages []ChatMessage // One-to-many relationship: a user can send many messages
 }
 
 var (

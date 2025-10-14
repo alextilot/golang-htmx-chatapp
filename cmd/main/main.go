@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"log"
 
 	"net/http"
 
+	"github.com/alextilot/golang-htmx-chatapp/database"
 	"github.com/alextilot/golang-htmx-chatapp/handler"
 	"github.com/alextilot/golang-htmx-chatapp/router"
 	"github.com/alextilot/golang-htmx-chatapp/services"
@@ -15,29 +15,22 @@ import (
 
 	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	// Init DB
-	db, err := sql.Open("sqlite3", "./db/main.db")
-	if err != nil {
+	if err := database.Connect(); err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
 
-	sqlStmt := `
-	CREATE TABLE IF NOT EXISTS user (id text not null primary key, username text, password text);
-	`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		log.Printf("%q: %s \n", err, sqlStmt)
-		return
+	if err := database.Migrate(); err != nil {
+		log.Fatal(err)
 	}
+
+	defer database.Close()
 
 	// Init services
 	userService := &services.UserService{
-		DB: db,
+		DB: database.DB,
 	}
 
 	handler := handler.NewHandler(userService)
