@@ -1,0 +1,17 @@
+package form
+
+templ FormCheckbox(attrs templ.Attributes, fieldErrors []string) {
+	{{
+		classes := HasErrorClass("checkbox", fieldErrors, "checkbox-error")
+		label, attrs := ExtractAttribute[string](attrs, "label")
+	}}
+	<div class="form-control">
+		<label class="label cursor-pointer">
+			<input type="checkbox" { attrs... } class={ classes }/>
+			if label != "" {
+				<span class="label-text ml-2">{ label }</span>
+			}
+		</label>
+		@FormError(fieldErrors)
+	</div>
+}

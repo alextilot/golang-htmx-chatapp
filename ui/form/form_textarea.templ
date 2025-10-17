@@ -1,0 +1,18 @@
+package form
+
+// FormTextarea renders a textarea with errors
+templ FormTextarea(attrs templ.Attributes, fieldErrors []string) {
+	{{
+		classes := HasErrorClass("textarea textarea-bordered w-full", fieldErrors, "textarea-error")
+		label, attrs := ExtractAttribute[string](attrs, "label")
+	}}
+	<div class="form-control">
+		if label != "" {
+			<label class="label">
+				<span class="label-text">{ label }</span>
+			</label>
+		}
+		<textarea { attrs... } class={ classes }></textarea>
+		@FormError(fieldErrors)
+	</div>
+}

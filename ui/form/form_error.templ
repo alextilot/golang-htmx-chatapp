@@ -1,0 +1,9 @@
+package form
+
+templ FormError(fieldErrors []string) {
+	if FieldHasErrors(fieldErrors) {
+		<p class="text-error text-sm mt-1">
+			{ JoinErrors(fieldErrors) }
+		</p>
+	}
+}

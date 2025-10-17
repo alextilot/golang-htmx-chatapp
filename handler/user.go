@@ -1,112 +1,126 @@
 package handler
 
 import (
-	"context"
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/alextilot/golang-htmx-chatapp/services"
+	"github.com/alextilot/golang-htmx-chatapp/ui/forms"
+	"github.com/alextilot/golang-htmx-chatapp/validation"
+	"github.com/alextilot/golang-htmx-chatapp/validation/schema"
 	"github.com/alextilot/golang-htmx-chatapp/web"
-	"github.com/alextilot/golang-htmx-chatapp/web/forms"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
-func (h *Handler) Login(etx echo.Context, ctx context.Context) error {
-	time.Sleep(1 * time.Second)
+func (h *Handler) Login(c echo.Context) error {
+	// 1. Get input, parse, sanitize, validate
+	input, err := schema.HandleInput[schema.UserLoginInput](c, schema.SanitizeUserLogin, schema.ValidateUserLogin)
 
-	username := etx.FormValue("username")
-	password := etx.FormValue("password")
-
-	var errorMessages []string
-
-	// Validate user input
-	validate := validator.New()
-	err := validate.Var(username, "required,min=2,max=20")
 	if err != nil {
-		errorMessages = append(errorMessages, "Username is Required, minimum: 2, maximum 20")
+		if ierr, ok := err.(*schema.InputError); ok {
+			return web.Respond(c, web.Response{
+				Status:       http.StatusBadRequest,
+				HTMLTemplate: forms.LoginForm(ierr.Fields),
+				Errors:       ierr.Fields,
+			})
+		}
+		return err // unexpected, let middleware handle
 	}
 
-	err = validate.Var(password, "required,min=5,max=20")
-	if err != nil {
-		errorMessages = append(errorMessages, "Password is Required, minimum: 5, maximum 20")
+	// 2. Check login information
+	user, err := h.userService.LoginUser(input.Username, input.Password)
+	if user == nil || err != nil {
+		fe := validation.FieldErrors{
+			validation.FieldAuth: {"Invalid login information"},
+		}
+
+		return web.Respond(c, web.Response{
+			Status:       http.StatusUnauthorized,
+			HTMLTemplate: forms.LoginForm(fe),
+			Errors:       fe,
+		},
+		)
 	}
 
-	if len(errorMessages) != 0 {
-		component := forms.LoginForm(strings.Join(errorMessages, "\n"))
-		return web.Render(etx, http.StatusUnauthorized, component)
+	// 3. Generate JWT Tokens
+	if err := services.GenerateTokensAndSetCookies(user.ID, c); err != nil {
+		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate JWT tokens"}}
+
+		return web.Respond(c, web.Response{
+			Status:       http.StatusInternalServerError,
+			HTMLTemplate: forms.LoginForm(fe),
+			Errors:       fe,
+		},
+		)
 	}
 
-	// Check login information
-	loggedInUser, err := h.userService.LoginUser(username, password)
-	if loggedInUser == nil || err != nil {
-		component := forms.LoginForm("Invalid login information")
-		return web.Render(etx, http.StatusUnauthorized, component)
-	}
-
-	// JWT tokens for signed in users.
-	err = services.GenerateTokensAndSetCookies(loggedInUser, etx)
-	if err != nil {
-		component := forms.LoginForm("Unexpected Error: JwtToken failed to generate")
-		return web.Render(etx, http.StatusUnauthorized, component)
-	}
-
-	etx.Response().Header().Set("HX-Redirect", "/chatroom")
-	return etx.String(http.StatusTemporaryRedirect, "Successful")
+	// 4. Return Response
+	return web.Respond(c, web.Response{
+		Status:       http.StatusOK,
+		Data:         map[string]any{"user": user},
+		HTMXRedirect: "/chatroom",
+	})
 }
 
-func (h *Handler) SignUp(etx echo.Context, ctx context.Context) error {
-	time.Sleep(1 * time.Second)
-	username := etx.FormValue("username")
-	password := etx.FormValue("password")
-	repeatPassword := etx.FormValue("repeatPassword")
-
-	var errorMessages []string
-
-	// Validate input data
-	validate := validator.New()
-	err := validate.Var(username, "required,min=2,max=20")
+func (h *Handler) SignUp(c echo.Context) error {
+	// 1. Get input, parse, sanitize, validate
+	input, err := schema.HandleInput[schema.UserCreateInput](c, schema.SanitizeUserCreate(), schema.ValidateUserCreate())
 	if err != nil {
-		errorMessages = append(errorMessages, "Username required, minimum: 2, maximum 20")
+		if ierr, ok := err.(*schema.InputError); ok {
+			return web.Respond(c, web.Response{
+				Status:       http.StatusBadRequest,
+				HTMLTemplate: forms.SignupForm(ierr.Fields),
+				Errors:       ierr.Fields,
+			})
+		}
+		return err // unexpected, let middleware handle
 	}
 
-	err = validate.Var(password, "required,min=5,max=20")
+	// 2. Check if username is already taken
+	// TODO: verify email is also not taken
+	users, err := h.userService.GetUsers(input.Username)
 	if err != nil {
-		errorMessages = append(errorMessages, "Password required, minimum: 5, maximum 20")
+		fe := validation.FieldErrors{validation.FieldServer: {"Error checking existing users"}}
+		return web.Respond(c, web.Response{
+			Status:       http.StatusInternalServerError,
+			HTMLTemplate: forms.SignupForm(fe),
+			Errors:       fe,
+		})
+	}
+	if len(users) > 0 {
+		fe := validation.FieldErrors{"username": {"User with that name already exists"}}
+		return web.Respond(c, web.Response{
+			Status:       http.StatusConflict,
+			HTMLTemplate: forms.SignupForm(fe),
+			Errors:       fe,
+		})
 	}
 
-	if password != repeatPassword {
-		errorMessages = append(errorMessages, "Passwords do not match")
-	}
-
-	if len(errorMessages) != 0 {
-		component := forms.SignupForm(strings.Join(errorMessages, "\n"))
-		return web.Render(etx, http.StatusUnauthorized, component)
-	}
-
-	// validate unique username
-	users, err := h.userService.GetUsers(username)
-	if err != nil || len(users) > 0 {
-		component := forms.SignupForm("User with that name already exists")
-		return web.Render(etx, http.StatusUnauthorized, component)
-	}
-
-	// create user
-	newUser, err := h.userService.CreateUser(username, password)
+	// 3. Create new user
+	newUser, err := h.userService.CreateUser(input.Username, input.Password, input.Email)
 	if err != nil {
-		component := forms.SignupForm("Error creating user")
-		return web.Render(etx, http.StatusUnauthorized, component)
+		fe := validation.FieldErrors{validation.FieldServer: {"Error creating user"}}
+		return web.Respond(c, web.Response{
+			Status:       http.StatusInternalServerError,
+			HTMLTemplate: forms.SignupForm(fe),
+			Errors:       fe,
+		})
 	}
 
-	// JWT tokens for signed in users.
-	err = services.GenerateTokensAndSetCookies(newUser, etx)
-	if err != nil {
-		component := forms.SignupForm("Unexpected Error: JwtToken failed to generate")
-		return web.Render(etx, http.StatusUnauthorized, component)
+	// 4. Generate JWT tokens
+	if err := services.GenerateTokensAndSetCookies(newUser.ID, c); err != nil {
+		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate JWT tokens"}}
+		return web.Respond(c, web.Response{
+			Status:       http.StatusInternalServerError,
+			HTMLTemplate: forms.SignupForm(fe),
+			Errors:       fe,
+		})
 	}
 
-	etx.Response().Header().Set("HX-Redirect", "/chatroom")
-	return etx.String(http.StatusTemporaryRedirect, "Successful")
+	// 5. Return success (handles HTML, JSON, HTMX)
+	return web.Respond(c, web.Response{
+		Status:       http.StatusOK,
+		Data:         map[string]any{"user": newUser},
+		HTMXRedirect: "/chatroom",
+	})
 }

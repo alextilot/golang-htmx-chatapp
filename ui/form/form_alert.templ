@@ -1,0 +1,13 @@
+package form
+
+templ FormAlert(messages []string) {
+	if len(messages) > 0 {
+		<div class="alert alert-error mt-2">
+			<ul>
+				for _, msg := range messages {
+					<li>{ msg }</li>
+				}
+			</ul>
+		</div>
+	}
+}

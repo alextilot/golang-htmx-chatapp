@@ -6,18 +6,16 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
+
+	"github.com/alextilot/golang-htmx-chatapp/config"
 )
 
 const (
 	AccessTokenCookieName  = "access-token"
 	RefreshTokenCookieName = "refresh-token"
-	// TODO: Jwt Secret key is Demo only
-	JwtSecretKey = "access-secret-key"
-	// TODO: Jwt Refresh Secret key is Demo only
-	JwtRefreshSecretKey = "refresh-secret-key"
-	oneHour             = 1 * time.Hour
-	twentyFourHours     = 24 * time.Hour
-	fifteenMinutes      = 15 * time.Minute
+	oneHour                = 1 * time.Hour
+	twentyFourHours        = 24 * time.Hour
+	fifteenMinutes         = 15 * time.Minute
 )
 
 type Claims struct {
@@ -43,12 +41,12 @@ func GenerateTokensAndSetCookies(userID string, ctx echo.Context) error {
 
 func generateAccessToken(userID string) (string, time.Time, error) {
 	expirationTime := time.Now().Add(oneHour)
-	return generateToken(userID, expirationTime, []byte(JwtSecretKey))
+	return generateToken(userID, expirationTime, []byte(config.Cfg.JwtSecretKey))
 }
 
 func generateRefreshToken(userID string) (string, time.Time, error) {
 	expirationTime := time.Now().Add(twentyFourHours)
-	return generateToken(userID, expirationTime, []byte(JwtRefreshSecretKey))
+	return generateToken(userID, expirationTime, []byte(config.Cfg.JwtResfeshSecretKey))
 }
 
 func generateToken(userID string, expirationTime time.Time, secret []byte) (string, time.Time, error) {
@@ -114,13 +112,13 @@ func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// Gets the refresh token from the cookie.
 		rc, err := ctx.Cookie(RefreshTokenCookieName)
-		if err != nil && rc == nil {
+		if err != nil || rc == nil {
 			return next(ctx)
 		}
 
 		// Parses token and checks if it valid.
 		tkn, err := jwt.ParseWithClaims(rc.Value, claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(JwtRefreshSecretKey), nil
+			return []byte(config.Cfg.JwtResfeshSecretKey), nil
 		})
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {

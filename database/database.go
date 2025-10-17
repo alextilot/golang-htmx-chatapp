@@ -1,48 +1,35 @@
 package database
 
 import (
-	"github.com/alextilot/golang-htmx-chatapp/model"
+	"log"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-const (
-	dsn = "./app_main.sqlight3"
-)
-
-// DB holds the GORM database instance
-var DB *gorm.DB
-
-// Models for the database
-var models = []any{
-	&model.User{},
-	&model.ChatGroup{},
-	&model.ChatMessage{},
+type Database struct {
+	Conn *gorm.DB
 }
 
-// Connect initializes the database connection
-func Connect() error {
-	var err error
-	DB, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+func New(dns string) *Database {
+	db, err := gorm.Open(sqlite.Open(dns), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
+
+	return &Database{Conn: db}
+}
+
+func (d *Database) Migrate(models ...any) {
+	if err := d.Conn.AutoMigrate(models...); err != nil {
+		log.Fatalf("failed to migrate database: %v", err)
+	}
+}
+
+func (d *Database) Close() error {
+	sqlDB, err := d.Conn.DB()
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-// Migrate performs automatic database migrations
-func Migrate() error {
-	if err := DB.AutoMigrate(models...); err != nil {
-		return err
-	}
-	return nil
-}
-
-// Close closes the database connection
-func Close() error {
-	db, err := DB.DB()
-	if err != nil {
-		return err
-	}
-	return db.Close()
+	return sqlDB.Close()
 }

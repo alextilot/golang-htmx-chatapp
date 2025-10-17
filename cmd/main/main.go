@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
-	"log"
 
 	"net/http"
 
+	"github.com/alextilot/golang-htmx-chatapp/config"
 	"github.com/alextilot/golang-htmx-chatapp/database"
 	"github.com/alextilot/golang-htmx-chatapp/handler"
+	"github.com/alextilot/golang-htmx-chatapp/model"
 	"github.com/alextilot/golang-htmx-chatapp/router"
 	"github.com/alextilot/golang-htmx-chatapp/services"
 	"github.com/alextilot/golang-htmx-chatapp/web"
@@ -17,16 +18,21 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+var (
+	models = []any{
+		&model.User{},
+		&model.ChatGroup{},
+		&model.ChatMessage{},
+	}
+)
+
 func main() {
-	if err := database.Connect(); err != nil {
-		log.Fatal(err)
-	}
+	// Connect database
+	db := database.New(config.Cfg.DatabasePath)
+	defer db.Close()
 
-	if err := database.Migrate(); err != nil {
-		log.Fatal(err)
-	}
-
-	defer database.Close()
+	// Run migrations
+	db.Migrate(models...)
 
 	// Init services
 	userService := &services.UserService{
@@ -67,7 +73,7 @@ func main() {
 	guardedRoutes := e.Group("/chatroom")
 	guardedRoutes.Use(services.TokenRefresherMiddleware)
 	guardedRoutes.Use(echojwt.WithConfig(echojwt.Config{
-		SigningKey:   []byte(services.JwtSecretKey),
+		SigningKey:   []byte(config.Cfg.JwtSecretKey),
 		TokenLookup:  "cookie:access-token",
 		ErrorHandler: services.JWTErrorChecker,
 	}))
