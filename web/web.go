@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
+	"github.com/alextilot/golang-htmx-chatapp/ui"
 	"github.com/labstack/echo/v4"
 )
 
@@ -36,7 +37,7 @@ func Respond(c echo.Context, resp Response) error {
 
 	// 3️⃣ HTML
 	if tmpl, ok := resp.HTMLTemplate.(templ.Component); ok {
-		return Render(c, status, tmpl)
+		return ui.Render(c, status, tmpl)
 	}
 
 	// fallback

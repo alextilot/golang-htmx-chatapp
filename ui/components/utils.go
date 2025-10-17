@@ -1,7 +1,8 @@
-package form
+package components
 
 import (
 	"github.com/a-h/templ"
+	"maps"
 	"strings"
 )
 
@@ -23,12 +24,8 @@ func ExtractAttribute[T any](attrs templ.Attributes, key string) (T, templ.Attri
 // Keys in overrides will replace those in defaults.
 func MergeAttrs(defaults, overrides templ.Attributes) templ.Attributes {
 	merged := templ.Attributes{}
-	for k, v := range defaults {
-		merged[k] = v
-	}
-	for k, v := range overrides {
-		merged[k] = v
-	}
+	maps.Copy(merged, defaults)
+	maps.Copy(merged, overrides)
 	return merged
 }
 
