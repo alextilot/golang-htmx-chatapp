@@ -1,0 +1,18 @@
+package components
+
+import (
+	"github.com/alextilot/golang-htmx-chatapp/web/utils"
+)
+
+templ FormInput(attrs templ.Attributes, fieldErrors []string) {
+	{{ classes := utils.HasErrorClass("input input-bordered w-full", fieldErrors, "input-error") }}
+	<div class="form-control">
+		<input
+			{ attrs... }
+			class={ classes }
+			autocapitalize="none"
+			autocorrect="off"
+		/>
+		@FormError(fieldErrors)
+	</div>
+}

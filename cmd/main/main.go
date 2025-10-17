@@ -12,7 +12,7 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/router"
 	"github.com/alextilot/golang-htmx-chatapp/services"
 	"github.com/alextilot/golang-htmx-chatapp/web"
-	"github.com/alextilot/golang-htmx-chatapp/web/views"
+	"github.com/alextilot/golang-htmx-chatapp/web/pages"
 
 	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
@@ -54,20 +54,20 @@ func main() {
 	e.Static("/css", "css")
 
 	e.GET("/", func(etx echo.Context) error {
-		return web.Render(etx, http.StatusOK, views.HomePage())
+		return web.Render(etx, http.StatusOK, pages.HomePage())
 	})
 	e.GET("/login", func(etx echo.Context) error {
-		return web.Render(etx, http.StatusOK, views.LoginPage())
+		return web.Render(etx, http.StatusOK, pages.LoginPage())
 	})
 	e.GET("/signup", func(etx echo.Context) error {
-		return web.Render(etx, http.StatusOK, views.SignupPage())
+		return web.Render(etx, http.StatusOK, pages.SignupPage())
 	})
 
 	e.POST("/login", func(etx echo.Context) error {
-		return handler.Login(etx, ctx)
+		return handler.Login(etx)
 	})
 	e.POST("/signup", func(etx echo.Context) error {
-		return handler.SignUp(etx, ctx)
+		return handler.SignUp(etx)
 	})
 
 	guardedRoutes := e.Group("/chatroom")
@@ -78,7 +78,7 @@ func main() {
 		ErrorHandler: services.JWTErrorChecker,
 	}))
 	guardedRoutes.GET("", func(etx echo.Context) error {
-		return web.Render(etx, http.StatusOK, views.ChatroomPage())
+		return web.Render(etx, http.StatusOK, pages.ChatroomPage())
 	})
 
 	e.GET("/ws/chatroom", func(etx echo.Context) error {

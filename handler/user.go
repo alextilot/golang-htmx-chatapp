@@ -3,11 +3,11 @@ package handler
 import (
 	"net/http"
 
+	"github.com/alextilot/golang-htmx-chatapp/response"
 	"github.com/alextilot/golang-htmx-chatapp/services"
-	"github.com/alextilot/golang-htmx-chatapp/ui/forms"
 	"github.com/alextilot/golang-htmx-chatapp/validation"
 	"github.com/alextilot/golang-htmx-chatapp/validation/schema"
-	"github.com/alextilot/golang-htmx-chatapp/web"
+	"github.com/alextilot/golang-htmx-chatapp/web/forms"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,7 +18,7 @@ func (h *Handler) Login(c echo.Context) error {
 
 	if err != nil {
 		if ierr, ok := err.(*schema.InputError); ok {
-			return web.Respond(c, web.Response{
+			return response.Send(c, response.Response{
 				Status:       http.StatusBadRequest,
 				HTMLTemplate: forms.LoginForm(ierr.Fields),
 				Errors:       ierr.Fields,
@@ -34,7 +34,7 @@ func (h *Handler) Login(c echo.Context) error {
 			validation.FieldAuth: {"Invalid login information"},
 		}
 
-		return web.Respond(c, web.Response{
+		return response.Send(c, response.Response{
 			Status:       http.StatusUnauthorized,
 			HTMLTemplate: forms.LoginForm(fe),
 			Errors:       fe,
@@ -46,7 +46,7 @@ func (h *Handler) Login(c echo.Context) error {
 	if err := services.GenerateTokensAndSetCookies(user.ID, c); err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate JWT tokens"}}
 
-		return web.Respond(c, web.Response{
+		return response.Send(c, response.Response{
 			Status:       http.StatusInternalServerError,
 			HTMLTemplate: forms.LoginForm(fe),
 			Errors:       fe,
@@ -55,7 +55,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	// 4. Return Response
-	return web.Respond(c, web.Response{
+	return response.Send(c, response.Response{
 		Status:       http.StatusOK,
 		Data:         map[string]any{"user": user},
 		HTMXRedirect: "/chatroom",
@@ -64,10 +64,10 @@ func (h *Handler) Login(c echo.Context) error {
 
 func (h *Handler) SignUp(c echo.Context) error {
 	// 1. Get input, parse, sanitize, validate
-	input, err := schema.HandleInput[schema.UserCreateInput](c, schema.SanitizeUserCreate(), schema.ValidateUserCreate())
+	input, err := schema.HandleInput[schema.UserCreateInput](c, schema.SanitizeUserCreate, schema.ValidateUserCreate)
 	if err != nil {
 		if ierr, ok := err.(*schema.InputError); ok {
-			return web.Respond(c, web.Response{
+			return response.Send(c, response.Response{
 				Status:       http.StatusBadRequest,
 				HTMLTemplate: forms.SignupForm(ierr.Fields),
 				Errors:       ierr.Fields,
@@ -81,7 +81,7 @@ func (h *Handler) SignUp(c echo.Context) error {
 	users, err := h.userService.GetUsers(input.Username)
 	if err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Error checking existing users"}}
-		return web.Respond(c, web.Response{
+		return response.Send(c, response.Response{
 			Status:       http.StatusInternalServerError,
 			HTMLTemplate: forms.SignupForm(fe),
 			Errors:       fe,
@@ -89,7 +89,7 @@ func (h *Handler) SignUp(c echo.Context) error {
 	}
 	if len(users) > 0 {
 		fe := validation.FieldErrors{"username": {"User with that name already exists"}}
-		return web.Respond(c, web.Response{
+		return response.Send(c, response.Response{
 			Status:       http.StatusConflict,
 			HTMLTemplate: forms.SignupForm(fe),
 			Errors:       fe,
@@ -100,7 +100,7 @@ func (h *Handler) SignUp(c echo.Context) error {
 	newUser, err := h.userService.CreateUser(input.Username, input.Password, input.Email)
 	if err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Error creating user"}}
-		return web.Respond(c, web.Response{
+		return response.Send(c, response.Response{
 			Status:       http.StatusInternalServerError,
 			HTMLTemplate: forms.SignupForm(fe),
 			Errors:       fe,
@@ -110,7 +110,7 @@ func (h *Handler) SignUp(c echo.Context) error {
 	// 4. Generate JWT tokens
 	if err := services.GenerateTokensAndSetCookies(newUser.ID, c); err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate JWT tokens"}}
-		return web.Respond(c, web.Response{
+		return response.Send(c, response.Response{
 			Status:       http.StatusInternalServerError,
 			HTMLTemplate: forms.SignupForm(fe),
 			Errors:       fe,
@@ -118,7 +118,7 @@ func (h *Handler) SignUp(c echo.Context) error {
 	}
 
 	// 5. Return success (handles HTML, JSON, HTMX)
-	return web.Respond(c, web.Response{
+	return response.Send(c, response.Response{
 		Status:       http.StatusOK,
 		Data:         map[string]any{"user": newUser},
 		HTMXRedirect: "/chatroom",
