@@ -1,10 +1,14 @@
 package components
 
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/utils"
+)
+
 // FormTextarea renders a textarea with errors
 templ FormTextarea(attrs templ.Attributes, fieldErrors []string) {
 	{{
-		classes := HasErrorClass("textarea textarea-bordered w-full", fieldErrors, "textarea-error")
-		label, attrs := ExtractAttribute[string](attrs, "label")
+		classes := utils.HasErrorClass("textarea textarea-bordered w-full", fieldErrors, "textarea-error")
+		label, attrs := utils.ExtractAttribute[string](attrs, "label")
 	}}
 	<div class="form-control">
 		if label != "" {

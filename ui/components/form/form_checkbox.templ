@@ -1,9 +1,13 @@
 package components
 
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/utils"
+)
+
 templ FormCheckbox(attrs templ.Attributes, fieldErrors []string) {
 	{{
-		classes := HasErrorClass("checkbox", fieldErrors, "checkbox-error")
-		label, attrs := ExtractAttribute[string](attrs, "label")
+		classes := utils.HasErrorClass("checkbox", fieldErrors, "checkbox-error")
+		label, attrs := utils.ExtractAttribute[string](attrs, "label")
 	}}
 	<div class="form-control">
 		<label class="label cursor-pointer">

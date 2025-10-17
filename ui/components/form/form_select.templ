@@ -1,9 +1,13 @@
 package components
 
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/utils"
+)
+
 templ FormSelect(attrs templ.Attributes, options []string, fieldErrors []string) {
 	{{
-		classes := HasErrorClass("select select-bordered w-full", fieldErrors, "select-error")
-		label, attrs := ExtractAttribute[string](attrs, "label")
+		classes := utils.HasErrorClass("select select-bordered w-full", fieldErrors, "select-error")
+		label, attrs := utils.ExtractAttribute[string](attrs, "label")
 	}}
 	<div class="form-control">
 		if label != "" {

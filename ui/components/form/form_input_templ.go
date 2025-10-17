@@ -8,6 +8,10 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/utils"
+)
+
 func FormInput(attrs templ.Attributes, fieldErrors []string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,7 +33,7 @@ func FormInput(attrs templ.Attributes, fieldErrors []string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		classes := HasErrorClass("input input-bordered w-full", fieldErrors, "input-error")
+		classes := utils.HasErrorClass("input input-bordered w-full", fieldErrors, "input-error")
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"form-control\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

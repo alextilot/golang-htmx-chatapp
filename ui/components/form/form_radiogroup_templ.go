@@ -8,6 +8,10 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/utils"
+)
+
 func FormRadioGroup(attrs templ.Attributes, options []string, fieldErrors []string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,8 +33,8 @@ func FormRadioGroup(attrs templ.Attributes, options []string, fieldErrors []stri
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		name, attrs := ExtractAttribute[string](attrs, "name")
-		groupLabel, attrs := ExtractAttribute[string](attrs, "label")
+		name, attrs := utils.ExtractAttribute[string](attrs, "name")
+		groupLabel, attrs := utils.ExtractAttribute[string](attrs, "label")
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"form-control\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -43,7 +47,7 @@ func FormRadioGroup(attrs templ.Attributes, options []string, fieldErrors []stri
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(groupLabel)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_radiogroup.templ`, Line: 11, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_radiogroup.templ`, Line: 15, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -62,7 +66,7 @@ func FormRadioGroup(attrs templ.Attributes, options []string, fieldErrors []stri
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_radiogroup.templ`, Line: 16, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_radiogroup.templ`, Line: 20, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -75,7 +79,7 @@ func FormRadioGroup(attrs templ.Attributes, options []string, fieldErrors []stri
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(option)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_radiogroup.templ`, Line: 16, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_radiogroup.templ`, Line: 20, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -88,7 +92,7 @@ func FormRadioGroup(attrs templ.Attributes, options []string, fieldErrors []stri
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(option)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_radiogroup.templ`, Line: 17, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_radiogroup.templ`, Line: 21, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {

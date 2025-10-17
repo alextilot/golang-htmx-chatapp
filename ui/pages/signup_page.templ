@@ -1,0 +1,20 @@
+package pages
+
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/layouts"
+	"github.com/alextilot/golang-htmx-chatapp/ui/partials"
+	"github.com/alextilot/golang-htmx-chatapp/ui/forms"
+)
+
+templ SignupPage() {
+	@layouts.MainLayout() {
+		@partials.NavigationBar()
+		<main class="h-full">
+			<div class="h-full relative flex flex-col justify-center">
+				<div class="w-full m-auto lg:max-w-xl">
+					@forms.SignupForm("")
+				</div>
+			</div>
+		</main>
+	}
+}

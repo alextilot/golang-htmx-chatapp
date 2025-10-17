@@ -1,9 +1,13 @@
 package components
 
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/utils"
+)
+
 templ FormRadioGroup(attrs templ.Attributes, options []string, fieldErrors []string) {
 	{{
-		name, attrs := ExtractAttribute[string](attrs, "name")
-		groupLabel, attrs := ExtractAttribute[string](attrs, "label")
+		name, attrs := utils.ExtractAttribute[string](attrs, "name")
+		groupLabel, attrs := utils.ExtractAttribute[string](attrs, "label")
 	}}
 	<div class="form-control">
 		if groupLabel != "" {

@@ -8,6 +8,10 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/utils"
+)
+
 // FormTextarea renders a textarea with errors
 func FormTextarea(attrs templ.Attributes, fieldErrors []string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -30,8 +34,8 @@ func FormTextarea(attrs templ.Attributes, fieldErrors []string) templ.Component 
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		classes := HasErrorClass("textarea textarea-bordered w-full", fieldErrors, "textarea-error")
-		label, attrs := ExtractAttribute[string](attrs, "label")
+		classes := utils.HasErrorClass("textarea textarea-bordered w-full", fieldErrors, "textarea-error")
+		label, attrs := utils.ExtractAttribute[string](attrs, "label")
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"form-control\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -44,7 +48,7 @@ func FormTextarea(attrs templ.Attributes, fieldErrors []string) templ.Component 
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_textarea.templ`, Line: 12, Col: 36}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_textarea.templ`, Line: 16, Col: 36}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {

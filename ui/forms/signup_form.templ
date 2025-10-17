@@ -1,4 +1,8 @@
-package form
+package forms
+
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/components/form"
+)
 
 templ SignupForm(errors map[string][]string) {
 	<div id="register-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
@@ -13,11 +17,11 @@ templ SignupForm(errors map[string][]string) {
 			hx-swap="outerHTML"
 			hx-indicator="#spinner"
 		>
-			@FormInput(templ.Attributes{"type": "text", "placeholder": "Username", "name": "username", "autocomplete": "username"}, errors["username"])
-			@FormInput(templ.Attributes{"type": "password", "placeholder": "Enter password", "name": "password", "autocomplete": "current-password"}, errors["password"])
-			@FormInput(templ.Attributes{"type": "password", "placeholder": "Confrim password", "name": "repeatPassword", "autocomplete": "current-password"}, errors["password"])
+			@components.FormInput(templ.Attributes{"type": "text", "placeholder": "Username", "name": "username", "autocomplete": "username"}, errors["username"])
+			@components.FormInput(templ.Attributes{"type": "password", "placeholder": "Enter password", "name": "password", "autocomplete": "current-password"}, errors["password"])
+			@components.FormInput(templ.Attributes{"type": "password", "placeholder": "Confrim password", "name": "repeatPassword", "autocomplete": "current-password"}, errors["password"])
 			<div class="form-control mt-6">
-				@FormButton("Sign up")
+				@components.FormButton("Sign up")
 				<span hx-disinherit="*">
 					Already have an account ?
 					<a href="/login" class="text-blue-600 hover:text-blue-800 hover:underline">Login</a>

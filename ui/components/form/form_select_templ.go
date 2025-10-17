@@ -8,6 +8,10 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/utils"
+)
+
 func FormSelect(attrs templ.Attributes, options []string, fieldErrors []string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,8 +33,8 @@ func FormSelect(attrs templ.Attributes, options []string, fieldErrors []string) 
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		classes := HasErrorClass("select select-bordered w-full", fieldErrors, "select-error")
-		label, attrs := ExtractAttribute[string](attrs, "label")
+		classes := utils.HasErrorClass("select select-bordered w-full", fieldErrors, "select-error")
+		label, attrs := utils.ExtractAttribute[string](attrs, "label")
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"form-control\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -43,7 +47,7 @@ func FormSelect(attrs templ.Attributes, options []string, fieldErrors []string) 
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_select.templ`, Line: 11, Col: 36}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_select.templ`, Line: 15, Col: 36}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -92,7 +96,7 @@ func FormSelect(attrs templ.Attributes, options []string, fieldErrors []string) 
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(option)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_select.templ`, Line: 16, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_select.templ`, Line: 20, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -105,7 +109,7 @@ func FormSelect(attrs templ.Attributes, options []string, fieldErrors []string) 
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(option)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_select.templ`, Line: 16, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_select.templ`, Line: 20, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {

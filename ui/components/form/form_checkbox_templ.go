@@ -8,6 +8,10 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import (
+	"github.com/alextilot/golang-htmx-chatapp/ui/utils"
+)
+
 func FormCheckbox(attrs templ.Attributes, fieldErrors []string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,8 +33,8 @@ func FormCheckbox(attrs templ.Attributes, fieldErrors []string) templ.Component 
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		classes := HasErrorClass("checkbox", fieldErrors, "checkbox-error")
-		label, attrs := ExtractAttribute[string](attrs, "label")
+		classes := utils.HasErrorClass("checkbox", fieldErrors, "checkbox-error")
+		label, attrs := utils.ExtractAttribute[string](attrs, "label")
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"form-control\"><label class=\"label cursor-pointer\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -73,7 +77,7 @@ func FormCheckbox(attrs templ.Attributes, fieldErrors []string) templ.Component 
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_checkbox.templ`, Line: 12, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/components/form/form_checkbox.templ`, Line: 16, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
