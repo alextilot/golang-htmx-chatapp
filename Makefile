@@ -1,29 +1,35 @@
-# run:
-# 	@templ generate
-# 	@npx tailwind -i 'css/styles.css' -o 'css/tailwind.css'
-# 	@go run main.go
+# Makefile for Go + HTMX + Tailwind v4 + Templ
 
+# Run the full dev environment: templ watcher + tailwind watcher + air
+.PHONY: dev
+dev:
+	@echo "Starting dev environment..."
+	$(MAKE) templ &
+	$(MAKE) tailwind &
+	$(MAKE) air
+
+# Generate templ files in watch mode
 .PHONY: templ
 templ:
 	templ generate -watch -proxy=http://localhost:3000
 
+# Watch Tailwind v4 CSS
 .PHONY: tailwind
 tailwind:
-	npx tailwindcss -i ./css/input.css -o ./css/output.css --watch
+	npm run watch
 
+# Run Go server with air (live reload)
 .PHONY: air
 air: 
 	air -c ./.air.toml
 
-# install:
-#   @go install github.com/a-h/templ/cmd/templ@latest
-# 	@go get ./...
-# 	@go mod vendor
-# 	@go mod tidy
-# 	@go mod download 
-# 	@npm i
+# Build production Tailwind CSS
+.PHONY: css
+css:
+	npm run build
 
-# build:
-# 	tailwindcss -i css/main.css -o css/styles.css
-# 	@templ generate view
-# 	@go build -o bin/github.com/alextilot/golang-htmx-chatapp main.go
+# Clean temp directories and generated files
+.PHONY: clean
+clean:
+	rm -rf ./tmp ./ui/static/css/dist.css
+

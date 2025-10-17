@@ -1,8 +1,8 @@
 {
   "name": "htmx-go-prototype",
   "version": "1.0.0",
-  "description": "",
-  "keywords": [],
+  "description": "Server-side UI prototype with Go, HTMX, Templ, and Tailwind v4",
+  "keywords": ["go", "htmx", "templ", "tailwind"],
   "author": "Alex Tilot",
   "license": "ISC",
   "scripts": {
