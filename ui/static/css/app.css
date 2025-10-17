@@ -1,4 +1,9 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/aspect-ratio";
+@plugin "daisyui";
+
 
 /*
     https://github.com/tailwindlabs/tailwindcss/discussions/2394

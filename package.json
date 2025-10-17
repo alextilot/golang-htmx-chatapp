@@ -2,20 +2,18 @@
   "name": "htmx-go-prototype",
   "version": "1.0.0",
   "description": "",
-  "main": "tailwind.config.js",
   "keywords": [],
   "author": "Alex Tilot",
   "license": "ISC",
   "scripts": {
-    "watch": "tailwindcss -i './css/input.css' -o './css/output.css' --watch",
-    "build": "tailwindcss -i './css/input.css' -o './css/output.css'"
+    "watch": "tailwindcss -i './ui/static/css/app.css' -o './ui/static/css/dist.css' --watch",
+    "build": "tailwindcss -i './ui/static/css/app.css' -o './ui/static/css/dist.css' --minify"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.19",
-    "autoprefixer": "^10.4.21",
     "daisyui": "^5.3.7",
     "tailwindcss": "^4.1.14"
   }
