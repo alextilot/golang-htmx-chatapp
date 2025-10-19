@@ -1,17 +1,17 @@
 # Makefile for Go + HTMX + Tailwind v4 + Templ
 
 # Run the full dev environment: templ watcher + tailwind watcher + air
+# $(MAKE) templ &
 .PHONY: dev
 dev:
 	@echo "Starting dev environment..."
-	$(MAKE) templ &
 	$(MAKE) tailwind &
 	$(MAKE) air
 
 # Generate templ files in watch mode
 .PHONY: templ
 templ:
-	templ generate -watch -proxy=http://localhost:3000
+	go tool templ generate --watch --proxy=http://localhost:8080
 
 # Watch Tailwind v4 CSS
 .PHONY: tailwind
@@ -21,7 +21,7 @@ tailwind:
 # Run Go server with air (live reload)
 .PHONY: air
 air: 
-	air -c ./.air.toml
+	go tool air -c ./.air.toml
 
 # Build production Tailwind CSS
 .PHONY: css
@@ -31,5 +31,5 @@ css:
 # Clean temp directories and generated files
 .PHONY: clean
 clean:
-	rm -rf ./tmp ./ui/static/css/dist.css
+	rm -rf ./tmp ./web/static/css/dist.css
 

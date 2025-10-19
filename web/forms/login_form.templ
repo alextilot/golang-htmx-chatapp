@@ -2,9 +2,10 @@ package forms
 
 import (
 	"github.com/alextilot/golang-htmx-chatapp/web/components/form"
+	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 )
 
-templ LoginForm(errors map[string][]string) {
+templ LoginForm(fieldErrors validation.FieldErrors) {
 	<div id="login-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
 		<h1 class="text-2xl font-semibold text-center">Login</h1>
 		<form
@@ -17,8 +18,24 @@ templ LoginForm(errors map[string][]string) {
 			hx-swap="outerHTML"
 			hx-indicator="#spinner"
 		>
-			@components.FormInput(templ.Attributes{"type": "text", "placeholder": "Username", "name": "username", "autocomplete": "username"}, errors["username"])
-			@components.FormInput(templ.Attributes{"type": "password", "placeholder": "Enter Password", "name": "password", "autocomplete": "current-password"}, errors["password"])
+			@components.FormInput(
+				templ.Attributes{
+					"type":         "text",
+					"placeholder":  "Username",
+					"name":         "username",
+					"autocomplete": "username",
+				},
+				fieldErrors["username"],
+			)
+			@components.FormInput(
+				templ.Attributes{
+					"type":         "password",
+					"placeholder":  "Enter Password",
+					"name":         "password",
+					"autocomplete": "password",
+				},
+				fieldErrors["password"],
+			)
 			<div class="form-control mt-6">
 				@components.FormButton("Login")
 				<span hx-disinherit="*">
@@ -26,9 +43,9 @@ templ LoginForm(errors map[string][]string) {
 					<a href="/signup" class="text-blue-600 hover:text-blue-800 hover:underline">Signup</a>
 				</span>
 			</div>
-			if len(errors) != 0 {
-				<p class="text-error text-sm mt-2">{ errors }</p>
-			}
+			@components.FormError(fieldErrors[validation.FieldRequest])
+			@components.FormError(fieldErrors[validation.FieldServer])
+			@components.FormError(fieldErrors[validation.FieldGlobal])
 			<div id="response-div"></div>
 		</form>
 	</div>

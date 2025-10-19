@@ -9,6 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/alextilot/golang-htmx-chatapp/web/forms"
 	"github.com/alextilot/golang-htmx-chatapp/web/layouts"
 	"github.com/alextilot/golang-htmx-chatapp/web/partials"
@@ -55,7 +56,7 @@ func LoginPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = forms.LoginForm("").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = forms.LoginForm(validation.NewFieldErrors()).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
