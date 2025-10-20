@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/handler"
+	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/alextilot/golang-htmx-chatapp/web/pages"
 	"github.com/labstack/echo/v4"
@@ -9,19 +10,39 @@ import (
 )
 
 func RegisterPublicRoutes(e *echo.Echo, h *handler.Handler) {
-	// Public routes
-	public := e.Group("/")
+	// Public routes group
+	public := e.Group("")
 
-	e.GET("", func(etx echo.Context) error {
-		return web.Render(etx, http.StatusOK, pages.HomePage())
+	// Index / landing page
+	public.GET(routes.Routes.HomePage.Path, func(c echo.Context) error {
+		return web.Render(c, http.StatusOK, pages.HomePage())
 	})
 
-	public.GET("welcome", func(c echo.Context) error {
-		return c.String(200, "Welcome!")
+	// About page
+	public.GET(routes.Routes.AboutPage.Path, func(c echo.Context) error {
+		return web.Render(c, http.StatusOK, pages.AboutPage())
 	})
 
-	// public.GET("/signup", h.SignUpForm)
-	public.POST("signup", h.SignUp)
-	// public.GET("/login", h.LoginForm)
-	public.POST("login", h.Login)
+	// 404 page
+	public.GET(routes.Routes.NotFound.Path, func(c echo.Context) error {
+		return web.Render(c, http.StatusNotFound, pages.NotFoundPage())
+	})
+
+	// 500 page
+	public.GET(routes.Routes.ServerError.Path, func(c echo.Context) error {
+		return web.Render(c, http.StatusInternalServerError, pages.ServerErrorPage())
+	})
+
+	// Sign up
+	public.GET(routes.Routes.SignupPage.Path, func(c echo.Context) error {
+		return web.Render(c, http.StatusInternalServerError, pages.SignupPage())
+	})
+	public.POST(routes.Routes.SignupPage.Path, h.SignUp)
+
+	// Login
+	public.GET(routes.Routes.LoginPage.Path, func(c echo.Context) error {
+		return web.Render(c, http.StatusInternalServerError, pages.LoginPage())
+	})
+	public.POST(routes.Routes.LoginPage.Path, h.Login)
+
 }

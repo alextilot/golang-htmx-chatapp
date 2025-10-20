@@ -1,7 +1,6 @@
 # Makefile for Go + HTMX + Tailwind v4 + Templ
 
 # Run the full dev environment: templ watcher + tailwind watcher + air
-# $(MAKE) templ &
 .PHONY: dev
 dev:
 	@echo "Starting dev environment..."
@@ -31,5 +30,5 @@ css:
 # Clean temp directories and generated files
 .PHONY: clean
 clean:
-	rm -rf ./tmp ./web/static/css/dist.css
+	rm -rf ./tmp ./web/static/*.dist.*
 

@@ -11,8 +11,8 @@
   "author": "Alex Tilot",
   "license": "ISC",
   "scripts": {
-    "watch": "npx @tailwindcss/cli -i './web/static/css/style.css' -o './web/static/css/dist.css' --watch",
-    "build": "npx @tailwindcss/cli -i './web/static/css/style.css' -o './web/static/css/dist.css' --minify"
+    "watch": "npx @tailwindcss/cli -i './web/static/css/style.css' -o './web/static/css/style.dist.css' --watch",
+    "build": "npx @tailwindcss/cli -i './web/static/css/style.css' -o './web/static/css/style.dist.css' --minify"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",

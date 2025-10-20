@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"github.com/alextilot/golang-htmx-chatapp/internal/repository"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"

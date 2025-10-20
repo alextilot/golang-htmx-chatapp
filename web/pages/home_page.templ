@@ -1,0 +1,25 @@
+package pages
+
+import (
+	"github.com/alextilot/golang-htmx-chatapp/web/layouts"
+	"github.com/alextilot/golang-htmx-chatapp/web/partials"
+	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
+)
+
+templ HomePage() {
+	@layouts.MainLayout() {
+		@partials.NavigationBar()
+		<main class="min-h-screen bg-base-200 flex flex-col items-center justify-center p-4">
+			<div class="text-center max-w-3xl space-y-6">
+				<h1 class="text-6xl font-extrabold text-primary">ChatApp</h1>
+				<p class="text-xl text-base-content/70">
+					Connect in real-time with friends and communities. Powered by Go, Echo, HTMX, and Tailwind CSS.
+				</p>
+				<div class="space-x-4">
+					<a href={ routes.Routes.LoginPage.Path } class="btn btn-primary btn-lg">Chat Now!</a>
+					<a href={ routes.Routes.AboutPage.Path } class="btn btn-outline btn-lg">About</a>
+				</div>
+			</div>
+		</main>
+	}
+}

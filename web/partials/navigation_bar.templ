@@ -1,17 +1,45 @@
 package partials
 
+import (
+	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
+	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
+)
+
 templ NavigationBar() {
-	<header>
-		<div class="navbar bg-base-100">
-			<div class="flex-1">
-				<a class="btn btn-ghost text-xl" href="/">ChatApp</a>
-			</div>
-			<div class="flex-none">
-				<ul class="menu menu-horizontal px-1">
-					<li><a href="/login">Login</a></li>
-					<li><a href="/signup">Signup</a></li>
+	{{ user := auth.GetUserContext(ctx) }}
+	<header class="navbar bg-base-100" role="navigation">
+		<div class="flex-1">
+			<a class="btn btn-ghost text-xl" href={ routes.Routes.HomePage.Path }>Homepage</a>
+			@ThemeControllerDropdown()
+		</div>
+		<!-- Responsive menu -->
+		<div class="flex-none">
+			<div class="dropdown dropdown-end md:hidden">
+				<button tabindex="0" class="btn btn-square btn-ghost">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+					</svg>
+				</button>
+				<ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+					if user.IsLoggedIn {
+						<li><a href={ routes.Routes.Profile.Path }>Account</a></li>
+						<li><a hx-post={ routes.Routes.Logout.Path }>Logout</a></li>
+					} else {
+						<li><a href={ routes.Routes.SignupPage.Path }>Sign up</a></li>
+						<li><a href={ routes.Routes.LoginPage.Path }>Log In</a></li>
+					}
 				</ul>
 			</div>
+			<!-- Desktop menu -->
+			<ul class="menu menu-horizontal px-1 hidden md:flex">
+				if user.IsLoggedIn {
+					<li><a href={ routes.Routes.Profile.Path }>Account</a></li>
+					<li><a hx-post={ routes.Routes.Logout.Path }>Logout</a></li>
+				} else {
+					<li><a href={ routes.Routes.SignupPage.Path }>Sign up</a></li>
+					<li><a href={ routes.Routes.LoginPage.Path }>Log In</a></li>
+				}
+			</ul>
 		</div>
 	</header>
 }

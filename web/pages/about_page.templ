@@ -1,0 +1,41 @@
+package pages
+
+import (
+	"github.com/alextilot/golang-htmx-chatapp/web/layouts"
+	"github.com/alextilot/golang-htmx-chatapp/web/partials"
+)
+
+templ AboutPage() {
+	@layouts.MainLayout() {
+		@partials.NavigationBar()
+		<main class="min-h-screen bg-base-100 flex flex-col items-center justify-start p-8">
+			<div class="text-center max-w-4xl space-y-8">
+				<h1 class="text-5xl font-bold text-primary">About ChatApp</h1>
+				<p class="text-lg text-base-content/70">
+					ChatApp is a real-time chat application designed for seamless communication.
+				</p>
+				<div class="py-6 text-xl font-medium">Built with:</div>
+				<div class="grid grid-cols-2 sm:grid-cols-3 gap-4 justify-center">
+					<a href="https://go.dev/" class="card card-bordered shadow-md hover:shadow-xl transition p-4">
+						<div class="font-bold text-lg text-center">Go</div>
+					</a>
+					<a href="https://echo.labstack.com/" class="card card-bordered shadow-md hover:shadow-xl transition p-4">
+						<div class="font-bold text-lg text-center">Echo</div>
+					</a>
+					<a href="https://templ.guide/" class="card card-bordered shadow-md hover:shadow-xl transition p-4">
+						<div class="font-bold text-lg text-center">TEMPL</div>
+					</a>
+					<a href="https://htmx.org/" class="card card-bordered shadow-md hover:shadow-xl transition p-4">
+						<div class="font-bold text-lg text-center">htmx</div>
+					</a>
+					<a href="https://tailwindcss.com/" class="card card-bordered shadow-md hover:shadow-xl transition p-4">
+						<div class="font-bold text-lg text-center">Tailwind CSS</div>
+					</a>
+					<a href="https://daisyui.com/" class="card card-bordered shadow-md hover:shadow-xl transition p-4">
+						<div class="font-bold text-lg text-center">daisyUI</div>
+					</a>
+				</div>
+			</div>
+		</main>
+	}
+}
