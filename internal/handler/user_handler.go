@@ -2,7 +2,6 @@ package handler
 
 import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
-	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"github.com/alextilot/golang-htmx-chatapp/internal/response"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation/schema"
@@ -10,16 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
-
-// Helper function to get claims, set JWT and update context.
-func setAuthAndContext(user *model.User, c echo.Context) error {
-	claims := auth.ClaimsFromUser(user)
-	if err := auth.GenerateTokensAndSetCookies(claims, c); err != nil {
-		return err
-	}
-	auth.SetUserContext(c, auth.FromClaims(claims))
-	return nil
-}
 
 func (h *Handler) Login(c echo.Context) error {
 	// 1. Get input, parse, sanitize, validate
@@ -52,7 +41,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	// 3. Generate JWT Tokens
-	if err := setAuthAndContext(user, c); err != nil {
+	if err := auth.SetUserAuthContext(user, c); err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate JWT tokens"}}
 
 		return response.Send(c, response.Response{
@@ -105,7 +94,7 @@ func (h *Handler) SignUp(c echo.Context) error {
 	}
 
 	// 4. Generate JWT tokens
-	if err := setAuthAndContext(newUser, c); err != nil {
+	if err := auth.SetUserAuthContext(newUser, c); err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate JWT tokens"}}
 		return response.Send(c, response.Response{
 			Status:       http.StatusInternalServerError,

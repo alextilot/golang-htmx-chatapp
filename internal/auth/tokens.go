@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"github.com/alextilot/golang-htmx-chatapp/internal/auth/claims"
+	"github.com/alextilot/golang-htmx-chatapp/internal/auth/jwt"
 	"github.com/alextilot/golang-htmx-chatapp/internal/config"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -13,7 +15,6 @@ const (
 
 	oneHour         = 1 * time.Hour
 	twentyFourHours = 24 * time.Hour
-	fifteenMinutes  = 15 * time.Minute
 )
 
 func setTokenCookie(name string, token string, expiration time.Time, ctx echo.Context) {
@@ -29,14 +30,14 @@ func setTokenCookie(name string, token string, expiration time.Time, ctx echo.Co
 	ctx.SetCookie(c)
 }
 
-func GenerateTokensAndSetCookies(claims *Claims, ctx echo.Context) error {
-	accessToken, exp, err := GenerateJWT(claims, oneHour, []byte(config.Cfg.JwtSecretKey))
+func GenerateTokensAndSetCookies(claims *claims.Claims, ctx echo.Context) error {
+	accessToken, exp, err := jwt.Generate(claims, oneHour, []byte(config.Cfg.JwtSecretKey))
 	if err != nil {
 		return err
 	}
 	setTokenCookie(AccessTokenCookieName, accessToken, exp, ctx)
 
-	refreshToken, exp, err := GenerateJWT(claims, twentyFourHours, []byte(config.Cfg.JwtResfeshSecretKey))
+	refreshToken, exp, err := jwt.Generate(claims, twentyFourHours, []byte(config.Cfg.JwtResfeshSecretKey))
 	if err != nil {
 		return err
 	}

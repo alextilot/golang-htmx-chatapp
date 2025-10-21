@@ -11,24 +11,31 @@ import (
 func NewRouter(h *handler.Handler) *echo.Echo {
 	e := echo.New()
 
+	// ---- Pre middleware ----
 	e.Pre(middleware.RemoveTrailingSlash())
 
+	// ---- Global middleware ----
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.Gzip())
 	e.Use(middleware.Secure())
+
+	// Add CORS/CSRF when needed
 	// e.Use(middleware.CORS())
 	// e.Use(middleware.CSRF())
+
 	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
 		Timeout: 10 * time.Second,
 	}))
 
-	e.Use(auth.TokenRefresherMiddleware)
+	// ---- Custom middleware ----
 	e.Use(auth.UserContextMiddleware)
+	e.Use(auth.TokenRefresherMiddleware)
 
-	// Serve static files
+	// ---- Static assets ----
 	e.Static("/static", "web/static")
 
+	// ---- Routes ----
 	RegisterPublicRoutes(e, h)
 	RegisterPrivateRoutes(e, h)
 
