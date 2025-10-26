@@ -7,7 +7,7 @@ import (
 
 templ NavigationBar() {
 	{{ userCtx := usercontext.Get(ctx) }}
-	<header class="navbar bg-base-100" role="navigation">
+	<nav class="navbar bg-base-100" role="navigation">
 		<div class="flex-1">
 			<a class="btn btn-ghost text-xl" href={ routes.Routes.HomePage.Path }>Homepage</a>
 			@ThemeControllerDropdown()
@@ -41,5 +41,5 @@ templ NavigationBar() {
 				}
 			</ul>
 		</div>
-	</header>
+	</nav>
 }

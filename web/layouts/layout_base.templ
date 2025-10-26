@@ -1,0 +1,24 @@
+package layouts
+
+import (
+	"github.com/alextilot/golang-htmx-chatapp/web/partials"
+)
+
+templ LayoutBase(title string, includeFooter bool) {
+	@Document(title) {
+		<!-- Sticky Header -->
+		<header class="sticky top-0 z-20 flex-none">
+			@partials.NavigationBar()
+		</header>
+		<!-- Main Content -->
+		<main class="flex grow">
+			{ children... }
+		</main>
+		<!-- Optional Footer -->
+		if includeFooter {
+			<footer class="flex-none bg-base-100 p-4 text-center">
+				@partials.Footer()
+			</footer>
+		}
+	}
+}

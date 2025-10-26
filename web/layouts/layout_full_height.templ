@@ -1,0 +1,24 @@
+package layouts
+
+import (
+	"github.com/alextilot/golang-htmx-chatapp/web/partials"
+)
+
+// FullHeight layout: sticky header, main fills remaining height, optional footer
+templ LayoutFullHeight(title string, includeFooter bool) {
+	@Document(title) {
+		<!-- Sticky Header -->
+		<header class="sticky top-0 z-20 flex-none">
+			@partials.NavigationBar()
+		</header>
+		<!-- Main fills viewport height (for chat, dashboards, etc) -->
+		<main class="flex-grow flex flex-col min-h-0 h-dvh overflow-y-auto">
+			{ children... }
+		</main>
+		if includeFooter {
+			<footer class="flex-none bg-base-200 p-4 text-center">
+				@partials.Footer()
+			</footer>
+		}
+	}
+}

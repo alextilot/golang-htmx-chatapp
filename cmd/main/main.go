@@ -24,6 +24,6 @@ func main() {
 	e := router.NewRouter(h)
 
 	// Start the web server
-	log.Printf("🚀 Starting server on port %s", config.Cfg.Port)
+	log.Printf("🌐 Starting server on port :%s", config.Cfg.Port)
 	e.Logger.Fatal(e.Start(":" + config.Cfg.Port))
 }

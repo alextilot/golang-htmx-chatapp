@@ -2,12 +2,10 @@ package pages
 
 import (
 	"github.com/alextilot/golang-htmx-chatapp/web/layouts"
-	"github.com/alextilot/golang-htmx-chatapp/web/partials"
 )
 
 templ AboutPage() {
-	@layouts.MainLayout() {
-		@partials.NavigationBar()
+	@layouts.LayoutBase("Chatter — About", true) {
 		<main class="min-h-screen bg-base-100 flex flex-col items-center justify-start p-8">
 			<div class="text-center max-w-4xl space-y-8">
 				<h1 class="text-5xl font-bold text-primary">About ChatApp</h1>

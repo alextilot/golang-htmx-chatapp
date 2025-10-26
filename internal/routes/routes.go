@@ -114,7 +114,7 @@ var Routes = struct {
 
 	// Global / Misc
 	HomePage: Route{
-		Path:        "",
+		Path:        "/",
 		Method:      http.MethodGet,
 		Roles:       []Role{Public},
 		Description: "Landing page or redirect to chat",

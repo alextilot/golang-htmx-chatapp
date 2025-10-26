@@ -35,6 +35,8 @@ func NewRouter(h *handler.Handler) *echo.Echo {
 	// ---- Static assets ----
 	e.Static("/static", "web/static")
 
+	e.HTTPErrorHandler = h.HTTPErrorHandler
+
 	// ---- Routes ----
 	RegisterPublicRoutes(e, h)
 	RegisterPrivateRoutes(e, h)
