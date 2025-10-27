@@ -17,7 +17,8 @@ Server-side UI prototype built with:
 Install dependencies:
 
 ```bash
-go install github.com/a-h/templ/cmd/templ@latest
+go get -tool github.com/a-h/templ/cmd/templ@latest
+go get -tool github.com/air-verse/air@latest
 go mod tidy
 npm install
 ```
@@ -35,11 +36,13 @@ make dev
 - air → live reloads the Go server
 
 Build production CSS:
+
 ```bash
 make css
 ```
 
 Clean temporary files:
+
 ```bash
 make clean
 ```
@@ -51,4 +54,3 @@ Tailwind v4 is CSS-first: all configuration lives in app.css.
 DaisyUI is included for pre-built components and themes.
 
 air watches Go and template files for instant feedback.
-

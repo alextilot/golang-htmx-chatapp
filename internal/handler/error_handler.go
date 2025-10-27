@@ -1,11 +1,11 @@
 package handler
 
 import (
+	"github.com/a-h/templ"
 	"github.com/alextilot/golang-htmx-chatapp/internal/response"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/alextilot/golang-htmx-chatapp/web/pages"
 	"github.com/labstack/echo/v4"
-	"log"
 	"net/http"
 )
 
@@ -22,27 +22,29 @@ func (h *Handler) HTTPErrorHandler(err error, c echo.Context) {
 		code = he.Code
 	}
 
-	c.Logger().Error(err)
+	// c.Logger().Errorf("HTTP %d: %v", code, err)
 
-	// Render a custom error page based on the status code.
+	var fe validation.FieldErrors
+	var tmpl templ.Component
+
 	switch code {
 	case http.StatusNotFound:
-		log.Println("Error serving 404")
-		response.Send(c, response.Response{
-			Status:       code,
-			HTMLTemplate: pages.NotFoundPage(),
-			Errors:       validation.NewFieldErrors(),
-		})
+		fe = validation.FieldErrors{validation.FieldRequest: {"Not Found"}}
+		tmpl = pages.NotFoundPage()
 	case http.StatusInternalServerError:
-		log.Println("Error serving 500")
-		response.Send(c, response.Response{
-			Status:       code,
-			HTMLTemplate: pages.ServerErrorPage(),
-			Errors:       validation.NewFieldErrors(),
-		})
+		fe = validation.FieldErrors{validation.FieldServer: {"Internal Server Error"}}
+		tmpl = pages.ServerErrorPage()
 	default:
-		if err != nil {
-			log.Println("Error serving generic error page:", err)
-		}
+		fe = validation.FieldErrors{validation.FieldServer: {"An unexpected error occurred"}}
+		tmpl = pages.ServerErrorPage()
+	}
+
+	// IMPORTANT: return the result of Send to avoid "superfluous WriteHeader"
+	if err := response.Send(c, response.Response{
+		Status:       code,
+		HTMLTemplate: tmpl,
+		Errors:       fe,
+	}); err != nil {
+		c.Logger().Errorf("Failed to send error response: %v", err)
 	}
 }
