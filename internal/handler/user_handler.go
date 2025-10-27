@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"net/http"
-
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/response"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
@@ -11,6 +9,7 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation/schema"
 	"github.com/alextilot/golang-htmx-chatapp/web/forms"
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 func (h *Handler) Login(c echo.Context) error {
@@ -63,6 +62,17 @@ func (h *Handler) Login(c echo.Context) error {
 	})
 }
 
+func (h *Handler) Logout(c echo.Context) error {
+	auth.Clear(c)
+	usercontext.Set(c, usercontext.Default())
+
+	return response.Send(c, response.Response{
+		Status:   http.StatusSeeOther,
+		Data:     map[string]any{"logout": true},
+		Redirect: routes.Routes.HomePage.Path,
+	})
+}
+
 func (h *Handler) SignUp(c echo.Context) error {
 	// 1. Get input, parse, sanitize, validate
 	input, err := schema.HandleInput(c, schema.SanitizeUserCreate, schema.ValidateUserCreate)
@@ -111,18 +121,5 @@ func (h *Handler) SignUp(c echo.Context) error {
 		Status:   http.StatusOK,
 		Data:     map[string]any{"user": newUser},
 		Redirect: "/chatroom",
-	})
-}
-
-func (h *Handler) Logout(c echo.Context) error {
-	// Clear auth cookies
-	auth.Clear(c)
-	// Reset the user context.
-	usercontext.Set(c, usercontext.Default())
-
-	return response.Send(c, response.Response{
-		Status:   http.StatusSeeOther,
-		Data:     map[string]any{"logout": true},
-		Redirect: routes.Routes.HomePage.Path,
 	})
 }

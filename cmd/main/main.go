@@ -7,6 +7,7 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/repository"
 	"github.com/alextilot/golang-htmx-chatapp/internal/router"
 	"github.com/alextilot/golang-htmx-chatapp/internal/service"
+
 	"log"
 )
 
@@ -26,6 +27,6 @@ func main() {
 	e := router.NewRouter(h)
 
 	// Start the web server
-	log.Printf("🌐 Starting server on port :%s", config.Cfg.Port)
+	log.Printf("🌐 Starting server on port %s", cfg.Addr())
 	e.Logger.Fatal(e.Start(cfg.Addr()))
 }

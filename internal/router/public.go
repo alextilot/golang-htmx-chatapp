@@ -45,4 +45,6 @@ func RegisterPublicRoutes(e *echo.Echo, h *handler.Handler) {
 	})
 	public.POST(routes.Routes.LoginPage.Path, h.Login)
 
+	// Logout
+	public.POST(routes.Routes.Logout.Path, h.Logout)
 }

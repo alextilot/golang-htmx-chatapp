@@ -41,9 +41,9 @@ func (h *Handler) HTTPErrorHandler(err error, c echo.Context) {
 
 	// IMPORTANT: return the result of Send to avoid "superfluous WriteHeader"
 	if err := response.Send(c, response.Response{
-		Status:       code,
-		HTMLTemplate: tmpl,
-		Errors:       fe,
+		Status: code,
+		View:   tmpl,
+		Errors: fe,
 	}); err != nil {
 		c.Logger().Errorf("Failed to send error response: %v", err)
 	}
