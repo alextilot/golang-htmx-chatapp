@@ -3,7 +3,8 @@ tmp_dir = "tmp"
 
 [build]
   bin = "./tmp/main"
-  cmd = "go build -o ./tmp/main ./cmd/main"
+  full_bin = "tmp/main"
+  cmd = "go build -tags unix -o ./tmp/main ./cmd/main"
   delay = 1000
   exclude_dir = ["assets", "tmp", "node_modules"]
   exclude_file = []
@@ -14,7 +15,7 @@ tmp_dir = "tmp"
   include_dir = []
   include_ext = ["go", "tpl", "tmpl", "templ", "html"]
   kill_delay = "0s"
-  log = "build-errors.log"
+  log = "build-errors-unix.log"
   send_interrupt = false
   stop_on_error = true
 
