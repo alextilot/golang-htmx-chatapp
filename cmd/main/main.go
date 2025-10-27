@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	cfg := config.Load()
+
 	// Connect to the database
 	db := database.New(config.Cfg.DatabasePath)
 	defer db.Close()
@@ -25,5 +27,5 @@ func main() {
 
 	// Start the web server
 	log.Printf("🌐 Starting server on port :%s", config.Cfg.Port)
-	e.Logger.Fatal(e.Start(":" + config.Cfg.Port))
+	e.Logger.Fatal(e.Start(cfg.Addr()))
 }

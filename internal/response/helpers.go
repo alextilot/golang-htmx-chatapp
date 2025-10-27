@@ -15,3 +15,7 @@ func wantsJSON(c echo.Context) bool {
 	ct := c.Request().Header.Get(header.ContentType)
 	return strings.Contains(accept, headerval.ContentTypeJSON) || strings.Contains(ct, headerval.ContentTypeJSON)
 }
+
+func isHTMX(c echo.Context) bool {
+	return c.Request().Header.Get(header.HXRequest) == "true"
+}

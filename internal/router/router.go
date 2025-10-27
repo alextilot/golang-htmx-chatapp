@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
+	"github.com/alextilot/golang-htmx-chatapp/internal/config"
 	"github.com/alextilot/golang-htmx-chatapp/internal/handler"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -10,6 +11,8 @@ import (
 
 func NewRouter(h *handler.Handler) *echo.Echo {
 	e := echo.New()
+
+	e.Debug = config.Cfg.Debug
 
 	// ---- Pre middleware ----
 	e.Pre(middleware.RemoveTrailingSlash())

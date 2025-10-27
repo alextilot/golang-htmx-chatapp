@@ -41,12 +41,12 @@ func TokenRefresherMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// Parse refresh token claims
-		_, err = jwt.Parse(refreshCookie.Value, []byte(config.Cfg.JwtResfeshSecretKey))
+		_, err = jwt.Parse(refreshCookie.Value, []byte(config.Cfg.JwtRefeshSecretKey))
 		if err != nil {
 			return next(ctx)
 		}
 
-		if err := GenerateTokensAndSetCookies(claims, ctx); err != nil {
+		if err := GenerateAndSet(ctx, claims); err != nil {
 			log.Printf("TokenRefresherMiddleware: failed to refresh tokens: %v", err)
 		}
 

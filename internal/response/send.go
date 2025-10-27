@@ -1,31 +1,35 @@
 package response
 
 import (
-	"github.com/a-h/templ"
 	"github.com/alextilot/golang-htmx-chatapp/internal/constants/header"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
-func Send(c echo.Context, resp Response) error {
-	status := resp.Status
+func Send(c echo.Context, r Response) error {
+	status := r.Status
 	if status == 0 {
 		status = http.StatusOK
 	}
 
-	// HTMX redirect
-	if resp.HTMXRedirect != "" && c.Request().Header.Get(header.HXRedirect) == "true" {
-		c.Response().Header().Set(header.HXRedirect, resp.HTMXRedirect)
+	// Handle HTMX redirect
+	if r.Redirect != "" && isHTMX(c) {
+		c.Response().Header().Set(header.HXRedirect, r.Redirect)
 		return c.NoContent(http.StatusOK)
 	}
 
-	// JSON
-	if wantsJSON(c) {
-		jsonData := resp.Data
+	// Handle redirect (non-HTMX)
+	if r.Redirect != "" {
+		return c.Redirect(http.StatusSeeOther, r.Redirect)
+	}
 
-		if resp.Errors != nil {
-			jsonData = map[string]any{"errors": resp.Errors.FlattenByField()}
+	// Handle JSON
+	if wantsJSON(c) {
+		jsonData := r.Data
+
+		if r.Errors != nil {
+			jsonData = map[string]any{"errors": r.Errors.FlattenByField()}
 		}
 
 		if jsonData == nil {
@@ -35,10 +39,11 @@ func Send(c echo.Context, resp Response) error {
 		return c.JSON(status, jsonData)
 	}
 
-	// HTML
-	if tmpl, ok := resp.HTMLTemplate.(templ.Component); ok {
-		return web.Render(c, status, tmpl)
+	// Handle HTML template
+	if r.View != nil {
+		return web.Render(c, status, r.View)
 	}
 
+	// Fallback
 	return c.NoContent(status)
 }

@@ -10,7 +10,7 @@ import (
 // SetUserAuthContext generates tokens, sets cookies, and updates UserContext
 func SetUserAuthContext(user *model.User, c echo.Context) error {
 	cl := claims.FromUser(user)
-	if err := GenerateTokensAndSetCookies(cl, c); err != nil {
+	if err := GenerateAndSet(c, cl); err != nil {
 		return err
 	}
 
