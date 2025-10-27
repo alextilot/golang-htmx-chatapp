@@ -35,10 +35,12 @@ var Routes = struct {
 	ChatSocket  Route
 
 	// Global / Misc
-	HomePage    Route
-	AboutPage   Route
-	NotFound    Route
-	ServerError Route
+	HomePage     Route
+	AboutPage    Route
+	Forbidden    Route
+	Unauthorized Route
+	NotFound     Route
+	ServerError  Route
 }{
 	// Authentication
 	LoginPage: Route{
@@ -124,6 +126,18 @@ var Routes = struct {
 		Method:      http.MethodGet,
 		Roles:       []Role{Public},
 		Description: "About or help page",
+	},
+	Unauthorized: Route{
+		Path:        "/401",
+		Method:      http.MethodGet,
+		Roles:       []Role{Public},
+		Description: "Custom 401 page",
+	},
+	Forbidden: Route{
+		Path:        "/403",
+		Method:      http.MethodGet,
+		Roles:       []Role{Public},
+		Description: "Custom 403 page",
 	},
 	NotFound: Route{
 		Path:        "/404",

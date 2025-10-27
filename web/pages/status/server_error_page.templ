@@ -1,17 +1,18 @@
-package pages
+package status
 
 import (
 	"github.com/alextilot/golang-htmx-chatapp/web/layouts"
+	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
 )
 
 templ ServerErrorPage() {
 	@layouts.LayoutBase("Server Error", true) {
-		<main class="min-h-screen bg-base-200 flex flex-col items-center justify-center p-4">
+		<div class="flex flex-col items-center justify-center space-y-6 text-center w-full">
 			<div class="text-center space-y-6">
 				<h1 class="text-8xl font-extrabold text-error">500</h1>
 				<p class="text-2xl text-base-content/70">Something went wrong on our end. Please try again later.</p>
-				<a href="/" class="btn btn-primary btn-lg">Go Home</a>
+				<a href={ routes.Routes.HomePage.Path } class="btn btn-primary btn-lg">Go Home</a>
 			</div>
-		</main>
+		</div>
 	}
 }

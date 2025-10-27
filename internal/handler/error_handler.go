@@ -4,7 +4,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/alextilot/golang-htmx-chatapp/internal/response"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
-	"github.com/alextilot/golang-htmx-chatapp/web/pages"
+	"github.com/alextilot/golang-htmx-chatapp/web/pages/status"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -22,21 +22,19 @@ func (h *Handler) HTTPErrorHandler(err error, c echo.Context) {
 		code = he.Code
 	}
 
-	// c.Logger().Errorf("HTTP %d: %v", code, err)
-
 	var fe validation.FieldErrors
 	var tmpl templ.Component
 
 	switch code {
 	case http.StatusNotFound:
 		fe = validation.FieldErrors{validation.FieldRequest: {"Not Found"}}
-		tmpl = pages.NotFoundPage()
+		tmpl = status.NotFoundPage()
 	case http.StatusInternalServerError:
 		fe = validation.FieldErrors{validation.FieldServer: {"Internal Server Error"}}
-		tmpl = pages.ServerErrorPage()
+		tmpl = status.ServerErrorPage()
 	default:
 		fe = validation.FieldErrors{validation.FieldServer: {"An unexpected error occurred"}}
-		tmpl = pages.ServerErrorPage()
+		tmpl = status.ServerErrorPage()
 	}
 
 	// IMPORTANT: return the result of Send to avoid "superfluous WriteHeader"

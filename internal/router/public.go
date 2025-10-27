@@ -5,6 +5,7 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/alextilot/golang-htmx-chatapp/web/pages"
+	"github.com/alextilot/golang-htmx-chatapp/web/pages/status"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -23,25 +24,35 @@ func RegisterPublicRoutes(e *echo.Echo, h *handler.Handler) {
 		return web.Render(c, http.StatusOK, pages.AboutPage())
 	})
 
+	// 401 page
+	public.GET(routes.Routes.Unauthorized.Path, func(c echo.Context) error {
+		return web.Render(c, http.StatusUnauthorized, status.UnauthorizedPage())
+	})
+
+	// 403 page
+	public.GET(routes.Routes.Forbidden.Path, func(c echo.Context) error {
+		return web.Render(c, http.StatusForbidden, status.ForbiddenPage())
+	})
+
 	// 404 page
 	public.GET(routes.Routes.NotFound.Path, func(c echo.Context) error {
-		return web.Render(c, http.StatusNotFound, pages.NotFoundPage())
+		return web.Render(c, http.StatusNotFound, status.NotFoundPage())
 	})
 
 	// 500 page
 	public.GET(routes.Routes.ServerError.Path, func(c echo.Context) error {
-		return web.Render(c, http.StatusInternalServerError, pages.ServerErrorPage())
+		return web.Render(c, http.StatusInternalServerError, status.ServerErrorPage())
 	})
 
 	// Sign up
 	public.GET(routes.Routes.SignupPage.Path, func(c echo.Context) error {
-		return web.Render(c, http.StatusInternalServerError, pages.SignupPage())
+		return web.Render(c, http.StatusOK, pages.SignupPage())
 	})
 	public.POST(routes.Routes.SignupPage.Path, h.SignUp)
 
 	// Login
 	public.GET(routes.Routes.LoginPage.Path, func(c echo.Context) error {
-		return web.Render(c, http.StatusInternalServerError, pages.LoginPage())
+		return web.Render(c, http.StatusOK, pages.LoginPage())
 	})
 	public.POST(routes.Routes.LoginPage.Path, h.Login)
 
