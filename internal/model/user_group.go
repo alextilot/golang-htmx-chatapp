@@ -1,5 +1,8 @@
 package model
 
+// UserGroup is the join table connecting users to groups.
+// Each row represents a membership of a user in a group.
+// The combination of UserID + GroupID is unique to prevent duplicate memberships.
 type UserGroup struct {
 	Base
 

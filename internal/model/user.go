@@ -13,8 +13,11 @@ type User struct {
 	Email    string `gorm:"unique;not null"` // Unique and non-nullable email
 	Password string `gorm:"not null"`        // Non-nullable password (should be hashed)
 
-	Messages []UserMessage // One-to-many relationship: a user can send many messages
-	Contacts []UserContact `gorm:"foreignKey:UserID"` // optional, one-to-many
+	// Relationships
+	Messages     []Message     `gorm:"foreignKey:SenderID"` // Messages sent by this user
+	UserMessages []UserMessage `gorm:"foreignKey:OwnerID"`  // Messages received by this user
+	Contacts     []UserContact `gorm:"foreignKey:UserID"`   // Optional, one-to-many contacts
+	UserGroups   []UserGroup   `gorm:"foreignKey:UserID"`   // Groups this user belongs to
 }
 
 var (
@@ -25,6 +28,7 @@ func init() {
 	Register(&User{})
 }
 
+// HashPassword hashes a plaintext password and returns the hashed string.
 func (u *User) HashPassword(plain string) (string, error) {
 	if len(plain) == 0 {
 		return "", ErrEmptyPassword
@@ -33,6 +37,7 @@ func (u *User) HashPassword(plain string) (string, error) {
 	return string(h), err
 }
 
+// CheckPassword verifies if the given plaintext password matches the hashed password.
 func (u *User) CheckPassword(plain string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plain))
 	return err == nil

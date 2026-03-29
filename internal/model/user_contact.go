@@ -1,5 +1,8 @@
 package model
 
+// UserContact represents a contact/friend relationship between two users.
+// Each row links a user to a contact user.
+// The combination of UserID + ContactID is unique to prevent duplicate contacts.
 type UserContact struct {
 	Base
 
