@@ -12,7 +12,7 @@ type UserMessage struct {
 	OwnerID string `gorm:"type:uuid;not null"`
 	Owner   User   `gorm:"foreignKey:OwnerID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
-	GroupID *string `gorm:"type:uuid"` // Optional: nil for 1:1 DM
+	GroupID *string `gorm:"type:uuid;not null"`
 	Group   *Group  `gorm:"foreignKey:GroupID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	ReadAt *time.Time
