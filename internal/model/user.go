@@ -8,10 +8,13 @@ import (
 
 type User struct {
 	Base
-	Username     string        `gorm:"unique;not null"` // Unique and non-nullable username
-	Email        string        `gorm:"unique;not null"` // Unique and non-nullable email
-	Password     string        `gorm:"not null"`        // Non-nullable password (should be hashed)
-	ChatMessages []ChatMessage // One-to-many relationship: a user can send many messages
+
+	Username string `gorm:"unique;not null"` // Unique and non-nullable username
+	Email    string `gorm:"unique;not null"` // Unique and non-nullable email
+	Password string `gorm:"not null"`        // Non-nullable password (should be hashed)
+
+	Messages []UserMessage // One-to-many relationship: a user can send many messages
+	Contacts []UserContact `gorm:"foreignKey:UserID"` // optional, one-to-many
 }
 
 var (
