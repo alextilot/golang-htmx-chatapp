@@ -16,7 +16,7 @@ type User struct {
 	// Relationships
 	Messages     []Message     `gorm:"foreignKey:SenderID"` // Messages sent by this user
 	UserMessages []UserMessage `gorm:"foreignKey:OwnerID"`  // Messages received by this user
-	Contacts     []UserContact `gorm:"foreignKey:UserID"`   // Optional, one-to-many contacts
+	UserContacts []UserContact `gorm:"foreignKey:UserID"`   // Optional, one-to-many contacts
 	UserGroups   []UserGroup   `gorm:"foreignKey:UserID"`   // Groups this user belongs to
 }
 
