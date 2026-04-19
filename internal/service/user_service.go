@@ -1,7 +1,9 @@
 package service
 
 import (
+	"context"
 	"errors"
+
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"github.com/alextilot/golang-htmx-chatapp/internal/repository"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
@@ -15,20 +17,52 @@ func NewUserService(repo *repository.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-// Login handles login logic
-func (s *UserService) Login(username string, password string) (*model.User, error) {
-	user, err := s.repo.FindByUsername(username)
+func (s *UserService) Login(ctx context.Context, username, password string) (*model.User, error) {
+	user, err := s.repo.GetByUsername(ctx, username)
 	if err != nil {
 		return nil, err
 	}
+
 	if user == nil || !user.CheckPassword(password) {
 		return nil, errors.New("invalid credentials")
 	}
+
 	return user, nil
 }
 
-// Creates a user and hashes the password
-func (s *UserService) Create(username, email, password string) (*model.User, error) {
+func (s *UserService) Signup(
+	ctx context.Context,
+	username, email, password string,
+) (*model.User, validation.FieldErrors, error) {
+
+	fe := validation.FieldErrors{}
+
+	existing, err := s.repo.FindByUsernameOrEmail(ctx, username, email)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if existing != nil {
+		if existing.Username == username {
+			fe["username"] = []string{"Username is already taken"}
+		}
+
+		if existing.Email == email {
+			fe["email"] = []string{"Email is already taken"}
+		}
+
+		return nil, fe, nil
+	}
+
+	user, err := s.createUser(ctx, username, email, password)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return user, nil, nil
+}
+
+func (s *UserService) createUser(ctx context.Context, username, email, password string) (*model.User, error) {
 	user := &model.User{
 		Username: username,
 		Email:    email,
@@ -38,35 +72,13 @@ func (s *UserService) Create(username, email, password string) (*model.User, err
 	if err != nil {
 		return nil, err
 	}
+
 	user.Password = hashed
 
-	// Persist user via repository
-	return s.repo.Create(user)
-}
-
-func (s *UserService) Signup(username, email, password string) (*model.User, validation.FieldErrors, error) {
-	fe := validation.FieldErrors{}
-
-	// 1. Check for existing username/email
-	existing, err := s.repo.ExistsByUsernameOrEmail(username, email)
+	err = s.repo.Create(ctx, user)
 	if err != nil {
-		return nil, nil, err
-	}
-	if existing != nil {
-		if existing.Username == username {
-			fe["username"] = []string{"Username is already taken"}
-		}
-		if existing.Email == email {
-			fe["email"] = []string{"Email is already taken"}
-		}
-		return nil, fe, nil
+		return nil, err
 	}
 
-	// 2. Delegate creation to Create() method (handles password hashing)
-	user, err := s.Create(username, email, password)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return user, nil, nil
+	return user, nil
 }

@@ -1,7 +1,8 @@
 package repository
 
 import (
-	"errors"
+	"context"
+
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"gorm.io/gorm"
 )
@@ -16,41 +17,64 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	}
 }
 
-// FindByUsername retrieves a single user by username
-func (r *UserRepository) FindByUsername(username string) (*model.User, error) {
+func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*model.User, error) {
 	var user model.User
-	if err := r.db.Where("username = ?", username).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
-}
 
-// FindAll retrieves all users (optionally filtered by username)
-func (r *UserRepository) FindAll(username string) ([]model.User, error) {
-	var users []model.User
-	tx := r.db
+	err := r.DB().
+		WithContext(ctx).
+		Where("username = ?", username).
+		First(&user).Error
 
-	if username != "" {
-		tx = tx.Where("username LIKE ?", "%"+username+"%")
-	}
-
-	if err := tx.Find(&users).Error; err != nil {
-		return nil, err
-	}
-	return users, nil
-}
-
-func (r *UserRepository) ExistsByUsernameOrEmail(username, email string) (*model.User, error) {
-	var user model.User
-	err := r.db.Where("username = ? OR email = ?", username, email).First(&user).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepository) FindByUsernameOrEmail(
+	ctx context.Context,
+	username, email string,
+) (*model.User, error) {
+
+	var user model.User
+
+	err := r.DB().
+		WithContext(ctx).
+		Where("username = ? OR email = ?", username, email).
+		First(&user).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
 		return nil, err
 	}
+
 	return &user, nil
+}
+
+func (r *UserRepository) Search(ctx context.Context, query string) ([]model.User, error) {
+	var users []model.User
+
+	q := r.DB().WithContext(ctx)
+
+	if query != "" {
+		q = q.Where("username LIKE ?", "%"+query+"%")
+	}
+
+	err := q.Find(&users).Error
+	return users, err
+}
+
+func (r *UserRepository) Exists(ctx context.Context, username, email string) (bool, error) {
+	var count int64
+
+	err := r.DB().
+		WithContext(ctx).
+		Model(&model.User{}).
+		Where("username = ? OR email = ?", username, email).
+		Count(&count).Error
+
+	return count > 0, err
 }

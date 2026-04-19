@@ -28,8 +28,8 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	// 2. Check login information
-	user, err := h.Services.UserService.Login(input.Username, input.Password)
-	if user == nil || err != nil {
+	user, err := h.Services.UserService.Login(c.Request().Context(), input.Username, input.Password)
+	if err != nil {
 		fe := validation.FieldErrors{
 			validation.FieldAuth: {"Invalid login information"},
 		}
@@ -44,7 +44,7 @@ func (h *Handler) Login(c echo.Context) error {
 
 	// 3. Generate JWT Tokens
 	if err := auth.SetUserAuthContext(user, c); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate JWT tokens"}}
+		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate session"}}
 
 		return response.Send(c, response.Response{
 			Status: http.StatusInternalServerError,
@@ -88,7 +88,13 @@ func (h *Handler) SignUp(c echo.Context) error {
 	}
 
 	// Delegate signup and additional business-level validation to service
-	newUser, fe, err := h.Services.UserService.Signup(input.Username, input.Email, input.Password)
+	user, fe, err := h.Services.UserService.Signup(
+		c.Request().Context(),
+		input.Username,
+		input.Email,
+		input.Password,
+	)
+
 	if err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Error creating user"}}
 		return response.Send(c, response.Response{
@@ -107,8 +113,8 @@ func (h *Handler) SignUp(c echo.Context) error {
 	}
 
 	// 4. Generate JWT tokens
-	if err := auth.SetUserAuthContext(newUser, c); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate JWT tokens"}}
+	if err := auth.SetUserAuthContext(user, c); err != nil {
+		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate session"}}
 		return response.Send(c, response.Response{
 			Status: http.StatusInternalServerError,
 			View:   forms.SignupForm(fe),
@@ -119,7 +125,7 @@ func (h *Handler) SignUp(c echo.Context) error {
 	// 5. Return success (handles HTML, JSON, HTMX)
 	return response.Send(c, response.Response{
 		Status:   http.StatusOK,
-		Data:     map[string]any{"user": newUser},
+		Data:     map[string]any{"user": user},
 		Redirect: "/chatroom",
 	})
 }

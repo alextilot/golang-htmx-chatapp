@@ -11,7 +11,7 @@ type Config struct {
 	// Application
 	Environment string `env:"ENVIRONMENT" envDefault:"development"`
 	Port        string `env:"PORT" envDefault:"3000"`
-	Debug       bool   `env:"DEBUG" envDefault:"false"`
+	Debug       bool   `env:"DEBUG" envDefault:"true"`
 
 	// Security
 	JwtSecretKey       string `env:"JWT_SECRET_KEY,required"`
