@@ -9,6 +9,9 @@ const (
 // Group represents a chat room, either a 1:1 conversation or a multi-user group.
 type Group struct {
 	Base
+	OwnerID string `gorm:"type:uuid;not null"` // User who created the group
+	Owner   User   `gorm:"foreignKey:OwnerID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+
 	Name        string `gorm:"type:text;not null"`         // Required group name
 	Description string `gorm:"type:text"`                  // Optional description
 	Type        string `gorm:"type:text;default:'direct'"` // 'direct' or 'group'
@@ -22,4 +25,3 @@ type Group struct {
 func init() {
 	Register(&Group{})
 }
-

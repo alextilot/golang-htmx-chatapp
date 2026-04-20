@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"github.com/alextilot/golang-htmx-chatapp/internal/handler"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
 	"github.com/alextilot/golang-htmx-chatapp/web"
@@ -10,7 +11,7 @@ import (
 	"net/http"
 )
 
-func RegisterPublicRoutes(e *echo.Echo, h *handler.Handler) {
+func RegisterPublicRoutes(e *echo.Echo, h *handler.Handler, ctx context.Context) {
 	// Public routes group
 	public := e.Group("")
 

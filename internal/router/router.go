@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/config"
 	"github.com/alextilot/golang-htmx-chatapp/internal/handler"
@@ -32,7 +33,7 @@ func cacheControlMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func NewRouter(h *handler.Handler) *echo.Echo {
+func NewRouter(h *handler.Handler, ctx context.Context) *echo.Echo {
 	e := echo.New()
 
 	e.Debug = config.Cfg.Debug
@@ -68,8 +69,8 @@ func NewRouter(h *handler.Handler) *echo.Echo {
 	e.Static("/static", "web/static")
 
 	// ---- Routes ----
-	RegisterPublicRoutes(e, h)
-	RegisterPrivateRoutes(e, h)
+	RegisterPublicRoutes(e, h, ctx)
+	RegisterPrivateRoutes(e, h, ctx)
 
 	return e
 }
