@@ -7,13 +7,21 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// SetUserAuthContext generates tokens, sets cookies, and updates UserContext
-func SetUserAuthContext(user *model.User, c echo.Context) error {
+// CreateUserSession logs in a user by issuing tokens and attaching user context.
+func CreateUserSession(user *model.User, c echo.Context) error {
+	if user == nil {
+		return nil
+	}
+
 	cl := claims.FromUser(user)
-	if err := GenerateAndSet(c, cl); err != nil {
+
+	// 1. Issue tokens (cookies + JWT)
+	if err := IssueTokens(c, cl); err != nil {
 		return err
 	}
 
-	usercontext.Set(c, usercontext.FromClaims(cl))
+	// 2. Set request context directly (no re-derivation needed)
+	usercontext.SetEcho(c, usercontext.FromClaims(cl))
+
 	return nil
 }

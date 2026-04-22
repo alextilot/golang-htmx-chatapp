@@ -10,11 +10,12 @@ import (
 
 // GroupService handles business logic for group management.
 type GroupService struct {
-	groups *repository.GroupRepository
+	groups     *repository.GroupRepository
+	userGroups *repository.UserGroupRepository
 }
 
-func NewGroupService(groups *repository.GroupRepository) *GroupService {
-	return &GroupService{groups: groups}
+func NewGroupService(groups *repository.GroupRepository, userGroups *repository.UserGroupRepository) *GroupService {
+	return &GroupService{groups: groups, userGroups: userGroups}
 }
 
 // Create makes a new group and adds the creator as its first member.
@@ -34,7 +35,7 @@ func (s *GroupService) Create(ctx context.Context, creatorID string, name string
 		created = g
 
 		// Add the creator as the first member.
-		return s.groups.AddMember(ctx, g.ID, creatorID)
+		return s.userGroups.AddMember(ctx, g.ID, creatorID)
 	})
 
 	return created, err
@@ -58,7 +59,7 @@ func (s *GroupService) ListForUser(ctx context.Context, userID string) ([]model.
 // Requires the requester to be a member.
 // TODO: Add a role field to UserGroup to restrict this to admins/owners.
 func (s *GroupService) Update(ctx context.Context, groupID string, requesterID string, name string, description string) (*model.Group, error) {
-	ok, err := s.groups.IsMember(ctx, groupID, requesterID)
+	ok, err := s.userGroups.IsMember(ctx, groupID, requesterID)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +88,7 @@ func (s *GroupService) Update(ctx context.Context, groupID string, requesterID s
 // Requires the requester to be a member.
 // TODO: Add a role field to UserGroup to restrict this to owners only.
 func (s *GroupService) Delete(ctx context.Context, groupID string, requesterID string) error {
-	ok, err := s.groups.IsMember(ctx, groupID, requesterID)
+	ok, err := s.userGroups.IsMember(ctx, groupID, requesterID)
 	if err != nil {
 		return err
 	}
@@ -101,12 +102,12 @@ func (s *GroupService) Delete(ctx context.Context, groupID string, requesterID s
 
 // AddMember adds a user to an existing group.
 func (s *GroupService) AddMember(ctx context.Context, groupID string, requesterID string, newUserID string) error {
-	ok, err := s.groups.IsMember(ctx, groupID, requesterID)
+	ok, err := s.userGroups.IsMember(ctx, groupID, requesterID)
 	if err != nil {
 		return err
 	}
 	if !ok {
 		return errors.New("user is not a member of this group")
 	}
-	return s.groups.AddMember(ctx, groupID, newUserID)
+	return s.userGroups.AddMember(ctx, groupID, newUserID)
 }

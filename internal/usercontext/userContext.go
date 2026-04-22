@@ -9,10 +9,10 @@ import (
 // UserContext holds all per-request user state.
 // It can include both authentication info and user-specific preferences.
 type UserContext struct {
-	ID         string
-	Username   string
-	Email      string
-	IsLoggedIn bool
+	ID            string
+	Username      string
+	Email         string
+	Authenticated bool
 	// Theme       string
 	// Locale      string
 	// Permissions []string
@@ -23,8 +23,14 @@ type contextKey struct{}
 // key is an unexported zero-value type to avoid context key collisions.
 var key contextKey
 
+var anonymous = &UserContext{Authenticated: false}
+
 func Default() *UserContext {
-	return &UserContext{IsLoggedIn: false}
+	return anonymous
+}
+
+func (u *UserContext) IsAnonymous() bool {
+	return !u.Authenticated
 }
 
 // FromClaims creates a new UserContext with default values or from claims
@@ -34,36 +40,35 @@ func FromClaims(claims *claims.Claims) *UserContext {
 	}
 
 	return &UserContext{
-		ID:         claims.UserID,
-		Username:   claims.Username,
-		Email:      claims.Email,
-		IsLoggedIn: true,
+		ID:       claims.UserID,
+		Username: claims.Username,
+		Email:    claims.Email,
+		// malformed token could mark someone as authenticated.
+		Authenticated: claims.UserID != "",
 	}
 }
 
-// With returns a new context containing the given UserContext.
-func With(ctx context.Context, u *UserContext) context.Context {
+func SetContext(ctx context.Context, u *UserContext) context.Context {
 	return context.WithValue(ctx, key, u)
 }
 
-// From extracts the UserContext from a context.Context.
+// FromContext extracts the UserContext from a context.Context.
 // Returns Default() if none is found.
-func From(ctx context.Context) *UserContext {
+func FromContext(ctx context.Context) *UserContext {
 	if v, ok := ctx.Value(key).(*UserContext); ok && v != nil {
 		return v
 	}
 	return Default()
 }
 
-// Get retrieves the UserContext from an Echo context.
-func Get(ctx context.Context) *UserContext {
-	if v, ok := ctx.Value(key).(*UserContext); ok {
-		return v
-	}
-	return FromClaims(nil)
+// SetEcho attaches a UserContext to an Echo context.
+func SetEcho(c echo.Context, u *UserContext) {
+	req := c.Request()
+	ctx := SetContext(req.Context(), u)
+	c.SetRequest(req.WithContext(ctx))
 }
 
-// Set attaches a UserContext to an Echo context.
-func Set(c echo.Context, u *UserContext) {
-	c.SetRequest(c.Request().WithContext(With(c.Request().Context(), u)))
+// FromEcho retrieves the UserContext from an Echo context.
+func FromEcho(c echo.Context) *UserContext {
+	return FromContext(c.Request().Context())
 }

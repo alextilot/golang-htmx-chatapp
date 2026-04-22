@@ -69,8 +69,8 @@ func (h *Hub) Run(ctx context.Context) {
 //   - auth.UserContextMiddleware to have run (provides userID)
 //   - a :groupID route param, e.g. /ws/groups/:groupID
 func (h *Hub) Handler(echoCtx echo.Context, ctx context.Context) error {
-	uc := usercontext.Get(echoCtx.Request().Context())
-	if !uc.IsLoggedIn {
+	uc := usercontext.FromEcho(echoCtx)
+	if !uc.Authenticated {
 		return echo.ErrUnauthorized
 	}
 

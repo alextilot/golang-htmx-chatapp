@@ -34,7 +34,7 @@ func NewGroupHandler(hub *ws.Hub, svc groupServicer) *GroupHandler {
 // List renders the list of groups for the logged-in user.
 // GET /app/groups
 func (h *GroupHandler) List(c echo.Context) error {
-	uc := usercontext.Get(c.Request().Context())
+	uc := usercontext.FromEcho(c)
 	groups, err := h.svc.ListForUser(c.Request().Context(), uc.ID)
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func (h *GroupHandler) Show(c echo.Context) error {
 // Create handles new group form submission.
 // POST /app/groups
 func (h *GroupHandler) Create(c echo.Context) error {
-	uc := usercontext.Get(c.Request().Context())
+	uc := usercontext.FromEcho(c)
 
 	name := c.FormValue("name")
 	if name == "" {
@@ -83,7 +83,7 @@ func (h *GroupHandler) Create(c echo.Context) error {
 // Update handles group rename / description change.
 // PUT /app/groups/:groupID
 func (h *GroupHandler) Update(c echo.Context) error {
-	uc := usercontext.Get(c.Request().Context())
+	uc := usercontext.FromEcho(c)
 
 	_, err := h.svc.Update(
 		c.Request().Context(),
@@ -101,7 +101,7 @@ func (h *GroupHandler) Update(c echo.Context) error {
 // Delete soft-deletes a group (marks it inactive).
 // DELETE /app/groups/:groupID
 func (h *GroupHandler) Delete(c echo.Context) error {
-	uc := usercontext.Get(c.Request().Context())
+	uc := usercontext.FromEcho(c)
 
 	if err := h.svc.Delete(c.Request().Context(), c.Param("groupID"), uc.ID); err != nil {
 		return err
@@ -113,7 +113,7 @@ func (h *GroupHandler) Delete(c echo.Context) error {
 // AddMember adds a user to a group.
 // POST /app/groups/:groupID/members
 func (h *GroupHandler) AddMember(c echo.Context) error {
-	uc := usercontext.Get(c.Request().Context())
+	uc := usercontext.FromEcho(c)
 
 	newUserID := c.FormValue("userID")
 	if newUserID == "" {

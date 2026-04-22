@@ -60,8 +60,7 @@ func NewRouter(h *handler.Handler, ctx context.Context) *echo.Echo {
 	}))
 
 	// ---- Custom middleware ----
-	e.Use(auth.UserContextMiddleware)
-	e.Use(auth.TokenRefresherMiddleware)
+	e.Use(auth.AuthMiddleware)
 
 	e.Use(cacheControlMiddleware)
 

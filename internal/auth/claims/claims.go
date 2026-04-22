@@ -17,6 +17,10 @@ type Claims struct {
 
 // FromUser creates Claims from a User model
 func FromUser(user *model.User) *Claims {
+	if user == nil {
+		return &Claims{}
+	}
+
 	return &Claims{
 		UserID:   user.ID,
 		Username: user.Username,

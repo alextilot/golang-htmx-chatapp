@@ -6,7 +6,7 @@ import (
 )
 
 templ NavigationBar() {
-	{{ userCtx := usercontext.Get(ctx) }}
+	{{ userCtx := usercontext.FromContext(ctx) }}
 	<nav class="navbar bg-base-100" role="navigation">
 		<div class="flex-1">
 			<a class="btn btn-ghost text-xl" href={ routes.Routes.HomePage.Path }>Homepage</a>
@@ -21,7 +21,7 @@ templ NavigationBar() {
 					</svg>
 				</button>
 				<ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
-					if userCtx.IsLoggedIn {
+					if userCtx.Authenticated {
 						<li><a href={ routes.Routes.Profile.Path }>Account</a></li>
 						<li><a hx-post={ routes.Routes.Logout.Path }>Logout</a></li>
 					} else {
@@ -32,7 +32,7 @@ templ NavigationBar() {
 			</div>
 			<!-- Desktop menu -->
 			<ul class="menu menu-horizontal px-1 hidden md:flex">
-				if userCtx.IsLoggedIn {
+				if userCtx.Authenticated {
 					<li><a href={ routes.Routes.Profile.Path }>Account</a></li>
 					<li><a hx-post={ routes.Routes.Logout.Path }>Logout</a></li>
 				} else {

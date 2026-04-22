@@ -43,7 +43,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	// 3. Generate JWT Tokens
-	if err := auth.SetUserAuthContext(user, c); err != nil {
+	if err := auth.CreateUserSession(user, c); err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate session"}}
 
 		return response.Send(c, response.Response{
@@ -64,7 +64,7 @@ func (h *Handler) Login(c echo.Context) error {
 
 func (h *Handler) Logout(c echo.Context) error {
 	auth.Clear(c)
-	usercontext.Set(c, usercontext.Default())
+	usercontext.SetEcho(c, usercontext.Default())
 
 	return response.Send(c, response.Response{
 		Status:   http.StatusSeeOther,
@@ -113,7 +113,7 @@ func (h *Handler) SignUp(c echo.Context) error {
 	}
 
 	// 4. Generate JWT tokens
-	if err := auth.SetUserAuthContext(user, c); err != nil {
+	if err := auth.CreateUserSession(user, c); err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate session"}}
 		return response.Send(c, response.Response{
 			Status: http.StatusInternalServerError,
