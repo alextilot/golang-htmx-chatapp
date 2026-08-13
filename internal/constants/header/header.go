@@ -68,6 +68,9 @@ const (
 // HTMX Headers
 // -----------------------
 const (
+	// HXBoosted is sent by HTMX when the request is triggered by hx-boost.
+	HXBoosted = "HX-Boosted"
+
 	// HXRequest is sent by HTMX to indicate an AJAX request.
 	HXRequest = "HX-Request"
 
