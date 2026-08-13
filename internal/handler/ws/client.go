@@ -8,7 +8,7 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/web/components"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 const (
@@ -51,14 +51,14 @@ func newClient(conn *websocket.Conn, hub *Hub, userID string, username string, g
 
 // ReadPump pumps inbound messages from the WebSocket connection to the hub.
 // Each client runs ReadPump in its own goroutine.
-func (c *Client) ReadPump(ctx echo.Context) {
+func (c *Client) ReadPump(ctx *echo.Context) {
 	defer func() {
 		c.conn.Close()
 		c.hub.events <- clientEvent{client: c, kind: eventRemove}
 	}()
 
 	if err := c.conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-		ctx.Logger().Error(err)
+		ctx.Logger().Error(err.Error())
 		return
 	}
 
@@ -70,7 +70,7 @@ func (c *Client) ReadPump(ctx echo.Context) {
 		var incoming incomingMessage
 		if err := c.conn.ReadJSON(&incoming); err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				ctx.Logger().Error(err)
+				ctx.Logger().Error(err.Error())
 			}
 			return
 		}
@@ -90,7 +90,7 @@ func (c *Client) ReadPump(ctx echo.Context) {
 			Data:      incoming.Content,
 		}
 		if err := c.hub.broadcast(msg); err != nil {
-			ctx.Logger().Error(err)
+			ctx.Logger().Error(err.Error())
 			return
 		}
 	}
@@ -98,7 +98,7 @@ func (c *Client) ReadPump(ctx echo.Context) {
 
 // WritePump pumps outbound messages from the hub to the WebSocket connection.
 // Each client runs WritePump in its own goroutine.
-func (c *Client) WritePump(echoCtx echo.Context, ctx context.Context) {
+func (c *Client) WritePump(echoCtx *echo.Context, ctx context.Context) {
 	defer func() {
 		c.conn.Close()
 		c.hub.events <- clientEvent{client: c, kind: eventRemove}
@@ -119,13 +119,13 @@ func (c *Client) WritePump(echoCtx echo.Context, ctx context.Context) {
 			components.Message(msg.Username, msg.Data, msg.Time.Format(messageTimeFormat), isSelf).Render(ctx, buf)
 
 			if err := c.conn.WriteMessage(websocket.TextMessage, buf.Bytes()); err != nil {
-				echoCtx.Logger().Error(err)
+				echoCtx.Logger().Error(err.Error())
 				return
 			}
 
 		case <-ticker.C:
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				echoCtx.Logger().Error(err)
+				echoCtx.Logger().Error(err.Error())
 				return
 			}
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/usercontext"
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 type clientEventKind int
@@ -68,7 +68,7 @@ func (h *Hub) Run(ctx context.Context) {
 // with the hub. Requires:
 //   - auth.UserContextMiddleware to have run (provides userID)
 //   - a :groupID route param, e.g. /ws/groups/:groupID
-func (h *Hub) Handler(echoCtx echo.Context, ctx context.Context) error {
+func (h *Hub) Handler(echoCtx *echo.Context, ctx context.Context) error {
 	uc := usercontext.FromEcho(echoCtx)
 	if !uc.Authenticated {
 		return echo.ErrUnauthorized

@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/constants/header"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 type requestKind int
@@ -18,7 +18,7 @@ const (
 
 // negotiate inspects request headers and returns the requestKind.
 // Priority: HTMX > JSON > HTML
-func negotiate(c echo.Context) requestKind {
+func negotiate(c *echo.Context) requestKind {
 	if isHTMX(c) {
 		if isBoosted(c) {
 			return kindBoosted
@@ -31,22 +31,22 @@ func negotiate(c echo.Context) requestKind {
 	return kindHTML
 }
 
-func isHTMX(c echo.Context) bool {
+func isHTMX(c *echo.Context) bool {
 	return c.Request().Header.Get(header.HXRequest) == "true"
 }
 
-func isBoosted(c echo.Context) bool {
+func isBoosted(c *echo.Context) bool {
 	return c.Request().Header.Get(header.HXBoosted) == "true"
 }
 
-func wantsJSON(c echo.Context) bool {
+func wantsJSON(c *echo.Context) bool {
 	accept := c.Request().Header.Get(echo.HeaderAccept)
 	ct := c.Request().Header.Get(echo.HeaderContentType)
 	return strings.Contains(accept, echo.MIMEApplicationJSON) ||
 		strings.Contains(ct, echo.MIMEApplicationJSON)
 }
 
-func wantsHTML(c echo.Context) bool {
+func wantsHTML(c *echo.Context) bool {
 	accept := c.Request().Header.Get(echo.HeaderAccept)
 	return strings.Contains(accept, echo.MIMETextHTML)
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 type InputError struct {
@@ -17,7 +17,7 @@ func (e *InputError) Error() string {
 }
 
 func HandleInput[T any](
-	c echo.Context,
+	c *echo.Context,
 	sanitizer func(T) T,
 	validator func(T) validation.FieldErrors,
 ) (T, error) {

@@ -8,13 +8,13 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth/jwt"
 	"github.com/alextilot/golang-htmx-chatapp/internal/config"
 	"github.com/alextilot/golang-htmx-chatapp/internal/usercontext"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 const fifteenMinutes = 15 * time.Minute
 
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		uc := usercontext.Default()
 
 		accessToken, err := GetCookieValue(c, AccessTokenCookieName)
@@ -39,7 +39,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func IssueTokens(c echo.Context, userClaims *claims.Claims) error {
+func IssueTokens(c *echo.Context, userClaims *claims.Claims) error {
 	accessToken, accessExp, err := GenerateAccessToken(userClaims)
 	if err != nil {
 		return err
@@ -57,8 +57,8 @@ func IssueTokens(c echo.Context, userClaims *claims.Claims) error {
 	return nil
 }
 
-func tryRefresh(c echo.Context, cClaims *claims.Claims) {
-	if !isExpiringSoon(cClaims.ExpiresAt) {
+func tryRefresh(c *echo.Context, cClaims *claims.Claims) {
+	if !isExpiringSoon(cClaims.ExpiresAt.Unix()) {
 		return
 	}
 
@@ -82,7 +82,7 @@ func isExpiringSoon(exp int64) bool {
 }
 
 func RequireLogin(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		if !usercontext.FromEcho(c).Authenticated {
 			return c.JSON(401, map[string]string{
 				"error": "unauthorized: please log in",

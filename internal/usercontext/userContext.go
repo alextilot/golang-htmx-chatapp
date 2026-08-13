@@ -2,8 +2,9 @@ package usercontext
 
 import (
 	"context"
-	"github.com/alextilot/golang-htmx-chatapp/internal/auth/claims"
-	"github.com/labstack/echo/v4"
+
+	"github.com/alextilotecho/v5-htmx-chatapp/internal/auth/claims"
+	"github.com/labstack/echo/v5"
 )
 
 // UserContext holds all per-request user state.
@@ -62,13 +63,13 @@ func FromContext(ctx context.Context) *UserContext {
 }
 
 // SetEcho attaches a UserContext to an Echo context.
-func SetEcho(c echo.Context, u *UserContext) {
+func SetEcho(c *echo.Context, u *UserContext) {
 	req := c.Request()
 	ctx := SetContext(req.Context(), u)
 	c.SetRequest(req.WithContext(ctx))
 }
 
 // FromEcho retrieves the UserContext from an Echo context.
-func FromEcho(c echo.Context) *UserContext {
+func FromEcho(c *echo.Context) *UserContext {
 	return FromContext(c.Request().Context())
 }

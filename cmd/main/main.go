@@ -13,34 +13,34 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/repository"
 	"github.com/alextilot/golang-htmx-chatapp/internal/router"
 	"github.com/alextilot/golang-htmx-chatapp/internal/service"
+	"github.com/labstack/echo/v5"
 )
 
 func main() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	cfg := config.Load()
 
 	db := database.New(config.Cfg.DatabasePath)
 	defer db.Close()
+
+	// TODO: Move database migrations out of application startup.
+	// Production should run migrations through a dedicated migration process.
 	db.AutoMigrate()
 
-	r := repository.NewRepositories(db.Conn)
-	s := service.NewServices(r)
-	h := handler.NewHandler(s)
-	e := router.NewRouter(h, ctx)
+	repos := repository.NewRepositories(db.Conn)
+	services := service.NewServices(repos)
+	handlers := handler.NewHandlers(services)
+	e := router.NewRouter(ctx, handlers)
 
-	// Shut down the Echo server cleanly when ctx is cancelled (Ctrl+C / SIGTERM).
-	go func() {
-		<-ctx.Done()
-		log.Println("shutting down...")
-		if err := e.Shutdown(context.Background()); err != nil {
-			log.Printf("shutdown error: %v", err)
-		}
-	}()
+	sc := echo.StartConfig{
+		Address: cfg.Addr(),
+	}
 
 	log.Printf("🌐 Starting server on %s", cfg.Addr())
-	if err := e.Start(cfg.Addr()); err != nil {
+
+	if err := sc.Start(ctx, e); err != nil {
 		log.Printf("server stopped: %v", err)
 	}
 }
