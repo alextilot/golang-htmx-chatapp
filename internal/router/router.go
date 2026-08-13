@@ -17,9 +17,6 @@ import (
 func NewRouter(ctx context.Context, h *handler.Handlers) *echo.Echo {
 	e := echo.New()
 
-	e.Debug = config.Cfg.Debug
-	e.HTTPErrorHandler = h.HTML.HTTPErrorHandler
-
 	e.Pre(middleware.RemoveTrailingSlash())
 
 	e.Use(middleware.RequestLogger())
@@ -33,10 +30,7 @@ func NewRouter(ctx context.Context, h *handler.Handlers) *echo.Echo {
 		},
 	))
 
-	// Loads authentication state when credentials are present.
-	// Individual route groups decide whether authentication is required.
 	e.Use(auth.AuthMiddleware)
-
 	e.Use(cacheControlMiddleware)
 
 	e.Static("/static", "web/static")
