@@ -5,7 +5,7 @@ import (
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/constants/header"
 	"github.com/alextilot/golang-htmx-chatapp/web"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Send negotiates the correct response format based on request headers
@@ -17,7 +17,7 @@ import (
 //  3. HTMX boosted or fresh browser (Page)
 //  4. JSON
 //  5. NoContent fallback
-func Send(c echo.Context, r Result, opts ...Option) error {
+func Send(c *echo.Context, r Result, opts ...Option) error {
 	status := r.Status
 	if status == 0 {
 		status = http.StatusOK
