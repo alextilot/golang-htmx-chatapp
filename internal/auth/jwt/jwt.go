@@ -1,9 +1,10 @@
 package jwt
 
 import (
-	"github.com/alextilot/golang-htmx-chatapp/internal/auth/claims"
-	"github.com/golang-jwt/jwt"
 	"time"
+
+	"github.com/alextilot/golang-htmx-chatapp/internal/auth/claims"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func Generate(c *claims.Claims, ttl time.Duration, secret []byte) (string, time.Time, error) {
@@ -11,8 +12,8 @@ func Generate(c *claims.Claims, ttl time.Duration, secret []byte) (string, time.
 	exp := now.Add(ttl)
 
 	claimsCopy := *c
-	claimsCopy.ExpiresAt = exp.Unix()
-	claimsCopy.IssuedAt = now.Unix()
+	claimsCopy.ExpiresAt = jwt.NewNumericDate(exp)
+	claimsCopy.IssuedAt = jwt.NewNumericDate(now)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claimsCopy)
 	tknStr, err := token.SignedString(secret)

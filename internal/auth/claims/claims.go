@@ -2,7 +2,7 @@ package claims
 
 import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // Claims represents the JWT payload
@@ -12,7 +12,7 @@ type Claims struct {
 	Email    string `json:"email"`
 	// Theme       string   `json:"theme,omitempty"`
 	// Permissions []string `json:"permissions,omitempty"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 // FromUser creates Claims from a User model
