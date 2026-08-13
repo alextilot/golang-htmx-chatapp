@@ -9,13 +9,13 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/alextilot/golang-htmx-chatapp/web/pages/status"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Define the custom error handler.
-func (h *Handler) HTTPErrorHandler(err error, c echo.Context) {
+func (h *Handler) HTTPErrorHandler(err error, c *echo.Context) {
 	// Skip if response is already committed
-	if c.Response().Committed {
+	if resp, _ := echo.UnwrapResponse(c.Response()); resp != nil && resp.Committed {
 		return
 	}
 
@@ -24,8 +24,7 @@ func (h *Handler) HTTPErrorHandler(err error, c echo.Context) {
 	if he, ok := err.(*echo.HTTPError); ok {
 		code = he.Code
 	}
-
-	c.Logger().Errorf("HTTP error %d: %v", code, err)
+	c.Logger().Error("HTTP error", "code", code, "error", err)
 
 	var tmpl templ.Component
 	var fe validation.FieldErrors
@@ -52,12 +51,13 @@ func (h *Handler) HTTPErrorHandler(err error, c echo.Context) {
 	web.Render(c, 200, status.ServerErrorPage())
 	return
 
-	c.Logger().Debugf("Sending error response with status %d", code)
+	c.Logger().Debug("Sending error response", "status", code)
 	if err := response.Send(c, response.Response{
 		Status: code,
 		View:   tmpl,
 		Errors: fe,
 	}); err != nil {
-		c.Logger().Errorf("Failed to send error response: %v", err)
+		c.Logger().Error("Failed to send error response", "error", err)
+
 	}
 }

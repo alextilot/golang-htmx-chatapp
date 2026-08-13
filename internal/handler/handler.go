@@ -1,24 +1,24 @@
 package handler
 
 import (
+	"github.com/alextilot/golang-htmx-chatapp/internal/handler/api"
+	"github.com/alextilot/golang-htmx-chatapp/internal/handler/html"
 	"github.com/alextilot/golang-htmx-chatapp/internal/handler/ws"
 	"github.com/alextilot/golang-htmx-chatapp/internal/service"
 )
 
-// Handler holds all services and sub-handlers that HTTP handlers need.
-type Handler struct {
-	Services *service.Services
-	Hub      *ws.Hub
-	Group    *GroupHandler
+// Handlers is the composition container for all HTTP transport handlers.
+type Handlers struct {
+	HTML *html.Handler
+	API  *api.Handler
+	WS   *ws.Handler
 }
 
-// NewHandler creates a new Handler with all required services.
-func NewHandler(svc *service.Services) *Handler {
-	hub := ws.NewHub()
-
-	return &Handler{
-		Services: svc,
-		Hub:      hub,
-		Group:    NewGroupHandler(hub, svc.GroupService),
+// NewHandlers creates all transport handlers from the application's services.
+func NewHandlers(svc *service.Services) *Handlers {
+	return &Handlers{
+		HTML: html.NewHandler(svc),
+		API:  api.NewHandler(svc),
+		WS:   ws.NewHandler(svc),
 	}
 }

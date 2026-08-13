@@ -1,4 +1,4 @@
-package handler
+package html
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/usercontext"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation/schema"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // GroupHandler handles HTTP and WebSocket requests for groups.
@@ -35,7 +35,7 @@ func NewGroupHandler(hub *ws.Hub, svc groupServicer) *GroupHandler {
 
 // List renders the list of groups for the logged-in user.
 // GET /app/groups
-func (h *GroupHandler) List(c echo.Context) error {
+func (h *GroupHandler) List(c *echo.Context) error {
 	uc := usercontext.FromEcho(c)
 
 	groups, err := h.svc.ListForUser(c.Request().Context(), uc.ID)
@@ -56,7 +56,7 @@ func (h *GroupHandler) List(c echo.Context) error {
 
 // Show renders a single group's chat page.
 // GET /app/groups/:groupID
-func (h *GroupHandler) Show(c echo.Context) error {
+func (h *GroupHandler) Show(c *echo.Context) error {
 	g, err := h.svc.GetByID(c.Request().Context(), c.Param("groupID"))
 	if err != nil {
 		fe := validation.FieldErrors{validation.FieldRequest: {"Group not found"}}
@@ -75,7 +75,7 @@ func (h *GroupHandler) Show(c echo.Context) error {
 
 // Create handles new group form submission.
 // POST /app/groups
-func (h *GroupHandler) Create(c echo.Context) error {
+func (h *GroupHandler) Create(c *echo.Context) error {
 	uc := usercontext.FromEcho(c)
 
 	// 1. Bind, sanitize, validate
@@ -112,7 +112,7 @@ func (h *GroupHandler) Create(c echo.Context) error {
 
 // Update handles group rename / description change.
 // PUT /app/groups/:groupID
-func (h *GroupHandler) Update(c echo.Context) error {
+func (h *GroupHandler) Update(c *echo.Context) error {
 	uc := usercontext.FromEcho(c)
 
 	// 1. Bind, sanitize, validate
@@ -154,7 +154,7 @@ func (h *GroupHandler) Update(c echo.Context) error {
 
 // Delete soft-deletes a group.
 // DELETE /app/groups/:groupID
-func (h *GroupHandler) Delete(c echo.Context) error {
+func (h *GroupHandler) Delete(c *echo.Context) error {
 	uc := usercontext.FromEcho(c)
 
 	if err := h.svc.Delete(c.Request().Context(), c.Param("groupID"), uc.ID); err != nil {
@@ -174,7 +174,7 @@ func (h *GroupHandler) Delete(c echo.Context) error {
 
 // AddMember adds a user to a group.
 // POST /app/groups/:groupID/members
-func (h *GroupHandler) AddMember(c echo.Context) error {
+func (h *GroupHandler) AddMember(c *echo.Context) error {
 	uc := usercontext.FromEcho(c)
 
 	// 1. Bind, sanitize, validate
@@ -207,6 +207,6 @@ func (h *GroupHandler) AddMember(c echo.Context) error {
 
 // ConnectWS upgrades the connection to WebSocket for a group's chat.
 // GET /ws/groups/:groupID
-func (h *GroupHandler) ConnectWS(c echo.Context, ctx context.Context) error {
+func (h *GroupHandler) ConnectWS(c *echo.Context, ctx context.Context) error {
 	return h.hub.Handler(c, ctx)
 }

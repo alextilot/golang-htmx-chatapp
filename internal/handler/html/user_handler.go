@@ -1,18 +1,19 @@
-package handler
+package html
 
 import (
+	"net/http"
+
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/response"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
 	"github.com/alextilot/golang-htmx-chatapp/internal/usercontext"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation/schema"
 	"github.com/alextilot/golang-htmx-chatapp/web/forms"
-	"github.com/labstack/echo/v4"
-	"net/http"
+	"github.com/alextilotecho/v5-htmx-chatapp/internal/validation/schema"
+	"github.com/labstack/echo/v5"
 )
 
-func (h *Handler) Login(c echo.Context) error {
+func (h *Handler) Login(c *echo.Context) error {
 	// 1. Get input, parse, sanitize, validate
 	input, err := schema.HandleInput(c, schema.SanitizeUserLogin, schema.ValidateUserLogin)
 
@@ -62,7 +63,7 @@ func (h *Handler) Login(c echo.Context) error {
 	})
 }
 
-func (h *Handler) Logout(c echo.Context) error {
+func (h *Handler) Logout(c *echo.Context) error {
 	auth.Clear(c)
 	usercontext.SetEcho(c, usercontext.Default())
 
@@ -73,7 +74,7 @@ func (h *Handler) Logout(c echo.Context) error {
 	})
 }
 
-func (h *Handler) SignUp(c echo.Context) error {
+func (h *Handler) SignUp(c *echo.Context) error {
 	// 1. Get input, parse, sanitize, validate
 	input, err := schema.HandleInput(c, schema.SanitizeUserCreate, schema.ValidateUserCreate)
 	if err != nil {
