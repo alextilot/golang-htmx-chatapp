@@ -15,7 +15,7 @@ import (
 //
 // API and WebSocket errors are mapped by their own handlers and never reach
 // this function; it is only registered for the website's error path.
-func (h *Handler) HTTPErrorHandler(err error, c *echo.Context) {
+func (h *Handler) HTTPErrorHandler(c *echo.Context, err error) {
 	// Skip if the response is already committed.
 	if resp, _ := echo.UnwrapResponse(c.Response()); resp != nil && resp.Committed {
 		return

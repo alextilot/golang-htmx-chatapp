@@ -16,6 +16,8 @@ type routeTable struct {
 	LoginPage  Route
 	SignupPage Route
 	AboutPage  Route
+	Profile    Route
+	Logout     Route
 }
 
 // Routes is the shared table of named website paths.
@@ -24,4 +26,6 @@ var Routes = routeTable{
 	LoginPage:  Route{Path: "/login"},
 	SignupPage: Route{Path: "/signup"},
 	AboutPage:  Route{Path: "/about"},
+	Profile:    Route{Path: "/profile"},
+	Logout:     Route{Path: "/logout"},
 }

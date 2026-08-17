@@ -1,12 +1,12 @@
 package partials
 
 import (
+	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
-	"github.com/alextilot/golang-htmx-chatapp/internal/usercontext"
 )
 
 templ NavigationBar() {
-	{{ userCtx := usercontext.FromContext(ctx) }}
+	{{ userCtx := auth.PrincipalFromContext(ctx) }}
 	<nav class="navbar bg-base-100" role="navigation">
 		<div class="flex-1">
 			<a class="btn btn-ghost text-xl" href={ routes.Routes.HomePage.Path }>Homepage</a>
