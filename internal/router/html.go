@@ -72,22 +72,25 @@ func registerHTMLRoutes(e *echo.Echo, h *html.Handler) {
 	})
 
 	// Authenticated website.
-	authenticated := site.Group("")
-	authenticated.Use(auth.RequireLogin)
+	//
+	// RequireLogin is applied per-route rather than via a group + Use(), because
+	// Echo v5's Group.Use() auto-registers a "/*" catch-all 404 route carrying the
+	// group's middleware so it still runs on non-matching paths. This group shares
+	// the site group's empty prefix, so that catch-all would intercept every
+	// unmatched path on the whole site and turn 404s into 401s.
+	site.GET("/profile", h.Profile, auth.RequireLogin)
+	site.GET("/profile/edit", h.ProfileEdit, auth.RequireLogin)
 
-	authenticated.GET("/profile", h.Profile)
-	authenticated.GET("/profile/edit", h.ProfileEdit)
+	site.GET("/groups", h.Group.List, auth.RequireLogin)
+	site.POST("/groups", h.Group.Create, auth.RequireLogin)
+	site.GET("/groups/:groupID", h.Group.Show, auth.RequireLogin)
+	site.PUT("/groups/:groupID", h.Group.Update, auth.RequireLogin)
+	site.DELETE("/groups/:groupID", h.Group.Delete, auth.RequireLogin)
+	site.POST("/groups/:groupID/members", h.Group.AddMember, auth.RequireLogin)
 
-	authenticated.GET("/groups", h.Group.List)
-	authenticated.POST("/groups", h.Group.Create)
-	authenticated.GET("/groups/:groupID", h.Group.Show)
-	authenticated.PUT("/groups/:groupID", h.Group.Update)
-	authenticated.DELETE("/groups/:groupID", h.Group.Delete)
-	authenticated.POST("/groups/:groupID/members", h.Group.AddMember)
-
-	authenticated.GET("/chat", h.Chat.List)
-	authenticated.GET("/chat/:id", h.Chat.Room)
-	authenticated.POST("/chat/:id/join", h.Chat.Join)
-	authenticated.POST("/chat/:id/leave", h.Chat.Leave)
-	authenticated.POST("/chat/:id/message", h.Chat.SendMessage)
+	site.GET("/chat", h.Chat.List, auth.RequireLogin)
+	site.GET("/chat/:id", h.Chat.Room, auth.RequireLogin)
+	site.POST("/chat/:id/join", h.Chat.Join, auth.RequireLogin)
+	site.POST("/chat/:id/leave", h.Chat.Leave, auth.RequireLogin)
+	site.POST("/chat/:id/message", h.Chat.SendMessage, auth.RequireLogin)
 }

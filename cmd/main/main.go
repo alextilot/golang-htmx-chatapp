@@ -27,7 +27,7 @@ func main() {
 
 	cfg := config.Load()
 
-	db := database.New(cfg.DatabasePath)
+	db := database.NewDatabase(database.Config{DSN: cfg.DatabasePath})
 	defer db.Close()
 
 	// TODO: Move database migrations out of application startup.
@@ -40,10 +40,15 @@ func main() {
 		CookieSecure:        cfg.CookieSecure,
 	})
 
-	repos := repository.NewRepositories(db.Conn)
-	services := service.NewServices(repos)
-	handlers := handler.NewHandlers(services, authSvc)
-	e := router.NewRouter(ctx, handlers, authSvc, cfg.IsProduction())
+	repos := repository.NewRepositories(repository.Deps{DB: db.Conn})
+	services := service.NewServices(service.Deps{Repos: repos})
+	handlers := handler.NewHandlers(handler.Deps{Services: services, AuthSvc: authSvc})
+	e := router.NewRouter(router.Deps{
+		Ctx:                  ctx,
+		Handlers:             handlers,
+		AuthSvc:              authSvc,
+		IsStaticCacheEnabled: cfg.IsProduction(),
+	})
 
 	sc := echo.StartConfig{
 		Address: cfg.Addr(),

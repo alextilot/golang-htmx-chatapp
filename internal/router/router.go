@@ -12,12 +12,20 @@ import (
 	"github.com/labstack/echo/v5/middleware"
 )
 
+// Deps holds the dependencies needed to construct and configure the
+// application's Echo server.
+type Deps struct {
+	Ctx      context.Context
+	Handlers *handler.Handlers
+	AuthSvc  *auth.Service
+	// IsStaticCacheEnabled controls whether /static assets get long-lived
+	// cache headers. It's derived once, in cmd/main, from the environment
+	// rather than read from a global config here.
+	IsStaticCacheEnabled bool
+}
+
 // NewRouter creates and configures the application's Echo server.
-//
-// isStaticCacheEnabled controls whether /static assets get long-lived cache
-// headers. It's passed in explicitly (derived once, in cmd/main, from the
-// environment) rather than read from a global config here.
-func NewRouter(ctx context.Context, h *handler.Handlers, authSvc *auth.Service, isStaticCacheEnabled bool) *echo.Echo {
+func NewRouter(deps Deps) *echo.Echo {
 	e := echo.New()
 
 	e.Pre(middleware.RemoveTrailingSlash())
@@ -33,16 +41,16 @@ func NewRouter(ctx context.Context, h *handler.Handlers, authSvc *auth.Service, 
 		},
 	))
 
-	e.Use(authSvc.AuthMiddleware)
-	e.Use(cacheControlMiddleware(isStaticCacheEnabled))
+	e.Use(deps.AuthSvc.AuthMiddleware)
+	e.Use(cacheControlMiddleware(deps.IsStaticCacheEnabled))
 
-	e.HTTPErrorHandler = h.HTML.HTTPErrorHandler
+	e.HTTPErrorHandler = deps.Handlers.HTML.HTTPErrorHandler
 
 	e.Static("/static", "web/static")
 
-	registerHTMLRoutes(e, h.HTML)
-	registerAPIRoutes(e, h.API)
-	registerWebSocketRoutes(e, ctx, h.WS)
+	registerHTMLRoutes(e, deps.Handlers.HTML)
+	registerAPIRoutes(e, deps.Handlers.API)
+	registerWebSocketRoutes(e, deps.Ctx, deps.Handlers.WS)
 
 	return e
 }

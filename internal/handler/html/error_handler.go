@@ -1,6 +1,7 @@
 package html
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/a-h/templ"
@@ -21,11 +22,17 @@ func (h *Handler) HTTPErrorHandler(c *echo.Context, err error) {
 		return
 	}
 
-	code := http.StatusInternalServerError
-	if he, ok := err.(*echo.HTTPError); ok {
-		code = he.Code
+	code := echo.StatusCode(err)
+	if code == 0 {
+		code = http.StatusInternalServerError
 	}
 	c.Logger().Error("HTTP error", "code", code, "error", err)
+
+	// By the time Echo invokes the global error handler, the middleware chain
+	// has fully unwound — including ContextTimeoutWithConfig's deferred
+	// cancel(), which has already canceled the request context. Render with a
+	// fresh context so the error page isn't silently dropped as "aborted".
+	c.SetRequest(c.Request().WithContext(context.Background()))
 
 	var page templ.Component
 

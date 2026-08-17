@@ -15,12 +15,18 @@ type Handlers struct {
 	WS   *ws.Handler
 }
 
+// Deps holds the dependencies needed to construct all transport handlers.
+type Deps struct {
+	Services *service.Services
+	AuthSvc  *auth.Service
+}
+
 // NewHandlers creates all transport handlers from the application's
 // services and auth.Service.
-func NewHandlers(svc *service.Services, authSvc *auth.Service) *Handlers {
+func NewHandlers(deps Deps) *Handlers {
 	return &Handlers{
-		HTML: html.NewHandler(svc, authSvc),
-		API:  api.NewHandler(svc),
-		WS:   ws.NewHandler(svc),
+		HTML: html.NewHandler(deps.Services, deps.AuthSvc),
+		API:  api.NewHandler(deps.Services),
+		WS:   ws.NewHandler(deps.Services),
 	}
 }

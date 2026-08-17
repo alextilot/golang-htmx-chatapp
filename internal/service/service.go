@@ -9,9 +9,14 @@ type Services struct {
 	GroupService *GroupService
 }
 
-func NewServices(repos *repository.Repositories) *Services {
+// Deps holds the dependencies needed to construct the service layer.
+type Deps struct {
+	Repos *repository.Repositories
+}
+
+func NewServices(deps Deps) *Services {
 	return &Services{
-		UserService:  NewUserService(repos.UserRepo),
-		GroupService: NewGroupService(repos.GroupRepo, repos.UserGroupRepo, repos.MessageRepo),
+		UserService:  NewUserService(deps.Repos.UserRepo),
+		GroupService: NewGroupService(deps.Repos.GroupRepo, deps.Repos.UserGroupRepo, deps.Repos.MessageRepo),
 	}
 }

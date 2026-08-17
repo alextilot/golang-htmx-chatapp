@@ -9,11 +9,16 @@ type Repositories struct {
 	MessageRepo   *MessageRepository
 }
 
-func NewRepositories(db *gorm.DB) *Repositories {
+// Deps holds the dependencies needed to construct the repository layer.
+type Deps struct {
+	DB *gorm.DB
+}
+
+func NewRepositories(deps Deps) *Repositories {
 	return &Repositories{
-		UserRepo:      NewUserRepository(db),
-		GroupRepo:     NewGroupRepository(db),
-		UserGroupRepo: NewUserGroupRepository(db),
-		MessageRepo:   NewMessageRepository(db),
+		UserRepo:      NewUserRepository(deps.DB),
+		GroupRepo:     NewGroupRepository(deps.DB),
+		UserGroupRepo: NewUserGroupRepository(deps.DB),
+		MessageRepo:   NewMessageRepository(deps.DB),
 	}
 }

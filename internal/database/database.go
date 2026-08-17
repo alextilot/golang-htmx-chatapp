@@ -1,18 +1,24 @@
 package database
 
 import (
+	"log"
+
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"log"
 )
 
 type Database struct {
 	Conn *gorm.DB
 }
 
-func New(dns string) *Database {
-	db, err := gorm.Open(sqlite.Open(dns), &gorm.Config{})
+// Config holds the settings needed to open a database connection.
+type Config struct {
+	DSN string
+}
+
+func NewDatabase(cfg Config) *Database {
+	db, err := gorm.Open(sqlite.Open(cfg.DSN), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
