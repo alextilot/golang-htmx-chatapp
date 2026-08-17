@@ -14,10 +14,10 @@ type Handler struct {
 }
 
 // NewHandler creates the HTML/HTMX handler.
-func NewHandler(svc *service.Services, authSvc *auth.Service) *Handler {
+func NewHandler(svc *service.Services, authn *auth.Service) *Handler {
 	return &Handler{
 		Services: svc,
-		Auth:     authSvc,
+		Auth:     authn,
 		Group:    NewGroupHandler(svc.GroupService),
 		Chat:     NewChatHandler(svc.GroupService),
 	}

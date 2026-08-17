@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 
-	"github.com/alextilot/golang-htmx-chatapp/internal/auth/claims"
 	"github.com/labstack/echo/v5"
 )
 
@@ -39,7 +38,7 @@ func (p *Principal) IsAnonymous() bool {
 }
 
 // PrincipalFromClaims builds a Principal from parsed JWT claims.
-func PrincipalFromClaims(c *claims.Claims) *Principal {
+func PrincipalFromClaims(c *Claims) *Principal {
 	if c == nil {
 		return AnonymousPrincipal()
 	}

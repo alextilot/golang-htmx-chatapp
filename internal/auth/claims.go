@@ -1,4 +1,4 @@
-package claims
+package auth
 
 import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
@@ -15,8 +15,8 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// FromUser creates Claims from a User model
-func FromUser(user *model.User) *Claims {
+// ClaimsFromUser creates Claims from a User model
+func ClaimsFromUser(user *model.User) *Claims {
 	if user == nil {
 		return &Claims{}
 	}

@@ -4,8 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/alextilot/golang-htmx-chatapp/internal/auth/claims"
-	"github.com/alextilot/golang-htmx-chatapp/internal/auth/jwt"
 	"github.com/labstack/echo/v5"
 )
 
@@ -24,7 +22,7 @@ func (s *Service) AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 
-		parsedClaims, err := jwt.Parse(accessToken, s.cfg.JWTSecretKey)
+		parsedClaims, err := parseJWT(accessToken, s.cfg.JWTSecretKey)
 		if err != nil {
 			log.Printf("AuthMiddleware: invalid access token: %v", err)
 			SetEchoPrincipal(c, p)
@@ -42,7 +40,7 @@ func (s *Service) AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 // IssueTokens generates and sets both the access and refresh token cookies
 // for the given claims.
-func (s *Service) IssueTokens(c *echo.Context, userClaims *claims.Claims) error {
+func (s *Service) IssueTokens(c *echo.Context, userClaims *Claims) error {
 	accessToken, accessExp, err := s.GenerateAccessToken(userClaims)
 	if err != nil {
 		return err
@@ -60,7 +58,7 @@ func (s *Service) IssueTokens(c *echo.Context, userClaims *claims.Claims) error 
 	return nil
 }
 
-func (s *Service) tryRefresh(c *echo.Context, cClaims *claims.Claims) {
+func (s *Service) tryRefresh(c *echo.Context, cClaims *Claims) {
 	if !isExpiringSoon(cClaims.ExpiresAt.Unix()) {
 		return
 	}
@@ -70,7 +68,7 @@ func (s *Service) tryRefresh(c *echo.Context, cClaims *claims.Claims) {
 		return
 	}
 
-	if _, err := jwt.Parse(refreshToken, s.cfg.JWTRefreshSecretKey); err != nil {
+	if _, err := parseJWT(refreshToken, s.cfg.JWTRefreshSecretKey); err != nil {
 		return
 	}
 

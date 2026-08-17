@@ -1,13 +1,14 @@
-package jwt
+package auth
 
 import (
 	"time"
 
-	"github.com/alextilot/golang-htmx-chatapp/internal/auth/claims"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func Generate(c *claims.Claims, ttl time.Duration, secret []byte) (string, time.Time, error) {
+// generateJWT signs c into a JWT valid for ttl, returning the token and its
+// expiry.
+func generateJWT(c *Claims, ttl time.Duration, secret []byte) (string, time.Time, error) {
 	now := time.Now()
 	exp := now.Add(ttl)
 
@@ -21,9 +22,9 @@ func Generate(c *claims.Claims, ttl time.Duration, secret []byte) (string, time.
 	return tknStr, exp, err
 }
 
-// ParseJWT parses a JWT string into Claims
-func Parse(tokenStr string, secret []byte) (*claims.Claims, error) {
-	c := &claims.Claims{}
+// parseJWT parses and verifies a JWT string, returning its Claims.
+func parseJWT(tokenStr string, secret []byte) (*Claims, error) {
+	c := &Claims{}
 
 	tkn, err := jwt.ParseWithClaims(tokenStr, c, func(token *jwt.Token) (any, error) {
 		// Enforce HMAC signing method

@@ -17,7 +17,7 @@ import (
 type Deps struct {
 	Ctx      context.Context
 	Handlers *handler.Handlers
-	AuthSvc  *auth.Service
+	Auth     *auth.Service
 	// IsStaticCacheEnabled controls whether /static assets get long-lived
 	// cache headers. It's derived once, in cmd/main, from the environment
 	// rather than read from a global config here.
@@ -41,7 +41,7 @@ func NewRouter(deps Deps) *echo.Echo {
 		},
 	))
 
-	e.Use(deps.AuthSvc.AuthMiddleware)
+	e.Use(deps.Auth.AuthMiddleware)
 	e.Use(cacheControlMiddleware(deps.IsStaticCacheEnabled))
 
 	e.HTTPErrorHandler = deps.Handlers.HTML.HTTPErrorHandler

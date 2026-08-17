@@ -34,7 +34,7 @@ func main() {
 	// Production should run migrations through a dedicated migration process.
 	db.AutoMigrate()
 
-	authSvc := auth.New(auth.Config{
+	authn := auth.New(auth.Config{
 		JWTSecretKey:        []byte(cfg.JwtSecretKey),
 		JWTRefreshSecretKey: []byte(cfg.JwtRefeshSecretKey),
 		CookieSecure:        cfg.CookieSecure,
@@ -42,11 +42,11 @@ func main() {
 
 	repos := repository.NewRepositories(repository.Deps{DB: db.Conn})
 	services := service.NewServices(service.Deps{Repos: repos})
-	handlers := handler.NewHandlers(handler.Deps{Services: services, AuthSvc: authSvc})
+	handlers := handler.NewHandlers(handler.Deps{Services: services, Auth: authn})
 	e := router.NewRouter(router.Deps{
 		Ctx:                  ctx,
 		Handlers:             handlers,
-		AuthSvc:              authSvc,
+		Auth:                 authn,
 		IsStaticCacheEnabled: cfg.IsProduction(),
 	})
 
