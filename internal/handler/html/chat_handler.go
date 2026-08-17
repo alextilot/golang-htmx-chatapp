@@ -6,6 +6,7 @@ import (
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
+	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation/schema"
 	"github.com/alextilot/golang-htmx-chatapp/web/pages"
@@ -108,7 +109,7 @@ func (h *ChatHandler) Leave(c *echo.Context) error {
 
 	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Redirect: "/chat",
+		Redirect: routes.Routes.Chat.Path,
 	})
 }
 

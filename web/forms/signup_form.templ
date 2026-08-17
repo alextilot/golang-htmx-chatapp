@@ -2,6 +2,7 @@ package forms
 
 import (
 	"github.com/alextilot/golang-htmx-chatapp/web/components/form"
+	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 )
 
@@ -11,7 +12,7 @@ templ SignupForm(fieldErrors validation.FieldErrors) {
 		<form
 			class="card-body space-y-4"
 			hx-boost="true"
-			action="/signup"
+			action={ routes.Routes.SignupPage.Path }
 			method="post"
 			hx-target="#register-form"
 			hx-target-error="#register-form"
@@ -49,7 +50,7 @@ templ SignupForm(fieldErrors validation.FieldErrors) {
 				@components.FormButton("Sign up")
 				<span hx-disinherit="*">
 					Already have an account ?
-					<a href="/login" class="text-blue-600 hover:text-blue-800 hover:underline">Login</a>
+					<a href={ routes.Routes.LoginPage.Path } class="text-blue-600 hover:text-blue-800 hover:underline">Login</a>
 				</span>
 			</div>
 			@components.FormError(fieldErrors[validation.FieldRequest])

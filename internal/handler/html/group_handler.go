@@ -6,6 +6,7 @@ import (
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
+	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation/schema"
 	"github.com/labstack/echo/v5"
@@ -103,7 +104,7 @@ func (h *GroupHandler) Create(c *echo.Context) error {
 	// 3. Return response (HTMX partial, or redirect)
 	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Redirect: "/groups",
+		Redirect: routes.Routes.Groups.Path,
 	})
 }
 
@@ -143,7 +144,7 @@ func (h *GroupHandler) Update(c *echo.Context) error {
 
 	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Redirect: "/groups",
+		Redirect: routes.Routes.Groups.Path,
 	})
 }
 
@@ -162,7 +163,7 @@ func (h *GroupHandler) Delete(c *echo.Context) error {
 
 	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Redirect: "/groups",
+		Redirect: routes.Routes.Groups.Path,
 	})
 }
 
