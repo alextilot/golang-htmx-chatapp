@@ -1,8 +1,6 @@
 # Makefile for Go + HTMX + Tailwind v4 + Templ + Air
 
-# Default Air config
-AIR_CONFIG ?= ./.air.toml
-# Detect OS
+# Detect OS-specific Air config
 ifeq ($(OS),Windows_NT)
 	AIR_CONFIG := ./.air.windows.toml
 else
@@ -10,13 +8,25 @@ else
 endif
 
 # ---------------------------------------------
+# One-time setup: install Go tools, tidy modules, install npm deps
+# ---------------------------------------------
+.PHONY: setup
+setup:
+	@echo "📦 Installing dependencies..."
+	go mod tidy
+	npm install
+	@echo "✅ Setup complete. Run 'make dev' to start."
+
+# ---------------------------------------------
 # Run full dev environment: templ watcher + tailwind watcher + air
+# Ctrl+C stops all three (trap kills the whole process group on exit)
 # ---------------------------------------------
 .PHONY: dev
 dev:
 	@echo "🚀 Starting dev environment..."
-	$(MAKE) templ &
-	$(MAKE) tailwind &
+	@trap 'kill 0' EXIT INT TERM; \
+	$(MAKE) templ & \
+	$(MAKE) tailwind & \
 	$(MAKE) air
 
 # ---------------------------------------------
@@ -36,6 +46,14 @@ tailwind:
 	npm run watch
 
 # ---------------------------------------------
+# Build minified production CSS
+# ---------------------------------------------
+.PHONY: css
+css:
+	@echo "🎨 Building production CSS..."
+	npm run build
+
+# ---------------------------------------------
 # Run Go server with Air (live reload)
 # Use AIR_CONFIG env var to switch config
 # ---------------------------------------------
@@ -53,5 +71,5 @@ clean:
 	@echo "🧼 Cleaning temporary and generated files..."
 	@rm -rf ./tmp
 	@rm -f ./web/static/*.dist.*
-	@find ./web -type f -name "*.templ.go" -exec rm -f {} +
+	@find ./web -type f -name "*_templ.go" -exec rm -f {} +
 	@echo "✅ Clean complete."

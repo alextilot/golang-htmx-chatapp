@@ -14,13 +14,16 @@ Server-side UI prototype built with:
 
 ## Development
 
-Install dependencies:
+One-time setup (installs Go modules + npm packages):
 
 ```bash
-go get -tool github.com/a-h/templ/cmd/templ@latest
-go get -tool github.com/air-verse/air@latest
-go mod tidy
-npm install
+make setup
+```
+
+Then create your local env file and set the required JWT secrets (the app will fail to start without them):
+
+```bash
+cp .env.example .env
 ```
 
 Start the development environment:
