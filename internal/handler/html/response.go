@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/alextilot/golang-htmx-chatapp/internal/constants/header"
+	"github.com/alextilot/golang-htmx-chatapp/internal/constants/hx"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/labstack/echo/v5"
@@ -47,11 +47,11 @@ func negotiate(c *echo.Context) requestKind {
 }
 
 func isHTMX(c *echo.Context) bool {
-	return c.Request().Header.Get(header.HXRequest) == "true"
+	return c.Request().Header.Get(hx.HXRequest) == "true"
 }
 
 func isBoosted(c *echo.Context) bool {
-	return c.Request().Header.Get(header.HXBoosted) == "true"
+	return c.Request().Header.Get(hx.HXBoosted) == "true"
 }
 
 // sendResponse renders r as an HTML response.
@@ -73,7 +73,7 @@ func sendResponse(c *echo.Context, r Response) error {
 	if r.Redirect != "" {
 		switch kind {
 		case kindHTMX, kindBoosted:
-			c.Response().Header().Set(header.HXRedirect, r.Redirect)
+			c.Response().Header().Set(hx.HXRedirect, r.Redirect)
 			return c.NoContent(http.StatusOK)
 		default:
 			return c.Redirect(http.StatusSeeOther, r.Redirect)
