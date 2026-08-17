@@ -27,3 +27,33 @@ func (r *GroupRepository) FindByMember(ctx context.Context, userID string) ([]mo
 	})
 	return groups, err
 }
+
+// Deactivate soft-deletes a group by marking it inactive, preserving its
+// row (and message history) rather than removing it.
+func (r *GroupRepository) Deactivate(ctx context.Context, id string) error {
+	return r.DB().WithContext(ctx).
+		Model(&model.Group{}).
+		Where("id = ?", id).
+		Update("is_active", false).Error
+}
+
+// UpdateDetails updates a group's name and/or description. An empty string
+// leaves the corresponding field unchanged, so partial updates (e.g. name
+// only) don't require the caller to re-fetch and re-supply every field.
+func (r *GroupRepository) UpdateDetails(ctx context.Context, id string, name string, description string) error {
+	updates := map[string]any{}
+	if name != "" {
+		updates["name"] = name
+	}
+	if description != "" {
+		updates["description"] = description
+	}
+	if len(updates) == 0 {
+		return nil
+	}
+
+	return r.DB().WithContext(ctx).
+		Model(&model.Group{}).
+		Where("id = ?", id).
+		Updates(updates).Error
+}

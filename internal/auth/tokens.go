@@ -1,10 +1,10 @@
 package auth
 
 import (
+	"time"
+
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth/claims"
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth/jwt"
-	"github.com/alextilot/golang-htmx-chatapp/internal/config"
-	"time"
 )
 
 const (
@@ -12,10 +12,10 @@ const (
 	RefreshTokenTTL = 24 * time.Hour
 )
 
-func GenerateAccessToken(c *claims.Claims) (string, time.Time, error) {
-	return jwt.Generate(c, AccessTokenTTL, []byte(config.Cfg.JwtSecretKey))
+func (s *Service) GenerateAccessToken(c *claims.Claims) (string, time.Time, error) {
+	return jwt.Generate(c, AccessTokenTTL, s.cfg.JWTSecretKey)
 }
 
-func GenerateRefreshToken(c *claims.Claims) (string, time.Time, error) {
-	return jwt.Generate(c, RefreshTokenTTL, []byte(config.Cfg.JwtRefeshSecretKey))
+func (s *Service) GenerateRefreshToken(c *claims.Claims) (string, time.Time, error) {
+	return jwt.Generate(c, RefreshTokenTTL, s.cfg.JWTRefreshSecretKey)
 }

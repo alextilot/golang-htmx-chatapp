@@ -15,13 +15,12 @@ func (r *BaseRepository[T]) FindByID(ctx context.Context, id string, out *T) err
 		First(out, "id = ?", id).Error
 }
 
-// UPDATE
-func (r *BaseRepository[T]) Update(ctx context.Context, id string, updates any) error {
-	return r.db.WithContext(ctx).
-		Model(new(T)).
-		Where("id = ?", id).
-		Updates(updates).Error
-}
+// Note: there is deliberately no generic Update(ctx, id, updates any) here.
+// An untyped "updates any" parameter lets callers pass arbitrary field
+// maps, which hides domain operations (like soft-deleting a group) behind
+// stringly-typed keys instead of an explicit method signature. Add a
+// purpose-built, typed method to the concrete repository instead (see
+// GroupRepository.Deactivate / UpdateDetails for the pattern).
 
 // DELETE (soft if model supports it)
 func (r *BaseRepository[T]) Delete(ctx context.Context, id string) error {

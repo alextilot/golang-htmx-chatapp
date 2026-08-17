@@ -17,6 +17,15 @@ func NewUserService(repo *repository.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
+// GetByID returns a user by ID. Returns an error if not found.
+func (s *UserService) GetByID(ctx context.Context, id string) (*model.User, error) {
+	var user model.User
+	if err := s.repo.FindByID(ctx, id, &user); err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (s *UserService) Login(ctx context.Context, username, password string) (*model.User, error) {
 	user, err := s.repo.GetByUsername(ctx, username)
 	if err != nil {

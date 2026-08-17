@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
-	"github.com/alextilot/golang-htmx-chatapp/internal/config"
 	"github.com/alextilot/golang-htmx-chatapp/internal/handler"
 
 	"github.com/labstack/echo/v5"
@@ -14,7 +13,11 @@ import (
 )
 
 // NewRouter creates and configures the application's Echo server.
-func NewRouter(ctx context.Context, h *handler.Handlers) *echo.Echo {
+//
+// isStaticCacheEnabled controls whether /static assets get long-lived cache
+// headers. It's passed in explicitly (derived once, in cmd/main, from the
+// environment) rather than read from a global config here.
+func NewRouter(ctx context.Context, h *handler.Handlers, authSvc *auth.Service, isStaticCacheEnabled bool) *echo.Echo {
 	e := echo.New()
 
 	e.Pre(middleware.RemoveTrailingSlash())
@@ -30,8 +33,10 @@ func NewRouter(ctx context.Context, h *handler.Handlers) *echo.Echo {
 		},
 	))
 
-	e.Use(auth.AuthMiddleware)
-	e.Use(cacheControlMiddleware)
+	e.Use(authSvc.AuthMiddleware)
+	e.Use(cacheControlMiddleware(isStaticCacheEnabled))
+
+	e.HTTPErrorHandler = h.HTML.HTTPErrorHandler
 
 	e.Static("/static", "web/static")
 
@@ -42,26 +47,28 @@ func NewRouter(ctx context.Context, h *handler.Handlers) *echo.Echo {
 	return e
 }
 
-func cacheControlMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c *echo.Context) error {
-		path := c.Request().URL.Path
+func cacheControlMiddleware(isStaticCacheEnabled bool) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			path := c.Request().URL.Path
 
-		if config.Cfg.IsProduction() && strings.HasPrefix(path, "/static/") {
+			if isStaticCacheEnabled && strings.HasPrefix(path, "/static/") {
+				c.Response().Header().Set(
+					"Cache-Control",
+					"public, max-age=2592000, immutable",
+				)
+
+				return next(c)
+			}
+
 			c.Response().Header().Set(
 				"Cache-Control",
-				"public, max-age=2592000, immutable",
+				"no-store, no-cache, max-age=0, must-revalidate",
 			)
+			c.Response().Header().Set("Pragma", "no-cache")
+			c.Response().Header().Set("Expires", "0")
 
 			return next(c)
 		}
-
-		c.Response().Header().Set(
-			"Cache-Control",
-			"no-store, no-cache, max-age=0, must-revalidate",
-		)
-		c.Response().Header().Set("Pragma", "no-cache")
-		c.Response().Header().Set("Expires", "0")
-
-		return next(c)
 	}
 }

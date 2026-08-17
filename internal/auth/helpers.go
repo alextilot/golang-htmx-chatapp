@@ -3,12 +3,12 @@ package auth
 import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth/claims"
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
-	"github.com/alextilot/golang-htmx-chatapp/internal/usercontext"
 	"github.com/labstack/echo/v5"
 )
 
-// CreateUserSession logs in a user by issuing tokens and attaching user context.
-func CreateUserSession(user *model.User, c *echo.Context) error {
+// CreateUserSession logs in a user by issuing tokens and attaching the
+// authenticated principal to the request context.
+func (s *Service) CreateUserSession(user *model.User, c *echo.Context) error {
 	if user == nil {
 		return nil
 	}
@@ -16,12 +16,12 @@ func CreateUserSession(user *model.User, c *echo.Context) error {
 	cl := claims.FromUser(user)
 
 	// 1. Issue tokens (cookies + JWT)
-	if err := IssueTokens(c, cl); err != nil {
+	if err := s.IssueTokens(c, cl); err != nil {
 		return err
 	}
 
 	// 2. Set request context directly (no re-derivation needed)
-	usercontext.SetEcho(c, usercontext.FromClaims(cl))
+	SetEchoPrincipal(c, PrincipalFromClaims(cl))
 
 	return nil
 }

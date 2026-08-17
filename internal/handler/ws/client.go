@@ -32,7 +32,7 @@ type Client struct {
 	hub      *Hub
 	ID       string // unique session ID (not the user's DB ID)
 	UserID   string // model.User.ID — set from auth session at connect time
-	Username string // denormalised from usercontext to stamp outgoing messages
+	Username string // denormalised from the auth principal to stamp outgoing messages
 	GroupID  string // model.Group.ID the client is currently viewing
 	send     chan Message
 }
@@ -79,19 +79,9 @@ func (c *Client) ReadPump(ctx *echo.Context) {
 			continue
 		}
 
-		// TODO: persist to DB here (insert model.Message + model.UserMessage),
-		// then broadcast the returned MessageID so other clients can reference it.
-		msg := Message{
-			MessageID: uuid.New().String(), // replace with DB-assigned ID after persistence
-			OwnerID:   c.UserID,
-			Username:  c.Username,
-			GroupID:   c.GroupID,
-			Time:      time.Now(),
-			Data:      incoming.Content,
-		}
-		if err := c.hub.broadcast(msg); err != nil {
+		if err := c.hub.SendMessage(ctx.Request().Context(), c.GroupID, c.UserID, c.Username, incoming.Content); err != nil {
 			ctx.Logger().Error(err.Error())
-			return
+			continue
 		}
 	}
 }

@@ -6,58 +6,61 @@ import (
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth/claims"
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth/jwt"
-	"github.com/alextilot/golang-htmx-chatapp/internal/config"
-	"github.com/alextilot/golang-htmx-chatapp/internal/usercontext"
 	"github.com/labstack/echo/v5"
 )
 
 const fifteenMinutes = 15 * time.Minute
 
-func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// AuthMiddleware attaches an auth.Principal (authenticated or anonymous) to
+// every request based on the access token cookie, refreshing it if it's
+// expiring soon.
+func (s *Service) AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
-		uc := usercontext.Default()
+		p := AnonymousPrincipal()
 
 		accessToken, err := GetCookieValue(c, AccessTokenCookieName)
 		if err != nil || accessToken == "" {
-			usercontext.SetEcho(c, uc)
+			SetEchoPrincipal(c, p)
 			return next(c)
 		}
 
-		parsedClaims, err := jwt.Parse(accessToken, []byte(config.Cfg.JwtSecretKey))
+		parsedClaims, err := jwt.Parse(accessToken, s.cfg.JWTSecretKey)
 		if err != nil {
 			log.Printf("AuthMiddleware: invalid access token: %v", err)
-			usercontext.SetEcho(c, uc)
+			SetEchoPrincipal(c, p)
 			return next(c)
 		}
 
-		uc = usercontext.FromClaims(parsedClaims)
+		p = PrincipalFromClaims(parsedClaims)
 
-		tryRefresh(c, parsedClaims)
+		s.tryRefresh(c, parsedClaims)
 
-		usercontext.SetEcho(c, uc)
+		SetEchoPrincipal(c, p)
 		return next(c)
 	}
 }
 
-func IssueTokens(c *echo.Context, userClaims *claims.Claims) error {
-	accessToken, accessExp, err := GenerateAccessToken(userClaims)
+// IssueTokens generates and sets both the access and refresh token cookies
+// for the given claims.
+func (s *Service) IssueTokens(c *echo.Context, userClaims *claims.Claims) error {
+	accessToken, accessExp, err := s.GenerateAccessToken(userClaims)
 	if err != nil {
 		return err
 	}
 
-	SetAccessToken(c, accessToken, accessExp)
+	s.SetAccessToken(c, accessToken, accessExp)
 
-	refreshToken, refreshExp, err := GenerateRefreshToken(userClaims)
+	refreshToken, refreshExp, err := s.GenerateRefreshToken(userClaims)
 	if err != nil {
 		return err
 	}
 
-	SetRefreshToken(c, refreshToken, refreshExp)
+	s.SetRefreshToken(c, refreshToken, refreshExp)
 
 	return nil
 }
 
-func tryRefresh(c *echo.Context, cClaims *claims.Claims) {
+func (s *Service) tryRefresh(c *echo.Context, cClaims *claims.Claims) {
 	if !isExpiringSoon(cClaims.ExpiresAt.Unix()) {
 		return
 	}
@@ -67,12 +70,11 @@ func tryRefresh(c *echo.Context, cClaims *claims.Claims) {
 		return
 	}
 
-	_, err = jwt.Parse(refreshToken, []byte(config.Cfg.JwtRefeshSecretKey))
-	if err != nil {
+	if _, err := jwt.Parse(refreshToken, s.cfg.JWTRefreshSecretKey); err != nil {
 		return
 	}
 
-	if err := IssueTokens(c, cClaims); err != nil {
+	if err := s.IssueTokens(c, cClaims); err != nil {
 		log.Printf("AuthMiddleware: failed to refresh tokens: %v", err)
 	}
 }
@@ -81,9 +83,12 @@ func isExpiringSoon(exp int64) bool {
 	return time.Until(time.Unix(exp, 0)) < fifteenMinutes
 }
 
+// RequireLogin rejects unauthenticated requests. It only inspects the
+// Principal already attached by AuthMiddleware, so it needs no
+// configuration and stays a free function rather than a Service method.
 func RequireLogin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
-		if !usercontext.FromEcho(c).Authenticated {
+		if !PrincipalFromEcho(c).Authenticated {
 			return c.JSON(401, map[string]string{
 				"error": "unauthorized: please log in",
 			})

@@ -14,12 +14,12 @@ type Handler struct {
 
 // NewHandler creates the WebSocket handler and its connection hub.
 func NewHandler(svc *service.Services) *Handler {
-	hub := NewHub()
+	hub := NewHub(svc.GroupService)
 
 	return &Handler{
 		Services: svc,
 		Hub:      hub,
 		Group:    NewGroupHandler(hub, svc.GroupService),
-		Chat:     NewChatHandler(hub, svc.ChatService),
+		Chat:     NewChatHandler(hub, svc.GroupService),
 	}
 }

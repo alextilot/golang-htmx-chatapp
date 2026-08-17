@@ -4,18 +4,19 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/alextilot/golang-htmx-chatapp/internal/handler/ws"
+	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
-	"github.com/alextilot/golang-htmx-chatapp/internal/response"
-	"github.com/alextilot/golang-htmx-chatapp/internal/usercontext"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/alextilot/golang-htmx-chatapp/internal/validation/schema"
 	"github.com/labstack/echo/v5"
 )
 
-// GroupHandler handles HTTP and WebSocket requests for groups.
+// GroupHandler handles HTML/HTMX requests for groups.
+//
+// WebSocket connections for group chat are owned by handler/ws — this
+// handler only deals with the HTML surface (list/create/update/delete/
+// membership), so it depends on the group service, not the WS hub.
 type GroupHandler struct {
-	hub *ws.Hub
 	svc groupServicer
 }
 
@@ -29,62 +30,60 @@ type groupServicer interface {
 	AddMember(ctx context.Context, groupID string, requesterID string, newUserID string) error
 }
 
-func NewGroupHandler(hub *ws.Hub, svc groupServicer) *GroupHandler {
-	return &GroupHandler{hub: hub, svc: svc}
+func NewGroupHandler(svc groupServicer) *GroupHandler {
+	return &GroupHandler{svc: svc}
 }
 
 // List renders the list of groups for the logged-in user.
-// GET /app/groups
+// GET /groups
 func (h *GroupHandler) List(c *echo.Context) error {
-	uc := usercontext.FromEcho(c)
+	p := auth.PrincipalFromEcho(c)
 
-	groups, err := h.svc.ListForUser(c.Request().Context(), uc.ID)
+	_, err := h.svc.ListForUser(c.Request().Context(), p.ID)
 	if err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to load groups"}}
-		return response.Send(c, response.Response{
+		return sendResponse(c, Response{
 			Status: http.StatusInternalServerError,
 			Errors: fe,
 		})
 	}
 
-	return response.Send(c, response.Response{
+	return sendResponse(c, Response{
 		Status: http.StatusOK,
-		Data:   map[string]any{"groups": groups},
-		// TODO: View: pages.GroupListPage(groups),
+		// TODO: Page: pages.GroupListPage(groups),
 	})
 }
 
 // Show renders a single group's chat page.
-// GET /app/groups/:groupID
+// GET /groups/:groupID
 func (h *GroupHandler) Show(c *echo.Context) error {
-	g, err := h.svc.GetByID(c.Request().Context(), c.Param("groupID"))
+	_, err := h.svc.GetByID(c.Request().Context(), c.Param("groupID"))
 	if err != nil {
 		fe := validation.FieldErrors{validation.FieldRequest: {"Group not found"}}
-		return response.Send(c, response.Response{
+		return sendResponse(c, Response{
 			Status: http.StatusNotFound,
 			Errors: fe,
 		})
 	}
 
-	return response.Send(c, response.Response{
+	return sendResponse(c, Response{
 		Status: http.StatusOK,
-		Data:   map[string]any{"group": g},
-		// TODO: View: pages.GroupPage(g),
+		// TODO: Page: pages.GroupPage(g),
 	})
 }
 
 // Create handles new group form submission.
-// POST /app/groups
+// POST /groups
 func (h *GroupHandler) Create(c *echo.Context) error {
-	uc := usercontext.FromEcho(c)
+	p := auth.PrincipalFromEcho(c)
 
 	// 1. Bind, sanitize, validate
 	input, err := schema.HandleInput(c, schema.SanitizeGroupCreate, schema.ValidateGroupCreate)
 	if err != nil {
 		if ierr, ok := err.(*schema.InputError); ok {
-			return response.Send(c, response.Response{
+			return sendResponse(c, Response{
 				Status: http.StatusBadRequest,
-				// TODO: View: forms.GroupCreateForm(ierr.Fields),
+				// TODO: Page: forms.GroupCreateForm(ierr.Fields),
 				Errors: ierr.Fields,
 			})
 		}
@@ -92,36 +91,34 @@ func (h *GroupHandler) Create(c *echo.Context) error {
 	}
 
 	// 2. Create group
-	g, err := h.svc.Create(c.Request().Context(), uc.ID, input.Name, input.Type)
-	if err != nil {
+	if _, err := h.svc.Create(c.Request().Context(), p.ID, input.Name, input.Type); err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to create group"}}
-		return response.Send(c, response.Response{
+		return sendResponse(c, Response{
 			Status: http.StatusInternalServerError,
-			// TODO: View: forms.GroupCreateForm(fe),
+			// TODO: Page: forms.GroupCreateForm(fe),
 			Errors: fe,
 		})
 	}
 
-	// 3. Return response (HTMX partial, JSON, or redirect)
-	return response.Send(c, response.Response{
+	// 3. Return response (HTMX partial, or redirect)
+	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Data:     map[string]any{"group": g},
-		Redirect: "/app/groups",
+		Redirect: "/groups",
 	})
 }
 
 // Update handles group rename / description change.
-// PUT /app/groups/:groupID
+// PUT /groups/:groupID
 func (h *GroupHandler) Update(c *echo.Context) error {
-	uc := usercontext.FromEcho(c)
+	p := auth.PrincipalFromEcho(c)
 
 	// 1. Bind, sanitize, validate
 	input, err := schema.HandleInput(c, schema.SanitizeGroupUpdate, schema.ValidateGroupUpdate)
 	if err != nil {
 		if ierr, ok := err.(*schema.InputError); ok {
-			return response.Send(c, response.Response{
+			return sendResponse(c, Response{
 				Status: http.StatusBadRequest,
-				// TODO: View: forms.GroupEditForm(ierr.Fields),
+				// TODO: Page: forms.GroupEditForm(ierr.Fields),
 				Errors: ierr.Fields,
 			})
 		}
@@ -129,59 +126,56 @@ func (h *GroupHandler) Update(c *echo.Context) error {
 	}
 
 	// 2. Update group
-	g, err := h.svc.Update(
+	if _, err := h.svc.Update(
 		c.Request().Context(),
 		c.Param("groupID"),
-		uc.ID,
+		p.ID,
 		input.Name,
 		input.Description,
-	)
-	if err != nil {
+	); err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to update group"}}
-		return response.Send(c, response.Response{
+		return sendResponse(c, Response{
 			Status: http.StatusInternalServerError,
-			// TODO: View: forms.GroupEditForm(fe),
+			// TODO: Page: forms.GroupEditForm(fe),
 			Errors: fe,
 		})
 	}
 
-	return response.Send(c, response.Response{
+	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Data:     map[string]any{"group": g},
-		Redirect: "/app/groups",
+		Redirect: "/groups",
 	})
 }
 
 // Delete soft-deletes a group.
-// DELETE /app/groups/:groupID
+// DELETE /groups/:groupID
 func (h *GroupHandler) Delete(c *echo.Context) error {
-	uc := usercontext.FromEcho(c)
+	p := auth.PrincipalFromEcho(c)
 
-	if err := h.svc.Delete(c.Request().Context(), c.Param("groupID"), uc.ID); err != nil {
+	if err := h.svc.Delete(c.Request().Context(), c.Param("groupID"), p.ID); err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to delete group"}}
-		return response.Send(c, response.Response{
+		return sendResponse(c, Response{
 			Status: http.StatusInternalServerError,
 			Errors: fe,
 		})
 	}
 
-	return response.Send(c, response.Response{
+	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Data:     map[string]any{"deleted": true},
-		Redirect: "/app/groups",
+		Redirect: "/groups",
 	})
 }
 
 // AddMember adds a user to a group.
-// POST /app/groups/:groupID/members
+// POST /groups/:groupID/members
 func (h *GroupHandler) AddMember(c *echo.Context) error {
-	uc := usercontext.FromEcho(c)
+	p := auth.PrincipalFromEcho(c)
 
 	// 1. Bind, sanitize, validate
 	input, err := schema.HandleInput(c, schema.SanitizeGroupAddMember, schema.ValidateGroupAddMember)
 	if err != nil {
 		if ierr, ok := err.(*schema.InputError); ok {
-			return response.Send(c, response.Response{
+			return sendResponse(c, Response{
 				Status: http.StatusBadRequest,
 				Errors: ierr.Fields,
 			})
@@ -190,23 +184,16 @@ func (h *GroupHandler) AddMember(c *echo.Context) error {
 	}
 
 	// 2. Add member
-	if err := h.svc.AddMember(c.Request().Context(), c.Param("groupID"), uc.ID, input.UserID); err != nil {
+	if err := h.svc.AddMember(c.Request().Context(), c.Param("groupID"), p.ID, input.UserID); err != nil {
 		fe := validation.FieldErrors{validation.FieldServer: {"Failed to add member"}}
-		return response.Send(c, response.Response{
+		return sendResponse(c, Response{
 			Status: http.StatusInternalServerError,
 			Errors: fe,
 		})
 	}
 
-	return response.Send(c, response.Response{
+	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Data:     map[string]any{"added": true},
-		Redirect: "/app/groups/" + c.Param("groupID"),
+		Redirect: "/groups/" + c.Param("groupID"),
 	})
-}
-
-// ConnectWS upgrades the connection to WebSocket for a group's chat.
-// GET /ws/groups/:groupID
-func (h *GroupHandler) ConnectWS(c *echo.Context, ctx context.Context) error {
-	return h.hub.Handler(c, ctx)
 }

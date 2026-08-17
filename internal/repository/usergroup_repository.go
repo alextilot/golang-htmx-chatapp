@@ -35,3 +35,20 @@ func (r *UserGroupRepository) AddMember(ctx context.Context, groupID string, use
 	}
 	return r.db.WithContext(ctx).Create(membership).Error
 }
+
+// RemoveMember deletes a membership row.
+func (r *UserGroupRepository) RemoveMember(ctx context.Context, groupID string, userID string) error {
+	return r.db.WithContext(ctx).
+		Where("group_id = ? AND user_id = ?", groupID, userID).
+		Delete(&model.UserGroup{}).Error
+}
+
+// ListMemberIDs returns the user IDs of every member of a group.
+func (r *UserGroupRepository) ListMemberIDs(ctx context.Context, groupID string) ([]string, error) {
+	var ids []string
+	err := r.db.WithContext(ctx).
+		Model(&model.UserGroup{}).
+		Where("group_id = ?", groupID).
+		Pluck("user_id", &ids).Error
+	return ids, err
+}

@@ -6,6 +6,7 @@ type Repositories struct {
 	UserRepo      *UserRepository
 	GroupRepo     *GroupRepository
 	UserGroupRepo *UserGroupRepository
+	MessageRepo   *MessageRepository
 }
 
 func NewRepositories(db *gorm.DB) *Repositories {
@@ -13,5 +14,6 @@ func NewRepositories(db *gorm.DB) *Repositories {
 		UserRepo:      NewUserRepository(db),
 		GroupRepo:     NewGroupRepository(db),
 		UserGroupRepo: NewUserGroupRepository(db),
+		MessageRepo:   NewMessageRepository(db),
 	}
 }

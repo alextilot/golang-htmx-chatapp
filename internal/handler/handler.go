@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/handler/api"
 	"github.com/alextilot/golang-htmx-chatapp/internal/handler/html"
 	"github.com/alextilot/golang-htmx-chatapp/internal/handler/ws"
@@ -14,10 +15,11 @@ type Handlers struct {
 	WS   *ws.Handler
 }
 
-// NewHandlers creates all transport handlers from the application's services.
-func NewHandlers(svc *service.Services) *Handlers {
+// NewHandlers creates all transport handlers from the application's
+// services and auth.Service.
+func NewHandlers(svc *service.Services, authSvc *auth.Service) *Handlers {
 	return &Handlers{
-		HTML: html.NewHandler(svc),
+		HTML: html.NewHandler(svc, authSvc),
 		API:  api.NewHandler(svc),
 		WS:   ws.NewHandler(svc),
 	}

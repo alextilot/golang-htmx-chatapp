@@ -4,7 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/alextilot/golang-htmx-chatapp/internal/usercontext"
+	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
+	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v5"
 )
@@ -21,12 +22,22 @@ type clientEvent struct {
 	client *Client
 }
 
+// ChatSender is the subset of service.GroupService the hub needs to
+// persist a chat message and learn who it was delivered to, before
+// broadcasting it to connected clients. Messages are always persisted
+// first — a WebSocket broadcast is a delivery notification for a message
+// that already exists, never the system of record for it.
+type ChatSender interface {
+	SendMessage(ctx context.Context, groupID string, senderID string, content string) (*model.Message, error)
+}
+
 // Hub maintains the set of active clients and routes messages between them.
 // All client-list mutations are serialized through the events channel to
 // avoid the need for a mutex.
 type Hub struct {
 	clients map[string]*Client
 	events  chan clientEvent
+	chat    ChatSender
 }
 
 var upgrader = websocket.Upgrader{
@@ -36,10 +47,11 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func NewHub() *Hub {
+func NewHub(chat ChatSender) *Hub {
 	return &Hub{
 		clients: make(map[string]*Client),
 		events:  make(chan clientEvent),
+		chat:    chat,
 	}
 }
 
@@ -65,12 +77,12 @@ func (h *Hub) Run(ctx context.Context) {
 }
 
 // Handler upgrades the HTTP connection to WebSocket and registers the client
-// with the hub. Requires:
-//   - auth.UserContextMiddleware to have run (provides userID)
-//   - a :groupID route param, e.g. /ws/groups/:groupID
-func (h *Hub) Handler(echoCtx *echo.Context, ctx context.Context) error {
-	uc := usercontext.FromEcho(echoCtx)
-	if !uc.Authenticated {
+// with the hub. Requires auth.Service.AuthMiddleware to have run. groupID identifies
+// which group/room the connection should be scoped to; callers read it from
+// whichever route param their endpoint uses (e.g. :groupID or :id).
+func (h *Hub) Handler(echoCtx *echo.Context, ctx context.Context, groupID string) error {
+	p := auth.PrincipalFromEcho(echoCtx)
+	if !p.Authenticated {
 		return echo.ErrUnauthorized
 	}
 
@@ -79,15 +91,34 @@ func (h *Hub) Handler(echoCtx *echo.Context, ctx context.Context) error {
 		return err
 	}
 
-	groupID := echoCtx.Param("groupID")
-
-	client := newClient(conn, h, uc.ID, uc.Username, groupID)
+	client := newClient(conn, h, p.ID, p.Username, groupID)
 	h.events <- clientEvent{kind: eventAdd, client: client}
 
 	go client.ReadPump(echoCtx)
 	go client.WritePump(echoCtx, ctx)
 
 	return nil
+}
+
+// SendMessage persists an incoming chat message via the chat service and
+// broadcasts the persisted result to every client currently viewing the
+// same group. This is the only path by which a WebSocket-originated
+// message reaches other clients — there is no direct client-to-client
+// broadcast that skips persistence.
+func (h *Hub) SendMessage(ctx context.Context, groupID string, senderID string, username string, content string) error {
+	msg, err := h.chat.SendMessage(ctx, groupID, senderID, content)
+	if err != nil {
+		return err
+	}
+
+	return h.broadcast(Message{
+		MessageID: msg.ID,
+		OwnerID:   senderID,
+		Username:  username,
+		GroupID:   groupID,
+		Time:      msg.CreatedAt,
+		Data:      msg.Content,
+	})
 }
 
 // broadcast sends a message to every client currently viewing the same group.
