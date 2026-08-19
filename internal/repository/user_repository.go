@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"gorm.io/gorm"
@@ -26,6 +27,9 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*m
 		First(&user).Error
 
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -45,8 +49,8 @@ func (r *UserRepository) FindByUsernameOrEmail(
 		First(&user).Error
 
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}

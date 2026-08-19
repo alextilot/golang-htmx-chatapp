@@ -3,10 +3,10 @@ package forms
 import (
 	"github.com/alextilot/golang-htmx-chatapp/web/components/form"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
+	"github.com/alextilot/golang-htmx-chatapp/internal/apperr"
 )
 
-templ LoginForm(fieldErrors validation.FieldErrors) {
+templ LoginForm(fieldErrors apperr.FieldErrors) {
 	<div id="login-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
 		<h1 class="text-2xl font-semibold text-center">Login</h1>
 		<form
@@ -44,9 +44,7 @@ templ LoginForm(fieldErrors validation.FieldErrors) {
 					<a href={ routes.Routes.SignupPage.Path } class="text-blue-600 hover:text-blue-800 hover:underline">Signup</a>
 				</span>
 			</div>
-			@components.FormError(fieldErrors[validation.FieldRequest])
-			@components.FormError(fieldErrors[validation.FieldServer])
-			@components.FormError(fieldErrors[validation.FieldGlobal])
+			@components.FormError(fieldErrors[apperr.FieldGlobal])
 			<div id="response-div"></div>
 		</form>
 	</div>

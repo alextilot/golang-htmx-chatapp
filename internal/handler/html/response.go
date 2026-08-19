@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
+	"github.com/alextilot/golang-htmx-chatapp/internal/apperr"
 	"github.com/alextilot/golang-htmx-chatapp/internal/constants/hx"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/alextilot/golang-htmx-chatapp/web"
 	"github.com/labstack/echo/v5"
 )
@@ -21,7 +21,7 @@ import (
 type Response struct {
 	Status   int                    // HTTP status code
 	Redirect string                 // URL to redirect to (HTMX-aware)
-	Errors   validation.FieldErrors // field errors surfaced to the view
+	Errors   apperr.FieldErrors // field errors surfaced to the view
 	Page     templ.Component        // full page — fresh browser load or HX-Boosted
 	Fragment templ.Component        // partial — HTMX swap; falls back to Page if nil
 }

@@ -197,6 +197,8 @@ Services may depend on and orchestrate other services when a workflow requires i
 
 Services are constructed centrally through `NewServices()`.
 
+Input validation and failure classification for each operation are owned by the service that exposes it — see `docs/error-handling.md`.
+
 ## `internal/handler/`
 
 Contains HTTP transport and presentation logic.
@@ -212,15 +214,14 @@ internal/handler/ws/      WebSocket
 Handlers are responsible for:
 
 - parsing HTTP input
-- binding requests
-- transport-specific validation
+- binding requests into the shape a service expects
 - calling services
 - formatting responses
 - rendering HTML
 - serializing JSON
 - managing WebSocket connections
 
-Handlers must not contain core application/business workflows.
+Handlers must not contain core application/business workflows, and must not validate request content beyond what's needed to bind it — see `docs/error-handling.md`.
 
 HTML, API, and WebSocket handlers may use the same services.
 

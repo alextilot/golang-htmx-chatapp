@@ -4,11 +4,11 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/alextilot/golang-htmx-chatapp/internal/apperr"
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation/schema"
+	"github.com/alextilot/golang-htmx-chatapp/internal/service"
 	"github.com/labstack/echo/v5"
 )
 
@@ -25,10 +25,10 @@ type GroupHandler struct {
 type groupServicer interface {
 	ListForUser(ctx context.Context, userID string) ([]model.Group, error)
 	GetByID(ctx context.Context, id string) (*model.Group, error)
-	Create(ctx context.Context, creatorID string, name string, groupType string) (*model.Group, error)
-	Update(ctx context.Context, groupID string, requesterID string, name string, description string) (*model.Group, error)
+	Create(ctx context.Context, creatorID string, input service.CreateGroupInput) (*model.Group, error)
+	Update(ctx context.Context, groupID string, requesterID string, input service.UpdateGroupInput) (*model.Group, error)
 	Delete(ctx context.Context, groupID string, requesterID string) error
-	AddMember(ctx context.Context, groupID string, requesterID string, newUserID string) error
+	AddMember(ctx context.Context, groupID string, requesterID string, input service.AddMemberInput) error
 }
 
 func NewGroupHandler(svc groupServicer) *GroupHandler {
@@ -40,13 +40,8 @@ func NewGroupHandler(svc groupServicer) *GroupHandler {
 func (h *GroupHandler) List(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
-	_, err := h.svc.ListForUser(c.Request().Context(), p.ID)
-	if err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to load groups"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			Errors: fe,
-		})
+	if _, err := h.svc.ListForUser(c.Request().Context(), p.ID); err != nil {
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{
@@ -58,13 +53,11 @@ func (h *GroupHandler) List(c *echo.Context) error {
 // Show renders a single group's chat page.
 // GET /groups/:groupID
 func (h *GroupHandler) Show(c *echo.Context) error {
-	_, err := h.svc.GetByID(c.Request().Context(), c.Param("groupID"))
-	if err != nil {
-		fe := validation.FieldErrors{validation.FieldRequest: {"Group not found"}}
-		return sendResponse(c, Response{
-			Status: http.StatusNotFound,
-			Errors: fe,
-		})
+	if _, err := h.svc.GetByID(c.Request().Context(), c.Param("groupID")); err != nil {
+		if appErr, ok := apperr.As(err); ok {
+			return sendResponse(c, Response{Status: statusFor(appErr.Kind)})
+		}
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{
@@ -78,27 +71,24 @@ func (h *GroupHandler) Show(c *echo.Context) error {
 func (h *GroupHandler) Create(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
-	// 1. Bind, sanitize, validate
-	input, err := schema.HandleInput(c, schema.SanitizeGroupCreate, schema.ValidateGroupCreate)
+	// 1. Bind
+	req, err := BindInput[GroupCreateRequest](c)
 	if err != nil {
-		if ierr, ok := err.(*schema.InputError); ok {
-			return sendResponse(c, Response{
-				Status: http.StatusBadRequest,
-				// TODO: Page: forms.GroupCreateForm(ierr.Fields),
-				Errors: ierr.Fields,
-			})
-		}
-		return err
+		fe := apperr.FieldErrors{apperr.FieldGlobal: {"We couldn't read that request."}}
+		return sendResponse(c, Response{Status: http.StatusBadRequest, Errors: fe})
 	}
 
-	// 2. Create group
-	if _, err := h.svc.Create(c.Request().Context(), p.ID, input.Name, input.Type); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to create group"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			// TODO: Page: forms.GroupCreateForm(fe),
-			Errors: fe,
-		})
+	// 2. Create group — sanitizing, validation, and business rules all
+	// happen inside the service.
+	if _, err := h.svc.Create(c.Request().Context(), p.ID, service.CreateGroupInput{
+		Name: req.Name,
+		Type: req.Type,
+	}); err != nil {
+		if appErr, ok := apperr.As(err); ok {
+			fe := fieldsOf(appErr)
+			return sendResponse(c, Response{Status: statusFor(appErr.Kind), Errors: fe})
+		}
+		return err // unexpected — let middleware handle
 	}
 
 	// 3. Return response (HTMX partial, or redirect)
@@ -113,33 +103,23 @@ func (h *GroupHandler) Create(c *echo.Context) error {
 func (h *GroupHandler) Update(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
-	// 1. Bind, sanitize, validate
-	input, err := schema.HandleInput(c, schema.SanitizeGroupUpdate, schema.ValidateGroupUpdate)
+	// 1. Bind
+	req, err := BindInput[GroupUpdateRequest](c)
 	if err != nil {
-		if ierr, ok := err.(*schema.InputError); ok {
-			return sendResponse(c, Response{
-				Status: http.StatusBadRequest,
-				// TODO: Page: forms.GroupEditForm(ierr.Fields),
-				Errors: ierr.Fields,
-			})
-		}
-		return err
+		fe := apperr.FieldErrors{apperr.FieldGlobal: {"We couldn't read that request."}}
+		return sendResponse(c, Response{Status: http.StatusBadRequest, Errors: fe})
 	}
 
 	// 2. Update group
-	if _, err := h.svc.Update(
-		c.Request().Context(),
-		c.Param("groupID"),
-		p.ID,
-		input.Name,
-		input.Description,
-	); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to update group"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			// TODO: Page: forms.GroupEditForm(fe),
-			Errors: fe,
-		})
+	if _, err := h.svc.Update(c.Request().Context(), c.Param("groupID"), p.ID, service.UpdateGroupInput{
+		Name:        req.Name,
+		Description: req.Description,
+	}); err != nil {
+		if appErr, ok := apperr.As(err); ok {
+			fe := fieldsOf(appErr)
+			return sendResponse(c, Response{Status: statusFor(appErr.Kind), Errors: fe})
+		}
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{
@@ -154,11 +134,10 @@ func (h *GroupHandler) Delete(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
 	if err := h.svc.Delete(c.Request().Context(), c.Param("groupID"), p.ID); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to delete group"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			Errors: fe,
-		})
+		if appErr, ok := apperr.As(err); ok {
+			return sendResponse(c, Response{Status: statusFor(appErr.Kind)})
+		}
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{
@@ -172,25 +151,22 @@ func (h *GroupHandler) Delete(c *echo.Context) error {
 func (h *GroupHandler) AddMember(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
-	// 1. Bind, sanitize, validate
-	input, err := schema.HandleInput(c, schema.SanitizeGroupAddMember, schema.ValidateGroupAddMember)
+	// 1. Bind
+	req, err := BindInput[GroupAddMemberRequest](c)
 	if err != nil {
-		if ierr, ok := err.(*schema.InputError); ok {
-			return sendResponse(c, Response{
-				Status: http.StatusBadRequest,
-				Errors: ierr.Fields,
-			})
-		}
-		return err
+		fe := apperr.FieldErrors{apperr.FieldGlobal: {"We couldn't read that request."}}
+		return sendResponse(c, Response{Status: http.StatusBadRequest, Errors: fe})
 	}
 
 	// 2. Add member
-	if err := h.svc.AddMember(c.Request().Context(), c.Param("groupID"), p.ID, input.UserID); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to add member"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			Errors: fe,
-		})
+	if err := h.svc.AddMember(c.Request().Context(), c.Param("groupID"), p.ID, service.AddMemberInput{
+		UserID: req.UserID,
+	}); err != nil {
+		if appErr, ok := apperr.As(err); ok {
+			fe := fieldsOf(appErr)
+			return sendResponse(c, Response{Status: statusFor(appErr.Kind), Errors: fe})
+		}
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{

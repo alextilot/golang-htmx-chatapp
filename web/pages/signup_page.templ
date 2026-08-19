@@ -3,7 +3,7 @@ package pages
 import (
 	"github.com/alextilot/golang-htmx-chatapp/web/layouts"
 	"github.com/alextilot/golang-htmx-chatapp/web/forms"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
+	"github.com/alextilot/golang-htmx-chatapp/internal/apperr"
 )
 
 templ SignupPage() {
@@ -11,7 +11,7 @@ templ SignupPage() {
 		<main class="h-full">
 			<div class="h-full relative flex flex-col justify-center">
 				<div class="w-full m-auto lg:max-w-xl">
-					@forms.SignupForm(validation.NewFieldErrors())
+					@forms.SignupForm(apperr.NewFieldErrors())
 				</div>
 			</div>
 		</main>

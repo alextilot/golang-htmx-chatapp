@@ -1,6 +1,15 @@
 package repository
 
-import "gorm.io/gorm"
+import (
+	"errors"
+
+	"gorm.io/gorm"
+)
+
+// ErrNotFound is the repository layer's own not-found signal. Callers
+// (services) check against this, never against gorm's error types
+// directly, so gorm stays an implementation detail of this package.
+var ErrNotFound = errors.New("record not found")
 
 type Repositories struct {
 	UserRepo      *UserRepository

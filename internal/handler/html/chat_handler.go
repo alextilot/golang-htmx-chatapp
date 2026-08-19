@@ -4,11 +4,11 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/alextilot/golang-htmx-chatapp/internal/apperr"
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation/schema"
+	"github.com/alextilot/golang-htmx-chatapp/internal/service"
 	"github.com/alextilot/golang-htmx-chatapp/web/pages"
 	"github.com/labstack/echo/v5"
 )
@@ -32,7 +32,7 @@ type chatServicer interface {
 	GetByID(ctx context.Context, id string) (*model.Group, error)
 	Join(ctx context.Context, groupID string, userID string) error
 	Leave(ctx context.Context, groupID string, userID string) error
-	SendMessage(ctx context.Context, groupID string, senderID string, content string) (*model.Message, error)
+	SendMessage(ctx context.Context, groupID string, senderID string, input service.SendMessageInput) (*model.Message, error)
 }
 
 func NewChatHandler(svc chatServicer) *ChatHandler {
@@ -45,11 +45,7 @@ func (h *ChatHandler) List(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
 	if _, err := h.svc.ListForUser(c.Request().Context(), p.ID); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to load chat rooms"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			Errors: fe,
-		})
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{
@@ -62,11 +58,10 @@ func (h *ChatHandler) List(c *echo.Context) error {
 // GET /chat/:id
 func (h *ChatHandler) Room(c *echo.Context) error {
 	if _, err := h.svc.GetByID(c.Request().Context(), c.Param("id")); err != nil {
-		fe := validation.FieldErrors{validation.FieldRequest: {"Chat room not found"}}
-		return sendResponse(c, Response{
-			Status: http.StatusNotFound,
-			Errors: fe,
-		})
+		if appErr, ok := apperr.As(err); ok {
+			return sendResponse(c, Response{Status: statusFor(appErr.Kind)})
+		}
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{
@@ -81,11 +76,7 @@ func (h *ChatHandler) Join(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
 	if err := h.svc.Join(c.Request().Context(), c.Param("id"), p.ID); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to join chat room"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			Errors: fe,
-		})
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{
@@ -100,11 +91,7 @@ func (h *ChatHandler) Leave(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
 	if err := h.svc.Leave(c.Request().Context(), c.Param("id"), p.ID); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to leave chat room"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			Errors: fe,
-		})
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{
@@ -122,23 +109,20 @@ func (h *ChatHandler) Leave(c *echo.Context) error {
 func (h *ChatHandler) SendMessage(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
-	input, err := schema.HandleInput(c, schema.SanitizeChatMessage, schema.ValidateChatMessage)
+	req, err := BindInput[ChatMessageRequest](c)
 	if err != nil {
-		if ierr, ok := err.(*schema.InputError); ok {
-			return sendResponse(c, Response{
-				Status: http.StatusBadRequest,
-				Errors: ierr.Fields,
-			})
-		}
-		return err
+		fe := apperr.FieldErrors{apperr.FieldGlobal: {"We couldn't read that request."}}
+		return sendResponse(c, Response{Status: http.StatusBadRequest, Errors: fe})
 	}
 
-	if _, err := h.svc.SendMessage(c.Request().Context(), c.Param("id"), p.ID, input.Content); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to send message"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			Errors: fe,
-		})
+	if _, err := h.svc.SendMessage(c.Request().Context(), c.Param("id"), p.ID, service.SendMessageInput{
+		Content: req.Content,
+	}); err != nil {
+		if appErr, ok := apperr.As(err); ok {
+			fe := fieldsOf(appErr)
+			return sendResponse(c, Response{Status: statusFor(appErr.Kind), Errors: fe})
+		}
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{

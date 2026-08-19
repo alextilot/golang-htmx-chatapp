@@ -2,6 +2,9 @@ package repository
 
 import (
 	"context"
+	"errors"
+
+	"gorm.io/gorm"
 )
 
 // CREATE
@@ -11,8 +14,12 @@ func (r *BaseRepository[T]) Create(ctx context.Context, entity *T) error {
 
 // READ
 func (r *BaseRepository[T]) FindByID(ctx context.Context, id string, out *T) error {
-	return r.db.WithContext(ctx).
+	err := r.db.WithContext(ctx).
 		First(out, "id = ?", id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return ErrNotFound
+	}
+	return err
 }
 
 // Note: there is deliberately no generic Update(ctx, id, updates any) here.

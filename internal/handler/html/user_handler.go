@@ -3,44 +3,46 @@ package html
 import (
 	"net/http"
 
+	"github.com/alextilot/golang-htmx-chatapp/internal/apperr"
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation/schema"
+	"github.com/alextilot/golang-htmx-chatapp/internal/service"
 	"github.com/alextilot/golang-htmx-chatapp/web/forms"
 	"github.com/labstack/echo/v5"
 )
 
 func (h *Handler) Login(c *echo.Context) error {
-	// 1. Bind, sanitize, validate
-	input, err := schema.HandleInput(c, schema.SanitizeUserLogin, schema.ValidateUserLogin)
+	// 1. Bind
+	req, err := BindInput[LoginRequest](c)
 	if err != nil {
-		if ierr, ok := err.(*schema.InputError); ok {
-			return sendResponse(c, Response{
-				Status: http.StatusBadRequest,
-				Page:   forms.LoginForm(ierr.Fields),
-				Errors: ierr.Fields,
-			})
-		}
-		return err // unexpected, let middleware handle
-	}
-
-	// 2. Check login information
-	user, err := h.Services.UserService.Login(c.Request().Context(), input.Username, input.Password)
-	if err != nil {
-		fe := validation.FieldErrors{
-			validation.FieldAuth: {"Invalid login information"},
-		}
+		fe := apperr.FieldErrors{apperr.FieldGlobal: {"We couldn't read that request."}}
 		return sendResponse(c, Response{
-			Status: http.StatusUnauthorized,
+			Status: http.StatusBadRequest,
 			Page:   forms.LoginForm(fe),
 			Errors: fe,
 		})
 	}
 
+	// 2. Call the service — it validates and checks credentials internally
+	user, err := h.Services.UserService.Login(c.Request().Context(), service.LoginInput{
+		Username: req.Username,
+		Password: req.Password,
+	})
+	if appErr, ok := apperr.As(err); ok {
+		fe := fieldsOf(appErr)
+		return sendResponse(c, Response{
+			Status: statusFor(appErr.Kind),
+			Page:   forms.LoginForm(fe),
+			Errors: fe,
+		})
+	}
+	if err != nil {
+		return err // unexpected, let middleware handle
+	}
+
 	// 3. Generate JWT tokens and attach the authenticated principal
 	if err := h.Auth.CreateUserSession(user, c); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate session"}}
+		fe := apperr.FieldErrors{apperr.FieldGlobal: {"Failed to generate session"}}
 		return sendResponse(c, Response{
 			Status: http.StatusInternalServerError,
 			Page:   forms.LoginForm(fe),
@@ -66,46 +68,40 @@ func (h *Handler) Logout(c *echo.Context) error {
 }
 
 func (h *Handler) SignUp(c *echo.Context) error {
-	// 1. Bind, sanitize, validate
-	input, err := schema.HandleInput(c, schema.SanitizeUserCreate, schema.ValidateUserCreate)
+	// 1. Bind
+	req, err := BindInput[SignupRequest](c)
 	if err != nil {
-		if ierr, ok := err.(*schema.InputError); ok {
-			return sendResponse(c, Response{
-				Status: http.StatusBadRequest,
-				Page:   forms.SignupForm(ierr.Fields),
-				Errors: ierr.Fields,
-			})
-		}
+		fe := apperr.FieldErrors{apperr.FieldGlobal: {"We couldn't read that request."}}
+		return sendResponse(c, Response{
+			Status: http.StatusBadRequest,
+			Page:   forms.SignupForm(fe),
+			Errors: fe,
+		})
+	}
+
+	// 2. Delegate signup — sanitizing, validation, and business rules all
+	// happen inside the service.
+	user, err := h.Services.UserService.Signup(c.Request().Context(), service.SignupInput{
+		Username:       req.Username,
+		Email:          req.Email,
+		Password:       req.Password,
+		RepeatPassword: req.RepeatPassword,
+	})
+	if appErr, ok := apperr.As(err); ok {
+		fe := fieldsOf(appErr)
+		return sendResponse(c, Response{
+			Status: statusFor(appErr.Kind),
+			Page:   forms.SignupForm(fe),
+			Errors: fe,
+		})
+	}
+	if err != nil {
 		return err // unexpected, let middleware handle
-	}
-
-	// 2. Delegate signup and additional business-level validation to the service
-	user, fe, err := h.Services.UserService.Signup(
-		c.Request().Context(),
-		input.Username,
-		input.Email,
-		input.Password,
-	)
-	if err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Error creating user"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			Page:   forms.SignupForm(fe),
-			Errors: fe,
-		})
-	}
-
-	if len(fe) > 0 {
-		return sendResponse(c, Response{
-			Status: http.StatusConflict,
-			Page:   forms.SignupForm(fe),
-			Errors: fe,
-		})
 	}
 
 	// 3. Generate JWT tokens and attach the authenticated principal
 	if err := h.Auth.CreateUserSession(user, c); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to generate session"}}
+		fe := apperr.FieldErrors{apperr.FieldGlobal: {"Failed to generate session"}}
 		return sendResponse(c, Response{
 			Status: http.StatusInternalServerError,
 			Page:   forms.SignupForm(fe),

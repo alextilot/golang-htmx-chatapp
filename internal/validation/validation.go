@@ -1,34 +1,62 @@
+// Package validation holds field-format primitives — facts about what a
+// field's format must look like, independent of any transport or service.
+// It is consumed by exactly one caller, internal/apperr.ValidateStruct; see
+// docs/error-handling.md for the ownership rules this package follows.
 package validation
 
-import "github.com/alextilot/golang-htmx-chatapp/internal/validation/core"
+import (
+	"regexp"
+	"strings"
 
-// Re-export types
-type FieldErrors = core.FieldErrors
-
-// Re-export functions
-var (
-	Validator            = core.Validator
-	ValidateStruct       = core.ValidateStruct
-	RegisterErrorMessage = core.RegisterErrorMessage
+	"github.com/go-playground/validator/v10"
 )
 
-const (
-	// FieldServer represents server or system errors (HTTP 500)
-	FieldServer = "server"
+var validate = validator.New()
 
-	// FieldRequest represents input parsing or sanitization errors (HTTP 400)
-	FieldRequest = "request"
+// Validator returns the shared validator instance. Used by
+// internal/apperr.ValidateStruct; nothing else should need it directly.
+func Validator() *validator.Validate {
+	return validate
+}
 
-	// FieldValidation represents input content or business validation errors (HTTP 400)
-	FieldValidation = "validation"
+// Error message templates by tag name, used to turn a validator.FieldError
+// into a human-readable string. Use {{field}} and {{param}} placeholders.
+var errorMessages = map[string]string{
+	"required": "The {{field}} field is required.",
+	"min":      "The {{field}} must be at least {{param}} characters.",
+	"max":      "The {{field}} must be at most {{param}} characters.",
+	"email":    "Please enter a valid email address.",
+	"eqfield":  "The {{field}} must match {{param}}.",
+}
 
-	// FieldAuth represents authentication or authorization errors (HTTP 401 / 403)
-	FieldAuth = "auth"
+// RegisterErrorMessage allows overriding or adding new templates dynamically.
+func RegisterErrorMessage(tag, message string) {
+	errorMessages[tag] = message
+}
 
-	// FieldGlobal represents global or UI messages, e.g., form-level notices
-	FieldGlobal = "global"
-)
+// GetErrorMessage formats a message template with field and param.
+func GetErrorMessage(tag, field, param string) string {
+	tmpl, ok := errorMessages[tag]
+	if !ok {
+		tmpl = "{{field}} is invalid."
+	}
+	msg := strings.ReplaceAll(tmpl, "{{field}}", field)
+	msg = strings.ReplaceAll(msg, "{{param}}", param)
+	return msg
+}
 
-func NewFieldErrors() FieldErrors {
-	return core.NewFieldErrors()
+func init() {
+	validate.RegisterValidation("password", func(fl validator.FieldLevel) bool {
+		password := fl.Field().String()
+		var (
+			hasMinLen  = len(password) >= 8
+			hasUpper   = regexp.MustCompile(`[A-Z]`).MatchString(password)
+			hasLower   = regexp.MustCompile(`[a-z]`).MatchString(password)
+			hasNumber  = regexp.MustCompile(`[0-9]`).MatchString(password)
+			hasSpecial = regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`).MatchString(password)
+		)
+		return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial
+	})
+
+	RegisterErrorMessage("password", "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.")
 }

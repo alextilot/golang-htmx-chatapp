@@ -3,8 +3,8 @@ package html
 import (
 	"net/http"
 
+	"github.com/alextilot/golang-htmx-chatapp/internal/apperr"
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
-	"github.com/alextilot/golang-htmx-chatapp/internal/validation"
 	"github.com/labstack/echo/v5"
 )
 
@@ -14,11 +14,10 @@ func (h *Handler) Profile(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
 	if _, err := h.Services.UserService.GetByID(c.Request().Context(), p.ID); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to load profile"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			Errors: fe,
-		})
+		if appErr, ok := apperr.As(err); ok {
+			return sendResponse(c, Response{Status: statusFor(appErr.Kind)})
+		}
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{
@@ -33,11 +32,10 @@ func (h *Handler) ProfileEdit(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
 	if _, err := h.Services.UserService.GetByID(c.Request().Context(), p.ID); err != nil {
-		fe := validation.FieldErrors{validation.FieldServer: {"Failed to load profile"}}
-		return sendResponse(c, Response{
-			Status: http.StatusInternalServerError,
-			Errors: fe,
-		})
+		if appErr, ok := apperr.As(err); ok {
+			return sendResponse(c, Response{Status: statusFor(appErr.Kind)})
+		}
+		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{

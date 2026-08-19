@@ -6,6 +6,7 @@ import (
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
+	"github.com/alextilot/golang-htmx-chatapp/internal/service"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v5"
 )
@@ -28,7 +29,7 @@ type clientEvent struct {
 // first — a WebSocket broadcast is a delivery notification for a message
 // that already exists, never the system of record for it.
 type ChatSender interface {
-	SendMessage(ctx context.Context, groupID string, senderID string, content string) (*model.Message, error)
+	SendMessage(ctx context.Context, groupID string, senderID string, input service.SendMessageInput) (*model.Message, error)
 }
 
 // Hub maintains the set of active clients and routes messages between them.
@@ -106,7 +107,7 @@ func (h *Hub) Handler(echoCtx *echo.Context, ctx context.Context, groupID string
 // message reaches other clients — there is no direct client-to-client
 // broadcast that skips persistence.
 func (h *Hub) SendMessage(ctx context.Context, groupID string, senderID string, username string, content string) error {
-	msg, err := h.chat.SendMessage(ctx, groupID, senderID, content)
+	msg, err := h.chat.SendMessage(ctx, groupID, senderID, service.SendMessageInput{Content: content})
 	if err != nil {
 		return err
 	}
