@@ -43,6 +43,8 @@ func main() {
 	repos := repository.NewRepositories(repository.Deps{DB: database.Conn})
 	services := service.NewServices(service.Deps{Repos: repos})
 	handlers := handler.NewHandlers(handler.Deps{Services: services, Auth: authn})
+	go handlers.WS.Hub.Run(ctx)
+
 	e := router.NewRouter(router.Deps{
 		Ctx:                  ctx,
 		Handlers:             handlers,

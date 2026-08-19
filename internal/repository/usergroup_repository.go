@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"gorm.io/gorm"
@@ -15,14 +16,18 @@ func NewUserGroupRepository(db *gorm.DB) *UserGroupRepository {
 	return &UserGroupRepository{NewBaseRepository[model.UserGroup](db)}
 }
 
-// IsMember returns true if the user belongs to the group.
+// IsMember only treats a genuine not-found as "not a member" — any other
+// error (e.g. a cancelled context) is propagated rather than misread as one.
 func (r *UserGroupRepository) IsMember(ctx context.Context, groupID string, userID string) (bool, error) {
 	var membership model.UserGroup
 	err := r.First(ctx, &membership, func(db *gorm.DB) *gorm.DB {
 		return db.Where("group_id = ? AND user_id = ?", groupID, userID)
 	})
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, nil
+	}
 	if err != nil {
-		return false, nil // not found = not a member
+		return false, err
 	}
 	return true, nil
 }

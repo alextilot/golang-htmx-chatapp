@@ -5,6 +5,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/alextilot/golang-htmx-chatapp/internal/realtime"
 	"github.com/alextilot/golang-htmx-chatapp/web/components"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -15,50 +16,57 @@ const (
 	pongWait     = 10 * time.Second
 	pingInterval = 9 * time.Second
 
-	// messageTimeFormat is the display format for chat message timestamps.
 	messageTimeFormat = "2006-01-02 3:04:05 pm"
 
-	// messageChannelBuffer is the number of messages buffered per client
-	// before the client is considered too slow and is dropped.
+	// messageChannelBuffer: once full, the receiver is dropped rather than
+	// blocking delivery to everyone else — see Hub.deliver.
 	messageChannelBuffer = 32
 )
+
+type incomingMessage struct {
+	Content string `json:"content"`
+}
 
 // Client represents a single connected WebSocket session.
 //
 // UserID ties this session to a model.User.ID so we can match it against
-// Message.OwnerID when deciding whether to render a message as "self".
+// realtime.Message.OwnerID when deciding whether to render a message as
+// "self".
 type Client struct {
 	conn     *websocket.Conn
-	hub      *Hub
+	hub      *realtime.Hub
 	ID       string // unique session ID (not the user's DB ID)
 	UserID   string // model.User.ID — set from auth session at connect time
 	Username string // denormalised from the auth principal to stamp outgoing messages
 	GroupID  string // model.Group.ID the client is currently viewing
-	send     chan Message
+	recv     <-chan realtime.Message
 }
 
-func newClient(conn *websocket.Conn, hub *Hub, userID string, username string, groupID string) *Client {
+func newClient(conn *websocket.Conn, hub *realtime.Hub, userID string, username string, groupID string) *Client {
+	id := uuid.New().String()
 	return &Client{
 		conn:     conn,
 		hub:      hub,
-		ID:       uuid.New().String(),
+		ID:       id,
 		UserID:   userID,
 		Username: username,
 		GroupID:  groupID,
-		send:     make(chan Message, messageChannelBuffer),
+		recv:     hub.Register(id, groupID, messageChannelBuffer),
 	}
 }
 
-// ReadPump pumps inbound messages from the WebSocket connection to the hub.
-// Each client runs ReadPump in its own goroutine.
-func (c *Client) ReadPump(ctx *echo.Context) {
+// ReadPump takes ctx separately from echoCtx: net/http cancels a request's
+// context as soon as its handler returns, which happens right after the
+// upgrade, so echoCtx.Request().Context() would already be cancelled by the
+// time this loop sends its first message.
+func (c *Client) ReadPump(echoCtx *echo.Context, ctx context.Context) {
 	defer func() {
 		c.conn.Close()
-		c.hub.events <- clientEvent{client: c, kind: eventRemove}
+		c.hub.Unregister(c.ID)
 	}()
 
 	if err := c.conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-		ctx.Logger().Error(err.Error())
+		echoCtx.Logger().Error(err.Error())
 		return
 	}
 
@@ -70,7 +78,7 @@ func (c *Client) ReadPump(ctx *echo.Context) {
 		var incoming incomingMessage
 		if err := c.conn.ReadJSON(&incoming); err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				ctx.Logger().Error(err.Error())
+				echoCtx.Logger().Error(err.Error())
 			}
 			return
 		}
@@ -79,8 +87,8 @@ func (c *Client) ReadPump(ctx *echo.Context) {
 			continue
 		}
 
-		if err := c.hub.SendMessage(ctx.Request().Context(), c.GroupID, c.UserID, c.Username, incoming.Content); err != nil {
-			ctx.Logger().Error(err.Error())
+		if err := c.hub.SendMessage(ctx, c.GroupID, c.UserID, c.Username, incoming.Content); err != nil {
+			echoCtx.Logger().Error(err.Error())
 			continue
 		}
 	}
@@ -91,7 +99,7 @@ func (c *Client) ReadPump(ctx *echo.Context) {
 func (c *Client) WritePump(echoCtx *echo.Context, ctx context.Context) {
 	defer func() {
 		c.conn.Close()
-		c.hub.events <- clientEvent{client: c, kind: eventRemove}
+		c.hub.Unregister(c.ID)
 	}()
 
 	ticker := time.NewTicker(pingInterval)
@@ -99,7 +107,7 @@ func (c *Client) WritePump(echoCtx *echo.Context, ctx context.Context) {
 
 	for {
 		select {
-		case msg, ok := <-c.send:
+		case msg, ok := <-c.recv:
 			if !ok {
 				return
 			}

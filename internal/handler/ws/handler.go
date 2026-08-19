@@ -1,25 +1,26 @@
 package ws
 
 import (
+	"github.com/alextilot/golang-htmx-chatapp/internal/realtime"
 	"github.com/alextilot/golang-htmx-chatapp/internal/service"
 )
 
-// Handler contains dependencies required by WebSocket handlers.
 type Handler struct {
 	Services *service.Services
-	Hub      *Hub
+	Hub      *realtime.Hub
 	Group    *GroupHandler
 	Chat     *ChatHandler
 }
 
-// NewHandler creates the WebSocket handler and its connection hub.
+// NewHandler does not start Hub's event loop — the caller must run
+// go handler.Hub.Run(ctx), or every connection will block on registering.
 func NewHandler(svc *service.Services) *Handler {
-	hub := NewHub(svc.GroupService)
+	hub := realtime.NewHub(svc.GroupService)
 
 	return &Handler{
 		Services: svc,
 		Hub:      hub,
-		Group:    NewGroupHandler(hub, svc.GroupService),
-		Chat:     NewChatHandler(hub, svc.GroupService),
+		Group:    NewGroupHandler(hub),
+		Chat:     NewChatHandler(hub),
 	}
 }

@@ -3,26 +3,22 @@ package ws
 import (
 	"context"
 
-	"github.com/alextilot/golang-htmx-chatapp/internal/service"
+	"github.com/alextilot/golang-htmx-chatapp/internal/realtime"
 	"github.com/labstack/echo/v5"
 )
 
-// GroupHandler handles WebSocket connections for group chat.
-//
-// It currently only upgrades and registers the connection with the hub;
-// the group service is retained for future authorization checks (e.g.
-// verifying membership before allowing a connection).
+// GroupHandler has no service dependency of its own — membership is
+// enforced by GroupService.SendMessage on every inbound message via the hub.
 type GroupHandler struct {
-	hub *Hub
-	svc *service.GroupService
+	hub *realtime.Hub
 }
 
-func NewGroupHandler(hub *Hub, svc *service.GroupService) *GroupHandler {
-	return &GroupHandler{hub: hub, svc: svc}
+func NewGroupHandler(hub *realtime.Hub) *GroupHandler {
+	return &GroupHandler{hub: hub}
 }
 
 // ConnectWS upgrades the connection to WebSocket for a group's chat.
 // GET /ws/groups/:groupID
 func (h *GroupHandler) ConnectWS(c *echo.Context, ctx context.Context) error {
-	return h.hub.Handler(c, ctx, c.Param("groupID"))
+	return connect(c, ctx, h.hub, c.Param("groupID"))
 }
