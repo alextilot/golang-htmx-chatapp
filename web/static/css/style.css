@@ -2,7 +2,9 @@
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/aspect-ratio";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark, cupcake, valentine, halloween, fantasy, dracula;
+}
 
 /*
     https://github.com/tailwindlabs/tailwindcss/discussions/2394
