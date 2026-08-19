@@ -18,10 +18,11 @@ func (h *Handler) Login(c *echo.Context) error {
 		fe := apperr.FieldErrors{apperr.FieldGlobal: {"We couldn't read that request."}}
 		return sendResponse(c, Response{
 			Status: http.StatusBadRequest,
-			Page:   forms.LoginForm(fe),
+			Page:   forms.LoginForm(fe, forms.LoginFormValues{}),
 			Errors: fe,
 		})
 	}
+	values := forms.LoginFormValues{Username: req.Username}
 
 	// 2. Call the service — it validates and checks credentials internally
 	user, err := h.Services.UserService.Login(c.Request().Context(), service.LoginInput{
@@ -32,7 +33,7 @@ func (h *Handler) Login(c *echo.Context) error {
 		fe := fieldsOf(appErr)
 		return sendResponse(c, Response{
 			Status: statusFor(appErr.Kind),
-			Page:   forms.LoginForm(fe),
+			Page:   forms.LoginForm(fe, values),
 			Errors: fe,
 		})
 	}
@@ -45,7 +46,7 @@ func (h *Handler) Login(c *echo.Context) error {
 		fe := apperr.FieldErrors{apperr.FieldGlobal: {"Failed to generate session"}}
 		return sendResponse(c, Response{
 			Status: http.StatusInternalServerError,
-			Page:   forms.LoginForm(fe),
+			Page:   forms.LoginForm(fe, values),
 			Errors: fe,
 		})
 	}
@@ -53,7 +54,7 @@ func (h *Handler) Login(c *echo.Context) error {
 	// 4. Redirect to the app
 	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Redirect: "/chatroom",
+		Redirect: routes.Routes.Chat.Path,
 	})
 }
 
@@ -74,10 +75,11 @@ func (h *Handler) SignUp(c *echo.Context) error {
 		fe := apperr.FieldErrors{apperr.FieldGlobal: {"We couldn't read that request."}}
 		return sendResponse(c, Response{
 			Status: http.StatusBadRequest,
-			Page:   forms.SignupForm(fe),
+			Page:   forms.SignupForm(fe, forms.SignupFormValues{}),
 			Errors: fe,
 		})
 	}
+	values := forms.SignupFormValues{Username: req.Username, Email: req.Email}
 
 	// 2. Delegate signup — sanitizing, validation, and business rules all
 	// happen inside the service.
@@ -91,7 +93,7 @@ func (h *Handler) SignUp(c *echo.Context) error {
 		fe := fieldsOf(appErr)
 		return sendResponse(c, Response{
 			Status: statusFor(appErr.Kind),
-			Page:   forms.SignupForm(fe),
+			Page:   forms.SignupForm(fe, values),
 			Errors: fe,
 		})
 	}
@@ -104,7 +106,7 @@ func (h *Handler) SignUp(c *echo.Context) error {
 		fe := apperr.FieldErrors{apperr.FieldGlobal: {"Failed to generate session"}}
 		return sendResponse(c, Response{
 			Status: http.StatusInternalServerError,
-			Page:   forms.SignupForm(fe),
+			Page:   forms.SignupForm(fe, values),
 			Errors: fe,
 		})
 	}
@@ -112,6 +114,6 @@ func (h *Handler) SignUp(c *echo.Context) error {
 	// 4. Redirect to the app
 	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Redirect: "/chatroom",
+		Redirect: routes.Routes.Chat.Path,
 	})
 }

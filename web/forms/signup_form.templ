@@ -6,7 +6,14 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/apperr"
 )
 
-templ SignupForm(fieldErrors apperr.FieldErrors) {
+// SignupFormValues carries back what the user typed so a validation error
+// doesn't wipe fields they already got right.
+type SignupFormValues struct {
+	Username string
+	Email    string
+}
+
+templ SignupForm(fieldErrors apperr.FieldErrors, values SignupFormValues) {
 	<div id="register-form" class="card shrink-0 w-full shadow-2xl bg-base-100 p-8" hx-ext="response-targets, debug">
 		<h1 class="text-2xl font-semibold text-center">Signup</h1>
 		<form
@@ -25,8 +32,19 @@ templ SignupForm(fieldErrors apperr.FieldErrors) {
 					"placeholder":  "Username",
 					"name":         "username",
 					"autocomplete": "username",
+					"value":        values.Username,
 				},
 				fieldErrors["username"],
+			)
+			@components.FormInput(
+				templ.Attributes{
+					"type":         "email",
+					"placeholder":  "Email",
+					"name":         "email",
+					"autocomplete": "email",
+					"value":        values.Email,
+				},
+				fieldErrors["email"],
 			)
 			@components.FormInput(
 				templ.Attributes{

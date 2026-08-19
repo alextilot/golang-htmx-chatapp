@@ -11,7 +11,7 @@ templ SignupPage() {
 		<main class="w-full h-full">
 			<div class="h-full relative flex flex-col justify-center items-center">
 				<div class="w-full m-auto lg:max-w-xl">
-					@forms.SignupForm(apperr.NewFieldErrors())
+					@forms.SignupForm(apperr.NewFieldErrors(), forms.SignupFormValues{})
 				</div>
 			</div>
 		</main>
