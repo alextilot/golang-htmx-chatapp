@@ -67,12 +67,16 @@ golang-htmx-chatapp/
 │   │       ├── handler.go
 │   │       └── ...
 │   │
-│   ├── router/
-│   │   └── router.go
-│   │
-│   └── web/
-│       ├── templates/
-│       └── static/
+│   └── router/
+│       └── router.go
+│
+├── web/                            # Presentation: templ templates, static assets
+│   ├── layouts/
+│   ├── pages/
+│   ├── partials/
+│   ├── components/
+│   ├── forms/
+│   └── static/
 │
 ├── migrations/
 │   └── ...
@@ -124,8 +128,7 @@ internal/
 ├── repository/
 ├── service/
 ├── handler/
-├── router/
-└── web/
+└── router/
 ```
 
 Code outside the module cannot import these packages directly.
@@ -238,15 +241,14 @@ The router is responsible for:
 
 The router must not contain application/business logic.
 
-## `internal/web/`
+## `web/`
 
-Contains presentation assets:
+Contains presentation assets: templ templates, HTMX fragments, CSS, JavaScript,
+static assets.
 
-- HTML templates
-- HTMX templates/fragments
-- CSS
-- JavaScript
-- static assets
+`web/` lives at the repository root, not under `internal/`, since it has no Go
+import-visibility need for the `internal/` boundary. See `docs/ui-structure.md`
+for how it's organized internally.
 
 ## `internal/db/`
 
@@ -366,7 +368,7 @@ Each executable should compose only the dependencies it needs.
 9. Separate HTML, REST API, and WebSocket handlers.
 10. Keep route registration in `internal/router/`.
 11. Keep database infrastructure in `internal/db/`.
-12. Keep templates and static assets in `internal/web/`.
+12. Keep templates and static assets in `web/` at the repository root (see `docs/ui-structure.md`).
 13. Keep executable-specific composition in `cmd/*`.
 14. Multiple applications may reuse the same `internal/` layers.
 15. Do not duplicate business logic between applications.
