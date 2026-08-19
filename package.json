@@ -12,7 +12,8 @@
   "license": "ISC",
   "scripts": {
     "watch": "npx @tailwindcss/cli -i './web/static/css/style.css' -o './web/static/css/style.dist.css' --watch",
-    "build": "npx @tailwindcss/cli -i './web/static/css/style.css' -o './web/static/css/style.dist.css' --minify"
+    "build": "npx @tailwindcss/cli -i './web/static/css/style.css' -o './web/static/css/style.dist.css' --minify",
+    "postinstall": "node -e \"require('fs').copyFileSync('node_modules/theme-change/index.js','web/static/js/theme-change.dist.js')\""
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
@@ -23,5 +24,8 @@
     "daisyui": "^5.7.19",
     "playwright": "^1.62.1",
     "tailwindcss": "^4.1.14"
+  },
+  "dependencies": {
+    "theme-change": "^3.0.4"
   }
 }

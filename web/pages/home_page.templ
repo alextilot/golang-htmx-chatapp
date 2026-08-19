@@ -3,6 +3,7 @@ package pages
 import (
 	"github.com/alextilot/golang-htmx-chatapp/web/layouts"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
+	"github.com/alextilot/golang-htmx-chatapp/internal/staticassets"
 )
 
 templ HomePage() {
@@ -10,7 +11,7 @@ templ HomePage() {
 		<div class="hero bg-base-200">
 			<div class="h-full hero">
 				<div class="hero-content flex-col lg:flex-row-reverse">
-					<img src="static/images/android-chrome-512x512.png" class="max-w-sm rounded-lg"/>
+					<img src={ staticassets.URL("images/android-chrome-512x512.png") } class="max-w-sm rounded-lg"/>
 					<div>
 						<h1 class="text-5xl font-bold">Chatter</h1>
 						<p class="py-6">Connect in real-time with friends. Create an account or login and chatter away!</p>
