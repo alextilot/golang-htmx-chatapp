@@ -20,26 +20,28 @@ templ NavigationBar() {
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
 					</svg>
 				</button>
-				<ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+				<ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 gap-1">
 					if userCtx.Authenticated {
 						<li><a href={ routes.Routes.Profile.Path }>Account</a></li>
 						<li><a hx-post={ routes.Routes.Logout.Path }>Logout</a></li>
 					} else {
-						<li><a href={ routes.Routes.SignupPage.Path }>Sign up</a></li>
-						<li><a href={ routes.Routes.LoginPage.Path }>Log In</a></li>
+						<li><a href={ routes.Routes.LoginPage.Path } class="btn btn-ghost btn-sm justify-start">Log In</a></li>
+						<li><a href={ routes.Routes.SignupPage.Path } class="btn btn-primary btn-sm justify-start">Sign up</a></li>
 					}
 				</ul>
 			</div>
 			<!-- Desktop menu -->
-			<ul class="menu menu-horizontal px-1 hidden md:flex">
-				if userCtx.Authenticated {
+			if userCtx.Authenticated {
+				<ul class="menu menu-horizontal px-1 hidden md:flex">
 					<li><a href={ routes.Routes.Profile.Path }>Account</a></li>
 					<li><a hx-post={ routes.Routes.Logout.Path }>Logout</a></li>
-				} else {
-					<li><a href={ routes.Routes.SignupPage.Path }>Sign up</a></li>
-					<li><a href={ routes.Routes.LoginPage.Path }>Log In</a></li>
-				}
-			</ul>
+				</ul>
+			} else {
+				<div class="hidden md:flex items-center gap-2">
+					<a href={ routes.Routes.LoginPage.Path } class="btn btn-ghost btn-sm">Log In</a>
+					<a href={ routes.Routes.SignupPage.Path } class="btn btn-primary btn-sm">Sign up</a>
+				</div>
+			}
 		</div>
 	</nav>
 }
