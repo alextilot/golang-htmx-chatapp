@@ -2,9 +2,9 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  bin = "./tmp/main"
-  full_bin = "./tmp/main"
-  cmd = "go build -tags unix -o ./tmp/main ./cmd/main"
+  bin = "./tmp/server"
+  full_bin = "./tmp/server"
+  cmd = "go build -tags unix -o ./tmp/server ./cmd/server"
   delay = 1000
   exclude_dir = ["assets", "tmp", "node_modules"]
   exclude_file = []

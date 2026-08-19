@@ -2,9 +2,9 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  bin = "./tmp/main.exe"
-  full_bin = "tmp/main.exe"
-  cmd = "go build -tags windows -o ./tmp/main.exe ./cmd/main"
+  bin = "./tmp/server.exe"
+  full_bin = "./tmp/server.exe"
+  cmd = "go build -tags windows -o ./tmp/server.exe ./cmd/server"
   delay = 1000
   exclude_dir = ["assets", "tmp", "node_modules"]
   exclude_file = []

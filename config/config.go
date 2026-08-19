@@ -18,7 +18,7 @@ type Config struct {
 	JwtRefeshSecretKey string `env:"JWT_REFRESH_SECRET_KEY,required"`
 
 	// Database
-	DatabasePath string `env:"DATABASE_PATH" envDefault:"./internal/database/app_main.sqlite3"`
+	DatabasePath string `env:"DATABASE_PATH" envDefault:"./internal/db/app_main.sqlite3"`
 
 	// Cookies / Sessions
 	CookieDomain string `env:"COOKIE_DOMAIN" envDefault:"localhost"`

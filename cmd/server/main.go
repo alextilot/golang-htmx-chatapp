@@ -9,7 +9,7 @@ import (
 
 	"github.com/alextilot/golang-htmx-chatapp/config"
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
-	"github.com/alextilot/golang-htmx-chatapp/internal/database"
+	"github.com/alextilot/golang-htmx-chatapp/internal/db"
 	"github.com/alextilot/golang-htmx-chatapp/internal/handler"
 	"github.com/alextilot/golang-htmx-chatapp/internal/repository"
 	"github.com/alextilot/golang-htmx-chatapp/internal/router"
@@ -27,12 +27,12 @@ func main() {
 
 	cfg := config.Load()
 
-	db := database.NewDatabase(database.Config{DSN: cfg.DatabasePath})
-	defer db.Close()
+	database := db.NewDatabase(db.Config{DSN: cfg.DatabasePath})
+	defer database.Close()
 
 	// TODO: Move database migrations out of application startup.
 	// Production should run migrations through a dedicated migration process.
-	db.AutoMigrate()
+	database.AutoMigrate()
 
 	authn := auth.New(auth.Config{
 		JWTSecretKey:        []byte(cfg.JwtSecretKey),
@@ -40,7 +40,7 @@ func main() {
 		CookieSecure:        cfg.CookieSecure,
 	})
 
-	repos := repository.NewRepositories(repository.Deps{DB: db.Conn})
+	repos := repository.NewRepositories(repository.Deps{DB: database.Conn})
 	services := service.NewServices(service.Deps{Repos: repos})
 	handlers := handler.NewHandlers(handler.Deps{Services: services, Auth: authn})
 	e := router.NewRouter(router.Deps{

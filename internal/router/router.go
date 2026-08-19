@@ -19,7 +19,7 @@ type Deps struct {
 	Handlers *handler.Handlers
 	Auth     *auth.Service
 	// IsStaticCacheEnabled controls whether /static assets get long-lived
-	// cache headers. It's derived once, in cmd/main, from the environment
+	// cache headers. It's derived once, in cmd/server, from the environment
 	// rather than read from a global config here.
 	IsStaticCacheEnabled bool
 }

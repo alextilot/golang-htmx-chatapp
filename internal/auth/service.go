@@ -2,7 +2,7 @@ package auth
 
 // Config holds the secrets and settings the auth package needs.
 //
-// Nothing outside cmd/ reads process configuration directly — cmd/main
+// Nothing outside cmd/ reads process configuration directly — cmd/server
 // loads it once and constructs a Service with the values auth actually
 // needs, instead of the auth package reaching into a global config.
 type Config struct {
