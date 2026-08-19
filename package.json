@@ -11,7 +11,7 @@
   "author": "Alex Tilot",
   "license": "ISC",
   "scripts": {
-    "watch": "npx @tailwindcss/cli -i './web/static/css/style.css' -o './web/static/css/style.dist.css' --watch",
+    "watch": "npx @tailwindcss/cli -i './web/static/css/style.css' -o './web/static/css/style.dist.css' --watch=always",
     "build": "npx @tailwindcss/cli -i './web/static/css/style.css' -o './web/static/css/style.dist.css' --minify",
     "postinstall": "node -e \"require('fs').copyFileSync('node_modules/theme-change/index.js','web/static/js/theme-change.dist.js')\""
   },
