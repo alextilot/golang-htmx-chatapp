@@ -26,7 +26,7 @@ templ SignupForm(fieldErrors apperr.FieldErrors, values SignupFormValues) {
 			hx-swap="outerHTML"
 			hx-indicator="#spinner"
 		>
-			@components.FormInput(
+			@form.Input(
 				templ.Attributes{
 					"type":         "text",
 					"placeholder":  "Username",
@@ -36,7 +36,7 @@ templ SignupForm(fieldErrors apperr.FieldErrors, values SignupFormValues) {
 				},
 				fieldErrors["username"],
 			)
-			@components.FormInput(
+			@form.Input(
 				templ.Attributes{
 					"type":         "email",
 					"placeholder":  "Email",
@@ -46,7 +46,7 @@ templ SignupForm(fieldErrors apperr.FieldErrors, values SignupFormValues) {
 				},
 				fieldErrors["email"],
 			)
-			@components.FormInput(
+			@form.Input(
 				templ.Attributes{
 					"type":         "password",
 					"placeholder":  "Enter password",
@@ -55,7 +55,7 @@ templ SignupForm(fieldErrors apperr.FieldErrors, values SignupFormValues) {
 				},
 				fieldErrors["password"],
 			)
-			@components.FormInput(
+			@form.Input(
 				templ.Attributes{
 					"type":         "password",
 					"placeholder":  "Confirm password",
@@ -65,13 +65,13 @@ templ SignupForm(fieldErrors apperr.FieldErrors, values SignupFormValues) {
 				fieldErrors["password"],
 			)
 			<div class="form-control mt-6">
-				@components.FormButton("Sign up")
+				@form.Button("Sign up")
 				<span hx-disinherit="*">
 					Already have an account ?
 					<a href={ routes.Routes.LoginPage.Path } class="text-blue-600 hover:text-blue-800 hover:underline">Login</a>
 				</span>
 			</div>
-			@components.FormError(fieldErrors[apperr.FieldGlobal])
+			@form.Error(fieldErrors[apperr.FieldGlobal])
 			<div id="response-div"></div>
 		</form>
 	</div>

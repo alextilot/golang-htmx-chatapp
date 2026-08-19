@@ -1,10 +1,10 @@
-package components
+package form
 
 import (
 	"github.com/alextilot/golang-htmx-chatapp/web/utils"
 )
 
-templ FormRadioGroup(attrs templ.Attributes, options []string, fieldErrors []string) {
+templ RadioGroup(attrs templ.Attributes, options []string, fieldErrors []string) {
 	{{
 		name, attrs := utils.ExtractAttribute[string](attrs, "name")
 		groupLabel, attrs := utils.ExtractAttribute[string](attrs, "label")
@@ -21,6 +21,6 @@ templ FormRadioGroup(attrs templ.Attributes, options []string, fieldErrors []str
 				<span class="label-text ml-2">{ option }</span>
 			</label>
 		}
-		@FormError(fieldErrors)
+		@Error(fieldErrors)
 	</div>
 }

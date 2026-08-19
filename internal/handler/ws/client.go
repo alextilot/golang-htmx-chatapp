@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/realtime"
-	"github.com/alextilot/golang-htmx-chatapp/web/components"
+	"github.com/alextilot/golang-htmx-chatapp/web/components/chat"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v5"
@@ -114,7 +114,7 @@ func (c *Client) WritePump(echoCtx *echo.Context, ctx context.Context) {
 
 			buf := &bytes.Buffer{}
 			isSelf := msg.OwnerID == c.UserID
-			components.Message(msg.Username, msg.Data, msg.Time.Format(messageTimeFormat), isSelf).Render(ctx, buf)
+			chat.Message(msg.Username, msg.Data, msg.Time.Format(messageTimeFormat), isSelf).Render(ctx, buf)
 
 			if err := c.conn.WriteMessage(websocket.TextMessage, buf.Bytes()); err != nil {
 				echoCtx.Logger().Error(err.Error())
