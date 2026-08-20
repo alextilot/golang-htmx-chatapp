@@ -7,6 +7,11 @@ else
 	AIR_CONFIG := ./.air.unix.toml
 endif
 
+# Default seed target: a scratch DB, so seeding never touches real dev data.
+# Override to point at another file, e.g.:
+#   make db-seed DATABASE_PATH=./internal/db/app.main.sqlite3
+DATABASE_PATH ?= ./internal/db/seed.sample.sqlite3
+
 # ---------------------------------------------
 # One-time setup: install Go tools, tidy modules, install npm deps
 # ---------------------------------------------
@@ -62,6 +67,14 @@ air:
 	@echo "💨 Starting Air with config: $(AIR_CONFIG)"
 	go tool air -c $(AIR_CONFIG)
 
+
+#  ---------------------------------------------
+# Seed the database from cmd/seed/data/*.json (see DATABASE_PATH above)
+# ---------------------------------------------
+.PHONY: db-seed
+db-seed:
+	@echo "🌱 Seeding $(DATABASE_PATH)..."
+	DATABASE_PATH=$(DATABASE_PATH) go run ./cmd/seed
 
 #  ---------------------------------------------
 # Clean temp directories and generated files
