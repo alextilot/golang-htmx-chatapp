@@ -54,7 +54,7 @@ func (h *Handler) Login(c *echo.Context) error {
 	// 4. Redirect to the app
 	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Redirect: routes.Routes.Chat.Path,
+		Redirect: routes.Routes.Groups.Path,
 	})
 }
 
@@ -114,6 +114,6 @@ func (h *Handler) SignUp(c *echo.Context) error {
 	// 4. Redirect to the app
 	return sendResponse(c, Response{
 		Status:   http.StatusOK,
-		Redirect: routes.Routes.Chat.Path,
+		Redirect: routes.Routes.Groups.Path,
 	})
 }

@@ -20,8 +20,4 @@ func registerWebSocketRoutes(
 	authenticated.GET("/groups/:groupID", func(c *echo.Context) error {
 		return h.Group.ConnectWS(c, ctx)
 	})
-
-	authenticated.GET("/chat/:id", func(c *echo.Context) error {
-		return h.Chat.ConnectWS(c, ctx)
-	})
 }

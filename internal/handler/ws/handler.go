@@ -9,7 +9,6 @@ type Handler struct {
 	Services *service.Services
 	Hub      *realtime.Hub
 	Group    *GroupHandler
-	Chat     *ChatHandler
 }
 
 // NewHandler does not start Hub's event loop — the caller must run
@@ -21,6 +20,5 @@ func NewHandler(svc *service.Services) *Handler {
 		Services: svc,
 		Hub:      hub,
 		Group:    NewGroupHandler(hub),
-		Chat:     NewChatHandler(hub),
 	}
 }

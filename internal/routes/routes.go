@@ -19,7 +19,6 @@ type routeTable struct {
 	Profile    Route
 	Logout     Route
 	Groups     Route
-	Chat       Route
 }
 
 // Routes is the shared table of named website paths.
@@ -31,5 +30,4 @@ var Routes = routeTable{
 	Profile:    Route{Path: "/profile"},
 	Logout:     Route{Path: "/logout"},
 	Groups:     Route{Path: "/groups"},
-	Chat:       Route{Path: "/chat"},
 }

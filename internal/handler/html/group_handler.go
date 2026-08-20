@@ -9,6 +9,7 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
 	"github.com/alextilot/golang-htmx-chatapp/internal/service"
+	"github.com/alextilot/golang-htmx-chatapp/web/pages"
 	"github.com/labstack/echo/v5"
 )
 
@@ -29,6 +30,7 @@ type groupServicer interface {
 	Update(ctx context.Context, groupID string, requesterID string, input service.UpdateGroupInput) (*model.Group, error)
 	Delete(ctx context.Context, groupID string, requesterID string) error
 	AddMember(ctx context.Context, groupID string, requesterID string, input service.AddMemberInput) error
+	ListMessages(ctx context.Context, groupID string, userID string, limit int) ([]model.UserMessage, error)
 }
 
 func NewGroupHandler(svc groupServicer) *GroupHandler {
@@ -40,29 +42,51 @@ func NewGroupHandler(svc groupServicer) *GroupHandler {
 func (h *GroupHandler) List(c *echo.Context) error {
 	p := auth.PrincipalFromEcho(c)
 
-	if _, err := h.svc.ListForUser(c.Request().Context(), p.ID); err != nil {
+	groups, err := h.svc.ListForUser(c.Request().Context(), p.ID)
+	if err != nil {
 		return err // unexpected — let middleware handle
 	}
 
 	return sendResponse(c, Response{
 		Status: http.StatusOK,
-		// TODO: Page: pages.GroupListPage(groups),
+		Page:   pages.GroupListPage(groups, p.Username),
 	})
 }
 
 // Show renders a single group's chat page.
 // GET /groups/:groupID
 func (h *GroupHandler) Show(c *echo.Context) error {
-	if _, err := h.svc.GetByID(c.Request().Context(), c.Param("groupID")); err != nil {
+	ctx := c.Request().Context()
+	p := auth.PrincipalFromEcho(c)
+	groupID := c.Param("groupID")
+
+	group, err := h.svc.GetByID(ctx, groupID)
+	if err != nil {
 		if appErr, ok := apperr.As(err); ok {
 			return sendResponse(c, Response{Status: statusFor(appErr.Kind)})
 		}
 		return err // unexpected — let middleware handle
 	}
 
+	groups, err := h.svc.ListForUser(ctx, p.ID)
+	if err != nil {
+		return err // unexpected — let middleware handle
+	}
+
+	// ListMessages returns newest first; the page renders top-to-bottom
+	// chronologically, so this is oldest-to-newest ahead of the live
+	// messages the WebSocket appends after connecting.
+	history, err := h.svc.ListMessages(ctx, groupID, p.ID, 0)
+	if err != nil {
+		return err // unexpected — let middleware handle
+	}
+	for i, j := 0, len(history)-1; i < j; i, j = i+1, j-1 {
+		history[i], history[j] = history[j], history[i]
+	}
+
 	return sendResponse(c, Response{
 		Status: http.StatusOK,
-		// TODO: Page: pages.GroupPage(g),
+		Page:   pages.GroupPage(*group, groups, history, p.ID, p.Username),
 	})
 }
 

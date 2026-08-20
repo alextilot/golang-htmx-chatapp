@@ -18,10 +18,6 @@ type SignupRequest struct {
 	RepeatPassword string `form:"repeatPassword" json:"repeatPassword"`
 }
 
-type ChatMessageRequest struct {
-	Content string `form:"Content" json:"content"`
-}
-
 type GroupCreateRequest struct {
 	Name string `form:"name" json:"name"`
 	Type string `form:"type" json:"type"`
