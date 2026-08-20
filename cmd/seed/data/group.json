@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Pallet Town Crew",
+    "members": ["ash_ketchum", "misty", "brock", "gary_oak"],
+    "messages": [
+      { "sender": "ash_ketchum", "content": "Guys I finally caught a Charizard!! 🔥" },
+      { "sender": "misty", "content": "You mean it finally stopped disobeying you?" },
+      { "sender": "brock", "content": "Ha! Reminds me of my Onix days." },
+      { "sender": "gary_oak", "content": "Cute. I have ten of them." },
+      { "sender": "ash_ketchum", "content": "It's not about how many, Gary, it's about the bond!" },
+      { "sender": "brock", "content": "Someone's gotta cook before this turns into a rivalry battle." }
+    ]
+  },
+  {
+    "name": "Elite Four Prep",
+    "members": ["ash_ketchum", "may", "dawn"],
+    "messages": [
+      { "sender": "dawn", "content": "Ash, did you finish training for the Sinnoh League?" },
+      { "sender": "may", "content": "He's probably still stuck on type match-ups lol" },
+      { "sender": "ash_ketchum", "content": "Hey! I know Water beats Fire now!" },
+      { "sender": "dawn", "content": "...and Fire beats Grass, and Grass beats Water, right?" },
+      { "sender": "ash_ketchum", "content": "...right?" },
+      { "sender": "may", "content": "We have so much work to do." }
+    ]
+  },
+  {
+    "name": "Rival Rundown",
+    "members": ["ash_ketchum", "gary_oak", "serena"],
+    "messages": [
+      { "sender": "gary_oak", "content": "Heard you lost to a Magikarp trainer in Kalos." },
+      { "sender": "serena", "content": "It evolved mid-battle, that's not really fair to leave out." },
+      { "sender": "ash_ketchum", "content": "IT BECAME A GYARADOS, GARY." },
+      { "sender": "gary_oak", "content": "Sure it did." },
+      { "sender": "serena", "content": "I filmed it, I can send proof." }
+    ]
+  }
+]

@@ -1,18 +1,26 @@
-// Command seed populates a SQLite database with Pokémon-themed trainers,
-// groups, and messages, all written through the real UserService/
-// GroupService — not raw DB inserts — so the seeded data exercises the same
-// validation and side effects as the app itself.
+// Command seed populates a SQLite database with users, groups, and messages
+// defined in cmd/seed/data/*.json, all written through the real
+// UserService/GroupService — not raw DB inserts — so the seeded data
+// exercises the same validation and side effects as the app itself.
+//
+// This command is deliberately theme-agnostic: it knows nothing about what
+// content it's seeding, only the User/Group/Message shape. Swapping in a
+// different theme (or richer content later pulled from an external source)
+// is purely a matter of editing cmd/seed/data/*.json — no Go changes.
 //
 // Point DATABASE_PATH at a scratch file before running so this doesn't
-// touch real data, e.g.:
+// touch real data, and run from the repo root so the relative data paths
+// resolve, e.g.:
 //
-//	DATABASE_PATH=./internal/db/seed.pokemon.sqlite3 go run ./cmd/seed
+//	DATABASE_PATH=./internal/db/seed.sample.sqlite3 go run ./cmd/seed
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/alextilot/golang-htmx-chatapp/config"
 	"github.com/alextilot/golang-htmx-chatapp/internal/db"
@@ -21,28 +29,54 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/internal/service"
 )
 
-// This is a fake password.
-const seedPassword = "Pikachu1!"
+const (
+	seedPassword = "Password123!" // every seeded user gets this password
+	// File names match their model: internal/model/user.go / group.go.
+	usersFile  = "cmd/seed/data/user.json"
+	groupsFile = "cmd/seed/data/group.json"
+)
 
-type trainerSeed struct {
-	username string
-	email    string
+type userSeed struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 type messageSeed struct {
-	sender  string
-	content string
+	Sender  string `json:"sender"`
+	Content string `json:"content"`
 }
 
 type groupSeed struct {
-	name     string
-	members  []string // usernames; first is the creator
-	messages []messageSeed
+	Name     string        `json:"name"`
+	Members  []string      `json:"members"` // usernames; first is the creator
+	Messages []messageSeed `json:"messages"`
+}
+
+func loadJSON[T any](path string) (T, error) {
+	var out T
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return out, err
+	}
+	if err := json.Unmarshal(data, &out); err != nil {
+		return out, fmt.Errorf("parsing %s: %w", path, err)
+	}
+	return out, nil
 }
 
 func main() {
 	ctx := context.Background()
 	cfg := config.Load()
+
+	userSeeds, err := loadJSON[[]userSeed](usersFile)
+	if err != nil {
+		log.Fatalf("load %s: %v", usersFile, err)
+	}
+
+	groupSeeds, err := loadJSON[[]groupSeed](groupsFile)
+	if err != nil {
+		log.Fatalf("load %s: %v", groupsFile, err)
+	}
 
 	database := db.NewDatabase(db.Config{DSN: cfg.DatabasePath})
 	defer database.Close()
@@ -51,101 +85,53 @@ func main() {
 	repos := repository.NewRepositories(repository.Deps{DB: database.Conn})
 	services := service.NewServices(service.Deps{Repos: repos})
 
-	log.Printf("🌱 seeding Pokémon data into %s", cfg.DatabasePath)
+	log.Printf("🌱 seeding %s / %s into %s", usersFile, groupsFile, cfg.DatabasePath)
 
-	trainers := []trainerSeed{
-		{"ash_ketchum", "ash@pallet.town"},
-		{"misty", "misty@cerulean.gym"},
-		{"brock", "brock@pewter.gym"},
-		{"gary_oak", "gary@oak.lab"},
-		{"may", "may@hoenn.region"},
-		{"dawn", "dawn@sinnoh.region"},
-		{"serena", "serena@kalos.region"},
-	}
-
-	users := make(map[string]*model.User, len(trainers))
-	for _, t := range trainers {
-		u, err := services.UserService.Signup(ctx, service.SignupInput{
-			Username:       t.username,
-			Email:          t.email,
+	users := make(map[string]*model.User, len(userSeeds))
+	for _, u := range userSeeds {
+		created, err := services.UserService.Signup(ctx, service.SignupInput{
+			Username:       u.Username,
+			Email:          u.Email,
 			Password:       seedPassword,
 			RepeatPassword: seedPassword,
 		})
 		if err != nil {
-			log.Fatalf("signup %s: %v", t.username, err)
+			log.Fatalf("signup %s: %v", u.Username, err)
 		}
-		users[t.username] = u
+		users[u.Username] = created
 	}
 
-	groups := []groupSeed{
-		{
-			name:    "Pallet Town Crew",
-			members: []string{"ash_ketchum", "misty", "brock", "gary_oak"},
-			messages: []messageSeed{
-				{"ash_ketchum", "Guys I finally caught a Charizard!! 🔥"},
-				{"misty", "You mean it finally stopped disobeying you?"},
-				{"brock", "Ha! Reminds me of my Onix days."},
-				{"gary_oak", "Cute. I have ten of them."},
-				{"ash_ketchum", "It's not about how many, Gary, it's about the bond!"},
-				{"brock", "Someone's gotta cook before this turns into a rivalry battle."},
-			},
-		},
-		{
-			name:    "Elite Four Prep",
-			members: []string{"ash_ketchum", "may", "dawn"},
-			messages: []messageSeed{
-				{"dawn", "Ash, did you finish training for the Sinnoh League?"},
-				{"may", "He's probably still stuck on type match-ups lol"},
-				{"ash_ketchum", "Hey! I know Water beats Fire now!"},
-				{"dawn", "...and Fire beats Grass, and Grass beats Water, right?"},
-				{"ash_ketchum", "...right?"},
-				{"may", "We have so much work to do."},
-			},
-		},
-		{
-			name:    "Rival Rundown",
-			members: []string{"ash_ketchum", "gary_oak", "serena"},
-			messages: []messageSeed{
-				{"gary_oak", "Heard you lost to a Magikarp trainer in Kalos."},
-				{"serena", "It evolved mid-battle, that's not really fair to leave out."},
-				{"ash_ketchum", "IT BECAME A GYARADOS, GARY."},
-				{"gary_oak", "Sure it did."},
-				{"serena", "I filmed it, I can send proof."},
-			},
-		},
-	}
-
-	for _, g := range groups {
-		creator := users[g.members[0]]
+	for _, g := range groupSeeds {
+		creator := users[g.Members[0]]
 
 		grp, err := services.GroupService.Create(ctx, creator.ID, service.CreateGroupInput{
-			Name: g.name,
+			Name: g.Name,
 			Type: model.GroupTypeGroup,
 		})
 		if err != nil {
-			log.Fatalf("create group %s: %v", g.name, err)
+			log.Fatalf("create group %s: %v", g.Name, err)
 		}
 
-		for _, member := range g.members[1:] {
+		for _, member := range g.Members[1:] {
 			u := users[member]
 			if err := services.GroupService.AddMember(ctx, grp.ID, creator.ID, service.AddMemberInput{UserID: u.ID}); err != nil {
-				log.Fatalf("add member %s to %s: %v", member, g.name, err)
+				log.Fatalf("add member %s to %s: %v", member, g.Name, err)
 			}
 		}
 
-		for _, m := range g.messages {
-			sender := users[m.sender]
-			if _, err := services.GroupService.SendMessage(ctx, grp.ID, sender.ID, service.SendMessageInput{Content: m.content}); err != nil {
-				log.Fatalf("send message in %s: %v", g.name, err)
+		for _, m := range g.Messages {
+			sender := users[m.Sender]
+			if _, err := services.GroupService.SendMessage(ctx, grp.ID, sender.ID, service.SendMessageInput{Content: m.Content}); err != nil {
+				log.Fatalf("send message in %s: %v", g.Name, err)
 			}
 		}
 
-		log.Printf("✅ seeded group %q with %d members, %d messages", g.name, len(g.members), len(g.messages))
+		log.Printf("✅ seeded group %q with %d members, %d messages", g.Name, len(g.Members), len(g.Messages))
 	}
 
 	fmt.Println()
-	fmt.Println("Seed complete. Log in as any trainer with password:", seedPassword)
-	for _, t := range trainers {
-		fmt.Printf("  %s\n", t.username)
+	fmt.Println("Seed complete. Log in as any seeded user with password:", seedPassword)
+	for _, u := range userSeeds {
+		fmt.Printf("  %s\n", u.Username)
 	}
 }

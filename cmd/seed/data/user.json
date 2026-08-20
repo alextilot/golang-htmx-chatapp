@@ -1,0 +1,9 @@
+[
+  { "username": "ash_ketchum", "email": "ash@pallet.town" },
+  { "username": "misty", "email": "misty@cerulean.gym" },
+  { "username": "brock", "email": "brock@pewter.gym" },
+  { "username": "gary_oak", "email": "gary@oak.lab" },
+  { "username": "may", "email": "may@hoenn.region" },
+  { "username": "dawn", "email": "dawn@sinnoh.region" },
+  { "username": "serena", "email": "serena@kalos.region" }
+]
