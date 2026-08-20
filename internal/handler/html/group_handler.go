@@ -3,15 +3,22 @@ package html
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/apperr"
 	"github.com/alextilot/golang-htmx-chatapp/internal/auth"
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
 	"github.com/alextilot/golang-htmx-chatapp/internal/service"
+	"github.com/alextilot/golang-htmx-chatapp/web/components/chat"
 	"github.com/alextilot/golang-htmx-chatapp/web/pages"
 	"github.com/labstack/echo/v5"
 )
+
+// historyPageSize is how many messages a group page (or a scroll-up page
+// load) fetches at once. Getting back fewer than this means history's
+// start has been reached — see GroupHandler.Show and .Messages.
+const historyPageSize = 30
 
 // GroupHandler handles HTML/HTMX requests for groups.
 //
@@ -30,7 +37,7 @@ type groupServicer interface {
 	Update(ctx context.Context, groupID string, requesterID string, input service.UpdateGroupInput) (*model.Group, error)
 	Delete(ctx context.Context, groupID string, requesterID string) error
 	AddMember(ctx context.Context, groupID string, requesterID string, input service.AddMemberInput) error
-	ListMessages(ctx context.Context, groupID string, userID string, limit int) ([]model.UserMessage, error)
+	ListMessages(ctx context.Context, groupID string, userID string, before time.Time, limit int) ([]model.UserMessage, error)
 }
 
 func NewGroupHandler(svc groupServicer) *GroupHandler {
@@ -76,17 +83,51 @@ func (h *GroupHandler) Show(c *echo.Context) error {
 	// ListMessages returns newest first; the page renders top-to-bottom
 	// chronologically, so this is oldest-to-newest ahead of the live
 	// messages the WebSocket appends after connecting.
-	history, err := h.svc.ListMessages(ctx, groupID, p.ID, 0)
+	history, err := h.svc.ListMessages(ctx, groupID, p.ID, time.Time{}, historyPageSize)
 	if err != nil {
 		return err // unexpected — let middleware handle
 	}
+	hasMore := len(history) == historyPageSize
 	for i, j := 0, len(history)-1; i < j; i, j = i+1, j-1 {
 		history[i], history[j] = history[j], history[i]
 	}
 
 	return sendResponse(c, Response{
 		Status: http.StatusOK,
-		Page:   pages.GroupPage(*group, groups, history, p.ID, p.Username),
+		Page:   pages.GroupPage(*group, groups, history, hasMore, p.ID, p.Username),
+	})
+}
+
+// Messages returns an older page of a group's messages as an HTMX fragment,
+// for scroll-up pagination — older than the "before" query param (an
+// RFC3339Nano timestamp).
+// GET /groups/:groupID/messages
+func (h *GroupHandler) Messages(c *echo.Context) error {
+	ctx := c.Request().Context()
+	p := auth.PrincipalFromEcho(c)
+	groupID := c.Param("groupID")
+
+	var before time.Time
+	if raw := c.QueryParam("before"); raw != "" {
+		t, err := time.Parse(time.RFC3339Nano, raw)
+		if err != nil {
+			return sendResponse(c, Response{Status: http.StatusBadRequest})
+		}
+		before = t
+	}
+
+	history, err := h.svc.ListMessages(ctx, groupID, p.ID, before, historyPageSize)
+	if err != nil {
+		return err // unexpected — let middleware handle
+	}
+	hasMore := len(history) == historyPageSize
+	for i, j := 0, len(history)-1; i < j; i, j = i+1, j-1 {
+		history[i], history[j] = history[j], history[i]
+	}
+
+	return sendResponse(c, Response{
+		Status:   http.StatusOK,
+		Fragment: chat.HistoryPage(groupID, history, p.ID, hasMore),
 	})
 }
 

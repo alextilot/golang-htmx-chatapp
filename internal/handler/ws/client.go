@@ -114,7 +114,7 @@ func (c *Client) WritePump(echoCtx *echo.Context, ctx context.Context) {
 
 			buf := &bytes.Buffer{}
 			isSelf := msg.OwnerID == c.UserID
-			chat.Message(msg.Username, msg.Data, msg.Time.Format(messageTimeFormat), isSelf).Render(ctx, buf)
+			chat.LiveMessage(msg.Username, msg.Data, msg.Time.Format(messageTimeFormat), isSelf).Render(ctx, buf)
 
 			if err := c.conn.WriteMessage(websocket.TextMessage, buf.Bytes()); err != nil {
 				echoCtx.Logger().Error(err.Error())

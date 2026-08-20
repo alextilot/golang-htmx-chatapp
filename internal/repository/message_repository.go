@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"gorm.io/gorm"
@@ -48,22 +49,27 @@ func (r *MessageRepository) CreateWithRecipients(
 }
 
 // ListForGroup returns messages delivered to recipientID within groupID,
-// most recent first.
+// most recent first. If before is non-zero, only messages strictly older
+// than before are considered — used to page further back into history.
 func (r *MessageRepository) ListForGroup(
 	ctx context.Context,
 	groupID string,
 	recipientID string,
+	before time.Time,
 	limit int,
 ) ([]model.UserMessage, error) {
 	var out []model.UserMessage
 
-	err := r.db.WithContext(ctx).
+	q := r.db.WithContext(ctx).
 		Preload("Message").
 		Preload("Message.Sender").
-		Where("group_id = ? AND owner_id = ?", groupID, recipientID).
-		Order("created_at DESC").
-		Limit(limit).
-		Find(&out).Error
+		Where("group_id = ? AND owner_id = ?", groupID, recipientID)
+
+	if !before.IsZero() {
+		q = q.Where("created_at < ?", before)
+	}
+
+	err := q.Order("created_at DESC").Limit(limit).Find(&out).Error
 
 	return out, err
 }

@@ -6,11 +6,11 @@ import (
 	"github.com/alextilot/golang-htmx-chatapp/web/layouts"
 )
 
-templ GroupPage(group model.Group, groups []model.Group, history []model.UserMessage, currentUserID string, username string) {
+templ GroupPage(group model.Group, groups []model.Group, history []model.UserMessage, hasMore bool, currentUserID string, username string) {
 	@layouts.LayoutFullHeight(group.Name, false, false) {
 		<div class="flex min-h-0 flex-1 w-full">
 			@chat.Sidebar(groups, group.ID, username)
-			@chat.GroupChatroom(group.ID, history, currentUserID)
+			@chat.GroupChatroom(group.ID, history, hasMore, currentUserID)
 		</div>
 	}
 }

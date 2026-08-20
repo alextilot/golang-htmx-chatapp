@@ -85,6 +85,7 @@ func registerHTMLRoutes(e *echo.Echo, h *html.Handler) {
 	site.GET(routes.Routes.Groups.Path, h.Group.List, auth.RequireLogin)
 	site.POST(routes.Routes.Groups.Path, h.Group.Create, auth.RequireLogin)
 	site.GET(routes.Routes.Groups.Path+"/:groupID", h.Group.Show, auth.RequireLogin)
+	site.GET(routes.Routes.Groups.Path+"/:groupID/messages", h.Group.Messages, auth.RequireLogin)
 	site.PUT(routes.Routes.Groups.Path+"/:groupID", h.Group.Update, auth.RequireLogin)
 	site.DELETE(routes.Routes.Groups.Path+"/:groupID", h.Group.Delete, auth.RequireLogin)
 	site.POST(routes.Routes.Groups.Path+"/:groupID/members", h.Group.AddMember, auth.RequireLogin)

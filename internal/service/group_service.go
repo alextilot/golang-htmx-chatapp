@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/alextilot/golang-htmx-chatapp/internal/apperr"
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
@@ -224,10 +225,10 @@ func (s *GroupService) SendMessage(ctx context.Context, groupID string, senderID
 }
 
 // ListMessages returns the messages delivered to userID in groupID, most
-// recent first.
-func (s *GroupService) ListMessages(ctx context.Context, groupID string, userID string, limit int) ([]model.UserMessage, error) {
+// recent first, older than before (zero value = no cutoff).
+func (s *GroupService) ListMessages(ctx context.Context, groupID string, userID string, before time.Time, limit int) ([]model.UserMessage, error) {
 	if limit <= 0 {
 		limit = 50
 	}
-	return s.messages.ListForGroup(ctx, groupID, userID, limit)
+	return s.messages.ListForGroup(ctx, groupID, userID, before, limit)
 }

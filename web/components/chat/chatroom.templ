@@ -1,6 +1,8 @@
 package chat
 
 import (
+	"time"
+
 	"github.com/alextilot/golang-htmx-chatapp/internal/model"
 	"github.com/alextilot/golang-htmx-chatapp/web/components/avatar"
 )
@@ -70,44 +72,87 @@ templ Input() {
 	</form>
 }
 
+// Message renders one chat bubble in place — used for history (initial load
+// and scroll-up pagination), which is normal in-page content, not a swap.
 templ Message(name string, content string, time string, isSelf bool) {
-	<div hx-swap-oob="beforebegin:#chatroom-bottom">
-		<div class={ "chat", templ.KV("chat-start", !isSelf), templ.KV("chat-end", isSelf) }>
-			<div class="chat-image">
-				@avatar.Circle(name, "w-10", "", avatar.ColorFor(name), false)
-			</div>
-			<div class="chat-header">
-				{ name }
-				<time class="text-xs opacity-50">{ time }</time>
-			</div>
-			<div class="chat-bubble">{ content }</div>
-			<div class="chat-footer opacity-50">
-				Delivered
-			</div>
+	<div class={ "chat", templ.KV("chat-start", !isSelf), templ.KV("chat-end", isSelf) }>
+		<div class="chat-image">
+			@avatar.Circle(name, "w-10", "", avatar.ColorFor(name), false)
+		</div>
+		<div class="chat-header">
+			{ name }
+			<time class="text-xs opacity-50">{ time }</time>
+		</div>
+		<div class="chat-bubble">{ content }</div>
+		<div class="chat-footer opacity-50">
+			Delivered
 		</div>
 	</div>
 }
 
-// GroupChatroom is the group-scoped counterpart to Chatroom: it connects to
-// the group's own WebSocket room (rather than the single hardcoded demo
-// room) and renders history — the group's prior messages, oldest first —
-// before any live messages arrive over the socket. currentUserID decides
-// which historical messages render as "self" (chat-end) vs. others
-// (chat-start), matching Client.WritePump's isSelf check for live ones.
-templ GroupChatroom(groupID string, history []model.UserMessage, currentUserID string) {
+// LiveMessage wraps Message for WebSocket delivery: an OOB target is the
+// only way to place a message from a WS frame, which is why Message alone
+// doesn't carry one — reusing that wrapper in HistoryPage's swap responses
+// was the bug that sent scroll-up pages to the bottom instead of the top.
+templ LiveMessage(name string, content string, time string, isSelf bool) {
+	<div hx-swap-oob="beforebegin:#chatroom-bottom">
+		@Message(name, content, time, isSelf)
+	</div>
+}
+
+const messageTimeLayout = "2006-01-02 3:04:05 pm"
+
+// HistoryPage renders one batch of messages, oldest first, with a leading
+// sentinel (when hasMore) that loads the next older page on scroll-up.
+templ HistoryPage(groupID string, messages []model.UserMessage, currentUserID string, hasMore bool) {
+	if hasMore && len(messages) > 0 {
+		<div
+			class="h-1"
+			hx-get={ "/groups/" + groupID + "/messages?before=" + messages[0].CreatedAt.Format(time.RFC3339Nano) }
+			hx-trigger="intersect once"
+			hx-swap="outerHTML"
+			hx-on::before-request="beforeLoadMoreMessages()"
+			hx-on::after-swap="afterLoadMoreMessages()"
+		></div>
+	}
+	for _, um := range messages {
+		@Message(um.Message.Sender.Username, um.Message.Content, um.CreatedAt.Format(messageTimeLayout), um.Message.SenderID == currentUserID)
+	}
+}
+
+// GroupChatroom connects to the group's WebSocket room and renders the most
+// recent page of history before any live messages arrive.
+templ GroupChatroom(groupID string, history []model.UserMessage, hasMore bool, currentUserID string) {
 	<div
 		class="flex min-h-0 flex-1 flex-col"
 		hx-ext="ws"
 		ws-connect={ "/ws/groups/" + groupID }
 	>
-		<div class="min-h-0 flex-1 overflow-y-auto">
+		<div id="message-scroll" class="min-h-0 flex-1 overflow-y-auto">
 			<scroller class="scroller flex flex-col pb-4">
-				for _, um := range history {
-					@Message(um.Message.Sender.Username, um.Message.Content, um.CreatedAt.Format("2006-01-02 3:04:05 pm"), um.Message.SenderID == currentUserID)
-				}
+				@HistoryPage(groupID, history, currentUserID, hasMore)
 				<anchor id="chatroom-bottom" class="anchor"></anchor>
 			</scroller>
 		</div>
+		<script>
+			(function () {
+				var el = document.getElementById('message-scroll');
+				if (el) el.scrollTop = el.scrollHeight;
+			})();
+
+			// Prepending an older page above the scroll position would yank
+			// the view down by the new content's height without this.
+			function beforeLoadMoreMessages() {
+				var el = document.getElementById('message-scroll');
+				if (el) el.dataset.prevScrollHeight = el.scrollHeight;
+			}
+			function afterLoadMoreMessages() {
+				var el = document.getElementById('message-scroll');
+				if (el && el.dataset.prevScrollHeight) {
+					el.scrollTop += el.scrollHeight - parseInt(el.dataset.prevScrollHeight, 10);
+				}
+			}
+		</script>
 		@Input()
 	</div>
 }
