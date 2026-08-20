@@ -1,0 +1,70 @@
+// Package avatar is a generic, presentation-only component: it renders an
+// initials circle from a plain name string and knows nothing about
+// model.User/model.Group — any feature needing a stand-in avatar (sidebar
+// group list, profile widget, a chat message's sender) uses this instead of
+// duplicating the same markup.
+package avatar
+
+import (
+	"hash/fnv"
+	"strings"
+)
+
+var colors = []string{
+	"bg-primary text-primary-content",
+	"bg-secondary text-secondary-content",
+	"bg-accent text-accent-content",
+	"bg-info text-info-content",
+	"bg-success text-success-content",
+	"bg-warning text-warning-content",
+}
+
+// Neutral is for a "this is you" avatar (the logged-in user's own profile
+// widget) — deliberately distinct from the cycled/hashed colors used to
+// tell other people apart.
+const Neutral = "bg-neutral text-neutral-content"
+
+// ColorAt returns a cycled color for index i — deterministic and stable
+// for a fixed-order list, e.g. a sidebar's group list.
+func ColorAt(i int) string {
+	return colors[i%len(colors)]
+}
+
+// ColorFor returns a color deterministically derived from name — stable
+// across renders for something whose position isn't fixed, e.g. a message
+// sender in a chat history.
+func ColorFor(name string) string {
+	h := fnv.New32a()
+	h.Write([]byte(name))
+	return colors[int(h.Sum32())%len(colors)]
+}
+
+// Initials returns up to two uppercase initials from name, e.g.
+// "Ash Ketchum" -> "AK", "misty" -> "M".
+func Initials(name string) string {
+	fields := strings.Fields(name)
+	switch len(fields) {
+	case 0:
+		return "?"
+	case 1:
+		r := []rune(fields[0])
+		return strings.ToUpper(string(r[0]))
+	default:
+		first := []rune(fields[0])
+		last := []rune(fields[len(fields)-1])
+		return strings.ToUpper(string(first[0]) + string(last[0]))
+	}
+}
+
+// Circle renders a DaisyUI avatar-placeholder circle showing name's
+// initials. sizeClass sets the circle's diameter (e.g. "w-8", "w-10"),
+// textSizeClass sets the initials' font size (e.g. "text-xs", or "" for
+// default), colorClass sets the background/foreground pair (ColorAt,
+// ColorFor, or Neutral), and online adds a presence dot (avatar-online).
+templ Circle(name string, sizeClass string, textSizeClass string, colorClass string, online bool) {
+	<div class={ "avatar avatar-placeholder", templ.KV("avatar-online", online) }>
+		<div class={ sizeClass + " rounded-full " + colorClass }>
+			<span class={ textSizeClass }>{ Initials(name) }</span>
+		</div>
+	</div>
+}

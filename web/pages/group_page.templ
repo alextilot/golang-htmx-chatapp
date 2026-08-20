@@ -1,0 +1,16 @@
+package pages
+
+import (
+	"github.com/alextilot/golang-htmx-chatapp/internal/model"
+	"github.com/alextilot/golang-htmx-chatapp/web/components/chat"
+	"github.com/alextilot/golang-htmx-chatapp/web/layouts"
+)
+
+templ GroupPage(group model.Group, groups []model.Group, history []model.UserMessage, currentUserID string, username string) {
+	@layouts.LayoutFullHeight(group.Name, false, false) {
+		<div class="flex min-h-0 flex-1 w-full">
+			@chat.Sidebar(groups, group.ID, username)
+			@chat.GroupChatroom(group.ID, history, currentUserID)
+		</div>
+	}
+}

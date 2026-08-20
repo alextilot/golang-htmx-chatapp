@@ -1,0 +1,45 @@
+package chat
+
+import (
+	"github.com/alextilot/golang-htmx-chatapp/internal/model"
+	"github.com/alextilot/golang-htmx-chatapp/internal/routes"
+	"github.com/alextilot/golang-htmx-chatapp/web/components/avatar"
+	"github.com/alextilot/golang-htmx-chatapp/web/partials"
+)
+
+// Sidebar is the Discord-style rail: the logged-in user's groups on top,
+// their own profile pinned to the bottom-left. activeGroupID highlights the
+// group currently open; pass "" from GroupListPage where nothing is open yet.
+templ Sidebar(groups []model.Group, activeGroupID string, username string) {
+	<aside class="flex h-full w-64 flex-none flex-col border-r border-base-300 bg-base-200">
+		<div class="min-h-0 flex-1 overflow-y-auto p-2">
+			<ul class="menu w-full gap-1">
+				<li class="menu-title">Groups</li>
+				for i, g := range groups {
+					<li>
+						<a href={ routes.Routes.Groups.Path + "/" + g.ID } class={ templ.KV("menu-active", g.ID == activeGroupID) }>
+							@avatar.Circle(g.Name, "w-8", "text-xs", avatar.ColorAt(i), false)
+							<span class="truncate">{ g.Name }</span>
+						</a>
+					</li>
+				}
+			</ul>
+		</div>
+		<div class="dropdown dropdown-top dropdown-end flex-none border-t border-base-300 p-3">
+			<button tabindex="0" class="flex w-full items-center gap-3 rounded-lg p-1 text-left hover:bg-base-300">
+				@avatar.Circle(username, "w-9", "", avatar.Neutral, true)
+				<div class="flex-1 truncate">
+					<p class="truncate text-sm font-semibold">{ username }</p>
+					<p class="text-xs text-success">Online</p>
+				</div>
+			</button>
+			<ul tabindex="0" class="dropdown-content menu z-50 mb-2 w-56 rounded-box bg-base-300 p-2 shadow-2xl">
+				<li class="menu-title">Theme</li>
+				@partials.ThemeRadioItems()
+				<div class="divider my-1"></div>
+				<li><a href={ routes.Routes.Profile.Path }>Profile</a></li>
+				<li><a hx-post={ routes.Routes.Logout.Path }>Logout</a></li>
+			</ul>
+		</div>
+	</aside>
+}

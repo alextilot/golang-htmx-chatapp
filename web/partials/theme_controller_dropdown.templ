@@ -26,19 +26,26 @@ templ ThemeControllerDropdown() {
 			class="dropdown-content bg-base-300 rounded-box z-50 w-52 p-2 shadow-2xl"
 			role="listbox"
 		>
-			for _, theme := range Themes {
-				<li>
-					<input
-						type="radio"
-						name="theme-dropdown"
-						class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-						aria-label={ theme }
-						value={ theme }
-						data-set-theme={ theme }
-						role="option"
-					/>
-				</li>
-			}
+			@ThemeRadioItems()
 		</ul>
 	</div>
+}
+
+// ThemeRadioItems renders one <li> per available theme as a DaisyUI
+// theme-controller radio button. The caller supplies the wrapping <ul> — a
+// standalone dropdown (see above), or a menu with other items around it
+// (e.g. the sidebar's profile dropdown).
+templ ThemeRadioItems() {
+	for _, theme := range Themes {
+		<li>
+			<input
+				type="radio"
+				name="theme-dropdown"
+				class="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+				aria-label={ theme }
+				value={ theme }
+				data-set-theme={ theme }
+			/>
+		</li>
+	}
 }
