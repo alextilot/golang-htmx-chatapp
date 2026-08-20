@@ -69,11 +69,13 @@ air:
 
 
 #  ---------------------------------------------
-# Seed the database from cmd/seed/data/*.json (see DATABASE_PATH above)
+# Drop and reseed the database from cmd/seed/data/*.json (see DATABASE_PATH
+# above) — always starts clean, so it's safe to rerun after manual testing.
 # ---------------------------------------------
 .PHONY: db-seed
 db-seed:
-	@echo "🌱 Seeding $(DATABASE_PATH)..."
+	@echo "🌱 Dropping and reseeding $(DATABASE_PATH)..."
+	@rm -f $(DATABASE_PATH)
 	DATABASE_PATH=$(DATABASE_PATH) go run ./cmd/seed
 
 #  ---------------------------------------------
