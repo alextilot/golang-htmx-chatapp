@@ -89,8 +89,11 @@ func (s *GroupService) Create(ctx context.Context, creatorID string, input Creat
 		}
 		created = g
 
-		// Add the creator as the first member.
-		return s.userGroups.AddMember(ctx, g.ID, creatorID)
+		// Add the creator as the first member, on the same transaction —
+		// s.userGroups holds the outer (non-transactional) connection, which
+		// would deadlock against the write lock this transaction is still
+		// holding on SQLite.
+		return repository.NewUserGroupRepository(tx.DB()).AddMember(ctx, g.ID, creatorID)
 	})
 
 	return created, err
